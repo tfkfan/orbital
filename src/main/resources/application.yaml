@@ -1,0 +1,35 @@
+server:
+  port: 8085
+room:
+  roomVerticleInstances: 5
+  maxPlayers: 1
+  loopRate: 50
+  initDelay: 1
+  startDelay: 5000
+  endDelay: 120000
+  testEnemies: true
+  testEnemiesCount: 20
+  testRooms: false
+  testRooms-count: 200
+game:
+  eventLoopThreads: 1
+  workerThreads: 3
+  gameThreads: 4
+  absSkillSpeed: 150.0
+  absPlayerSpeed: 50.0
+  cellsWidth: 150
+  cellsHeight: 150
+  cellOffset: 1
+  sightRadius: 400.0
+  sightAngle: 100.0
+  sightOffset: 3
+  lootDelay: 10000
+application:
+  api-url: http://localhost:8080/api/public/v1
+  security:
+    admins: abaltser13111@gmail.com
+    client:
+      provider-url: http://keycloak:1080
+      realm: jhipster
+      client-id: game_backend
+      client-secret: 5hYqc9ZemPrsCZsyXplH20nelEeqq9ps

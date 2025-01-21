@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>WebGameMultiplayer V4</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<canvas id="cnvs" style="float:left; border:1px solid black;"></canvas>
+<div style="width:300px; position:fixed; right:10px;">
+    <div>
+        <button id="joinBtn">Join</button>
+    </div>
+    <div>
+        <span>current player stats</span>
+        <div id="playerStats" class="msgDiv"></div>
+    </div>
+    <div>
+        <span>current update message</span>
+        <div id="updateMsg" class="msgDiv"></div>
+    </div>
+    <div>
+        <span>debug</span>
+        <div id="debugMsg" class="msgDiv"></div>
+    </div>
+</div>
+<script src="/types.js"></script>
+<script src="/network.js"></script>
+<script src="/main.js"></script>
+</body>
+</html>

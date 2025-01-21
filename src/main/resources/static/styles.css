@@ -1,0 +1,5 @@
+.msgDiv{
+    word-wrap: break-word;
+    min-height: 50px;
+    border: 1px solid black;
+}
