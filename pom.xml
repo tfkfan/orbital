@@ -2,119 +2,29 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
     <modelVersion>4.0.0</modelVersion>
-    <name>webgame</name>
+    <name>vertx-game-server</name>
+    <modules>
+        <module>example-server</module>
+        <module>core</module>
+    </modules>
 
-    <groupId>com.tfkfan</groupId>
-    <artifactId>webgame</artifactId>
+    <groupId>com.tfkfan.vertx</groupId>
+    <artifactId>vertx-game-server</artifactId>
     <version>1.0.0-SNAPSHOT</version>
-    <packaging>${packaging}</packaging>
+    <packaging>pom</packaging>
 
     <properties>
         <packaging>jar</packaging>
         <java.version>21</java.version>
         <lombok.version>1.18.30</lombok.version>
         <vertx.version>4.5.10</vertx.version>
+        <jackson.version>2.12.2</jackson.version>
         <slf4j.version>1.7.21</slf4j.version>
-
-        <jib-maven-plugin.architecture>amd64</jib-maven-plugin.architecture>
-        <jib-maven-plugin.image>openjdk:${java.version}</jib-maven-plugin.image>
-        <jib-maven-plugin.version>3.4.0</jib-maven-plugin.version>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
 
-    <repositories>
-        <repository>
-            <id>central</id>
-            <url>https://repo.maven.apache.org/maven2</url>
-        </repository>
-    </repositories>
-
-    <dependencyManagement>
-        <dependencies>
-            <dependency>
-                <groupId>io.vertx</groupId>
-                <artifactId>vertx-dependencies</artifactId>
-                <version>${vertx.version}</version>
-                <type>pom</type>
-                <scope>import</scope>
-            </dependency>
-        </dependencies>
-    </dependencyManagement>
-
-    <dependencies>
-        <dependency>
-            <groupId>io.vertx</groupId>
-            <artifactId>vertx-web</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>io.vertx</groupId>
-            <artifactId>vertx-config</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>io.vertx</groupId>
-            <artifactId>vertx-config-yaml</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>com.fasterxml.jackson.core</groupId>
-            <artifactId>jackson-databind</artifactId>
-            <version>2.12.2</version>
-        </dependency>
-        <dependency>
-            <groupId>org.projectlombok</groupId>
-            <artifactId>lombok</artifactId>
-            <version>${lombok.version}</version>
-            <optional>true</optional>
-        </dependency>
-        <dependency>
-            <groupId>ch.qos.logback</groupId>
-            <artifactId>logback-classic</artifactId>
-            <version>1.5.12</version>
-        </dependency>
-    </dependencies>
     <build>
         <plugins>
-            <plugin>
-                <groupId>com.google.cloud.tools</groupId>
-                <artifactId>jib-maven-plugin</artifactId>
-                <configuration>
-                    <from>
-                        <image>${jib-maven-plugin.image}</image>
-                        <platforms>
-                            <platform>
-                                <architecture>${jib-maven-plugin.architecture}</architecture>
-                                <os>linux</os>
-                            </platform>
-                        </platforms>
-                    </from>
-                    <to>
-                        <image>${project.artifactId}:latest</image>
-                    </to>
-                    <container>
-                        <entrypoint>
-                            <shell>bash</shell>
-                            <option>-c</option>
-                            <arg>/entrypoint.sh</arg>
-                        </entrypoint>
-                        <ports>
-                            <port>8080</port>
-                        </ports>
-                        <environment>
-                            <SPRING_OUTPUT_ANSI_ENABLED>ALWAYS</SPRING_OUTPUT_ANSI_ENABLED>
-                            <SLEEP>0</SLEEP>
-                        </environment>
-                        <creationTime>USE_CURRENT_TIMESTAMP</creationTime>
-                        <user>1000</user>
-                    </container>
-                    <extraDirectories>
-                        <paths>jib</paths>
-                        <permissions>
-                            <permission>
-                                <file>/entrypoint.sh</file>
-                                <mode>755</mode>
-                            </permission>
-                        </permissions>
-                    </extraDirectories>
-                </configuration>
-            </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
