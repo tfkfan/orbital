@@ -1,20 +1,22 @@
 package com.tfkfan.vertx.game.room;
 
 import com.tfkfan.vertx.configuration.Fields;
-import com.tfkfan.vertx.game.map.GameMap;
-import com.tfkfan.vertx.session.UserSession;
-import com.tfkfan.vertx.configuration.Constants;
 import com.tfkfan.vertx.configuration.MessageTypes;
-import com.tfkfan.vertx.event.*;
-import com.tfkfan.vertx.game.model.Direction;
+import com.tfkfan.vertx.event.InitPlayerEvent;
+import com.tfkfan.vertx.event.KeyDownPlayerEvent;
+import com.tfkfan.vertx.game.map.GameMap;
 import com.tfkfan.vertx.game.model.players.DefaultPlayer;
+import com.tfkfan.vertx.game.model.players.Direction;
 import com.tfkfan.vertx.manager.GameManager;
 import com.tfkfan.vertx.network.message.Message;
 import com.tfkfan.vertx.network.message.MessageType;
 import com.tfkfan.vertx.network.pack.init.GameInitPack;
-import com.tfkfan.vertx.network.pack.shared.*;
-import com.tfkfan.vertx.network.pack.update.GameUpdatePack;
+import com.tfkfan.vertx.network.pack.init.IInitPackProvider;
+import com.tfkfan.vertx.network.pack.shared.GameMessagePack;
+import com.tfkfan.vertx.network.pack.shared.GameRoomPack;
+import com.tfkfan.vertx.network.pack.shared.GameSettingsPack;
 import com.tfkfan.vertx.properties.RoomProperties;
+import com.tfkfan.vertx.session.UserSession;
 import io.vertx.core.json.JsonObject;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
@@ -27,13 +29,12 @@ import java.util.UUID;
 @Slf4j
 @Getter
 public class DefaultGameRoom extends AbstractGameRoom {
-
     private final RoomProperties roomProperties;
     private boolean started = false;
 
     public DefaultGameRoom(String verticleId, UUID gameRoomId,
                            GameMap map,
-                           GameManager<?,?,?> gameManager,
+                           GameManager<?, ?> gameManager,
                            RoomProperties roomProperties) {
         super(map, verticleId, gameRoomId, gameManager);
         this.roomProperties = roomProperties;
@@ -44,15 +45,10 @@ public class DefaultGameRoom extends AbstractGameRoom {
 
     @Override
     public void onRoomCreated(List<UserSession> userSessions) {
-        if (!userSessions.isEmpty()) super.onRoomCreated(userSessions);
-        broadcast(it -> new JsonObject().put(Fields.type, MessageTypes.GAME_ROOM_JOIN_SUCCESS)
+        super.onRoomCreated(userSessions);
+        broadcast(_ -> new JsonObject().put(Fields.type, MessageTypes.GAME_ROOM_JOIN_SUCCESS)
                 .put(Fields.data, JsonObject.mapFrom(new GameSettingsPack(roomProperties.getLoopRate())
                 )));
-
-        vertx.eventBus().publish(Constants.MATCHMAKER_ROOM_CREATE_CHANNEL, new JsonObject()
-                .put(Fields.roomId, key().toString()));
-
-        log.trace("Room {} has been created", key());
     }
 
     @Override
@@ -65,16 +61,12 @@ public class DefaultGameRoom extends AbstractGameRoom {
         );
 
         schedule(roomProperties.getEndDelay() + roomProperties.getStartDelay(),
-                (t) -> gameManager.onBattleEnd(this));
+                (_) -> gameManager.onBattleEnd(this));
         schedule(roomProperties.getStartDelay(), this::onBattleStarted);
 
-        broadcast(
-                MessageTypes.GAME_ROOM_START,
-                new GameRoomPack(
-                        OffsetDateTime.now().plus(roomProperties.getStartDelay(), ChronoUnit.MILLIS).toInstant().toEpochMilli()
-                )
-
-        );
+        broadcast(MessageTypes.GAME_ROOM_START, new GameRoomPack(
+                OffsetDateTime.now().plus(roomProperties.getStartDelay(), ChronoUnit.MILLIS).toInstant().toEpochMilli()
+        ));
         log.trace("Room {} has been started", key());
     }
 
@@ -83,37 +75,17 @@ public class DefaultGameRoom extends AbstractGameRoom {
         log.trace("Room {}. Battle has been started", key());
         started = true;
 
-        schedule((long) (5 * 1000), (t) -> respawn());
-        broadcast(
-                MessageTypes.GAME_ROOM_BATTLE_START, new GameRoomPack(
-                        OffsetDateTime.now().plus(roomProperties.getEndDelay(), ChronoUnit.MILLIS).toInstant().toEpochMilli()
-
-                )
-        );
+        schedule((long) (5 * 1000), (_) -> respawn());
+        broadcast(MessageTypes.GAME_ROOM_BATTLE_START, new GameRoomPack(
+                OffsetDateTime.now().plus(roomProperties.getEndDelay(), ChronoUnit.MILLIS).toInstant().toEpochMilli()
+        ));
     }
 
     //room's game loop
     @Override
     public void update(long timerID) {
         if (!started) return;
-
-        var playerUpdatePackList = map.getPlayers()
-                .stream()
-                .map(it -> ((DefaultPlayer) it).getUpdatePack())
-                .toList();
-
-        for (var currentPlayer : map.getPlayers()) {
-            DefaultPlayer p = (DefaultPlayer) currentPlayer;
-            if (p.isAlive()) p.update();
-            var updatePack = p.getPrivateUpdatePack();
-            p.getUserSession().send(
-                    MessageTypes.UPDATE,
-                    new GameUpdatePack(
-                            updatePack,
-                            playerUpdatePackList
-                    )
-            );
-        }
+        super.update(timerID);
     }
 
     private void respawn() {
@@ -133,19 +105,18 @@ public class DefaultGameRoom extends AbstractGameRoom {
     }
 
     private void onPlayerInitRequest(UserSession userSession, InitPlayerEvent event) {
-        userSession.send(
-                MessageTypes.INIT,
+        userSession.send(MessageTypes.INIT,
                 new GameInitPack(
-                        ((DefaultPlayer) userSession.getPlayer()).getInitPack(),
+                        userSession.getPlayer().getInitPack(),
                         roomProperties.getLoopRate(),
                         map.alivePlayers(),
-                        map.getPlayers().stream().map(it -> ((DefaultPlayer) it).getInitPack()).toList())
+                        map.getPlayers().stream().map(IInitPackProvider::getInitPack).toList())
         );
     }
 
     @Override
     public void onDestroy() {
-        sessions().forEach(userSession -> map.removePlayer((DefaultPlayer) userSession.getPlayer()));
+        sessions().forEach(userSession -> map.removePlayer(userSession.getPlayer()));
         super.onDestroy();
     }
 
@@ -153,8 +124,7 @@ public class DefaultGameRoom extends AbstractGameRoom {
     public void onRejoin(UserSession userSession, UUID reconnectKey) {
         super.onRejoin(userSession, reconnectKey);
 
-        userSession.send(
-                MessageTypes.GAME_ROOM_JOIN_SUCCESS,
+        userSession.send(MessageTypes.GAME_ROOM_JOIN_SUCCESS,
                 new GameSettingsPack(roomProperties.getLoopRate())
         );
     }
@@ -164,5 +134,4 @@ public class DefaultGameRoom extends AbstractGameRoom {
         userSession.send(new Message(MessageTypes.GAME_ROOM_CLOSE));
         super.onClose(userSession);
     }
-
 }

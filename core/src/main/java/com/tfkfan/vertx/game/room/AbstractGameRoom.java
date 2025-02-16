@@ -1,14 +1,16 @@
 package com.tfkfan.vertx.game.room;
 
+import com.tfkfan.vertx.configuration.Constants;
 import com.tfkfan.vertx.configuration.Fields;
 import com.tfkfan.vertx.configuration.MessageTypes;
 import com.tfkfan.vertx.event.Event;
 import com.tfkfan.vertx.event.listener.EventListener;
 import com.tfkfan.vertx.game.map.GameMap;
-import com.tfkfan.vertx.game.model.players.Player;
 import com.tfkfan.vertx.manager.GameManager;
 import com.tfkfan.vertx.network.message.Message;
 import com.tfkfan.vertx.network.message.MessageType;
+import com.tfkfan.vertx.network.pack.UpdatePack;
+import com.tfkfan.vertx.network.pack.update.GameUpdatePack;
 import com.tfkfan.vertx.session.UserSession;
 import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
@@ -26,12 +28,12 @@ public abstract class AbstractGameRoom implements GameRoom {
     protected final UUID gameRoomId;
     protected final String verticleId;
     protected final Vertx vertx;
-    protected final GameManager<?, ?, ?> gameManager;
+    protected final GameManager<?, ?> gameManager;
     private final List<Long> roomFutureList = new ArrayList<>();
     private final Map<String, UserSession> sessions = new HashMap<>();
     private final List<MessageConsumer<?>> consumerList = new ArrayList<>();
 
-    public AbstractGameRoom(GameMap map, String verticleId, UUID gameRoomId, GameManager<?, ?, ?> gameManager) {
+    public AbstractGameRoom(GameMap map, String verticleId, UUID gameRoomId, GameManager<?, ?> gameManager) {
         this.map = map;
         this.gameRoomId = gameRoomId;
         this.verticleId = verticleId;
@@ -63,6 +65,11 @@ public abstract class AbstractGameRoom implements GameRoom {
             this.sessions.put(userSession.getId(), userSession);
             broadcast(MessageTypes.MESSAGE, "%s successfully joined".formatted(userSession.getPlayer().getId().toString()));
         }
+
+        vertx.eventBus().publish(Constants.MATCHMAKER_ROOM_CREATE_CHANNEL, new JsonObject()
+                .put(Fields.roomId, key().toString()));
+
+        log.trace("Room {} has been created", key());
     }
 
     @Override
@@ -111,6 +118,25 @@ public abstract class AbstractGameRoom implements GameRoom {
         } catch (Exception e) {
             log.error("room update exception", e);
         }
+    }
+
+    @Override
+    public void update(long timerID) {
+        List<UpdatePack> playerUpdatePackList = map.getPlayers()
+                .stream()
+                .map(it -> {
+                    if (it.isAlive())
+                        it.update();
+                    return it.getUpdatePack();
+                })
+                .toList();
+
+        for (var currentPlayer : map.getPlayers())
+            currentPlayer.getUserSession().send(MessageTypes.UPDATE,
+                    new GameUpdatePack(
+                            currentPlayer.getPrivateUpdatePack(),
+                            playerUpdatePackList
+                    ));
     }
 
     @Override

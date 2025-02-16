@@ -16,13 +16,10 @@ public class Main {
         init();
         final Vertx vertx = Vertx.vertx();
 
-        VertxUtils.loadConfig(vertx).onSuccess(config -> {
-                    vertx.deployVerticle(GatewayVerticle.class, new DeploymentOptions()
-                                    .setConfig(new JsonObject().put(Constants.LOCAL_CONFIG, config))
-                                    .setWorkerPoolSize(100))
-                            .onSuccess(_ -> log.info("Gateway verticle started successfully."))
-                            .onFailure(e -> log.error("Gateway verticle deployment failed", e));
-                })
+        VertxUtils.loadConfig(vertx).onSuccess(config -> vertx.deployVerticle(GatewayVerticle.class, new DeploymentOptions()
+                                .setConfig(new JsonObject().put(Constants.LOCAL_CONFIG, config)))
+                        .onSuccess(_ -> log.info("Gateway verticle started successfully."))
+                        .onFailure(e -> log.error("Gateway verticle deployment failed", e)))
                 .onFailure(throwable -> log.error("Failed to load config", throwable));
     }
 

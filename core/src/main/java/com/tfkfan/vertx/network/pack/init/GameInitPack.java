@@ -11,8 +11,8 @@ import java.util.Collection;
 @AllArgsConstructor
 @NoArgsConstructor
 public class GameInitPack implements InitPack {
-    private PlayerInitPack player;
+    private InitPack player;
     private long loopRate;
     private long playersCount;
-    private Collection<PlayerInitPack> players;
+    private Collection<InitPack> players;
 }

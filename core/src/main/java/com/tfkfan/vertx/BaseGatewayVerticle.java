@@ -4,7 +4,6 @@ package com.tfkfan.vertx;
 import com.tfkfan.vertx.configuration.Constants;
 import com.tfkfan.vertx.manager.MatchmakerManager;
 import com.tfkfan.vertx.properties.ApplicationProperties;
-import io.vertx.core.AbstractVerticle;
 import io.vertx.core.DeploymentOptions;
 import io.vertx.core.Promise;
 import io.vertx.core.json.JsonObject;
@@ -14,11 +13,12 @@ import lombok.extern.slf4j.Slf4j;
 import java.util.UUID;
 
 @Slf4j
-public abstract class BaseGatewayVerticle extends AbstractVerticle {
+public abstract class BaseGatewayVerticle extends BaseVerticle {
     private MatchmakerManager matchmakerManager;
 
     @Override
-    public void start(Promise<Void> startPromise) {
+    public void start(Promise<Void> startPromise) throws Exception {
+        super.start(startPromise);
         final Router router = setupRouter();
         initRouter(router);
 
@@ -45,19 +45,25 @@ public abstract class BaseGatewayVerticle extends AbstractVerticle {
 
     private void initRoomVerticles(Long roomVerticleInstances, JsonObject ymlConfig, Promise<Void> startPromise) {
         for (int i = 0; i < roomVerticleInstances; i++) {
-            final String roomVerticleId = UUID.randomUUID().toString();
+            final String roomVerticleId = nextRoomVerticleId();
             vertx.deployVerticle(() -> createRoomVerticle().stopListener(
-                    _ -> matchmakerManager.onVerticleDisconnected(roomVerticleId)
-            ), new DeploymentOptions().setConfig(new JsonObject().put(Constants.LOCAL_CONFIG, ymlConfig).put(Constants.ROOM_VERTICAL_ID, roomVerticleId)), ar -> {
-                if (ar.succeeded()) {
-                    matchmakerManager.onVerticleConnected(roomVerticleId);
-                    log.info("Room verticle {} connected", roomVerticleId);
-                } else {
-                    log.error("Room verticle {} not initialized", roomVerticleId);
-                    startPromise.fail(ar.cause());
-                }
-            });
+                            _ -> matchmakerManager.onVerticleDisconnected(roomVerticleId)), new DeploymentOptions()
+                            .setConfig(new JsonObject().put(Constants.LOCAL_CONFIG, ymlConfig)
+                                    .put(Constants.ROOM_VERTICAL_ID, roomVerticleId)),
+                    ar -> {
+                        if (ar.succeeded()) {
+                            matchmakerManager.onVerticleConnected(roomVerticleId);
+                            log.info("Room verticle {} connected", roomVerticleId);
+                            return;
+                        }
+                        log.error("Room verticle {} not initialized", roomVerticleId);
+                        startPromise.fail(ar.cause());
+                    });
         }
+    }
+
+    protected String nextRoomVerticleId() {
+        return UUID.randomUUID().toString();
     }
 
     protected abstract BaseRoomVerticle createRoomVerticle();

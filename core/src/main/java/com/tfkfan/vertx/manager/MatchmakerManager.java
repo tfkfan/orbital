@@ -25,10 +25,11 @@ import java.util.stream.Collectors;
 
 @Slf4j
 public class MatchmakerManager extends WebSocketManager {
-    final RoomProperties roomProperties;
-    final Queue<Pair<UserSession, JsonObject>> playersQueue = new ArrayDeque<>();
-    final Map<UUID, Boolean> gameRoomMap = new HashMap<>();
-    final List<String> roomVerticleIds = new ArrayList<>();
+    protected final RoomProperties roomProperties;
+    protected final Queue<Pair<UserSession, JsonObject>> playersQueue = new ArrayDeque<>();
+    protected final Map<UUID, Boolean> gameRoomMap = new HashMap<>();
+    protected  final List<String> roomVerticleIds = new ArrayList<>();
+
     int currentRoomVerticleIndex = 0;
 
     public MatchmakerManager(RoomProperties roomProperties) {
@@ -59,9 +60,7 @@ public class MatchmakerManager extends WebSocketManager {
             return;
 
         final EventBus eventBus = vertx.eventBus();
-        eventBus.<JsonObject>consumer(Constants.MATCHMAKER_ROOM_CREATE_CHANNEL, msg -> {
-            log.info("Room {} has been created and started", msg.body().getString(Fields.roomId));
-        });
+        eventBus.<JsonObject>consumer(Constants.MATCHMAKER_ROOM_CREATE_CHANNEL, msg -> log.info("Room {} has been created and started", msg.body().getString(Fields.roomId)));
 
         eventBus.<JsonObject>consumer(Constants.MATCHMAKER_ROOM_DESTROY_CHANNEL, msg -> {
             final UUID roomId = UUID.fromString(msg.body().getString(Fields.roomId));

@@ -1,18 +1,28 @@
 package com.tfkfan.vertx.game.model.players;
 
 import com.tfkfan.vertx.configuration.Constants;
-import com.tfkfan.vertx.game.model.Direction;
 import com.tfkfan.vertx.game.room.DefaultGameRoom;
+import com.tfkfan.vertx.network.pack.InitPack;
+import com.tfkfan.vertx.network.pack.PrivateUpdatePack;
+import com.tfkfan.vertx.network.pack.UpdatePack;
 import com.tfkfan.vertx.network.pack.init.PlayerInitPack;
 import com.tfkfan.vertx.network.pack.update.PlayerUpdatePack;
 import com.tfkfan.vertx.network.pack.update.PrivatePlayerUpdatePack;
 import com.tfkfan.vertx.session.UserSession;
 import lombok.extern.slf4j.Slf4j;
 
+import java.util.Arrays;
+import java.util.Map;
+import java.util.stream.Collectors;
+
 @Slf4j
-public class DefaultPlayer extends BasePlayer<DefaultGameRoom, PlayerInitPack, PlayerUpdatePack, PrivatePlayerUpdatePack> {
+public class DefaultPlayer extends BasePlayer<DefaultGameRoom> {
+    protected Map<Direction, Boolean> movingState;
+
     public DefaultPlayer(Long id, DefaultGameRoom gameRoom, UserSession userSession) {
-        super(id, Constants.DEFAULT_COOLDOWN, gameRoom, gameRoom.gameMap(), userSession);
+        super(id, gameRoom, userSession);
+        movingState = Arrays.stream(Direction.values())
+                .collect(Collectors.toMap(direction -> direction, _ -> false));
     }
 
     public void updateState(Direction direction, boolean state) {
@@ -34,7 +44,7 @@ public class DefaultPlayer extends BasePlayer<DefaultGameRoom, PlayerInitPack, P
     }
 
     @Override
-    public PlayerUpdatePack getUpdatePack() {
+    public UpdatePack getUpdatePack() {
         return new PlayerUpdatePack(
                 id,
                 position
@@ -42,17 +52,17 @@ public class DefaultPlayer extends BasePlayer<DefaultGameRoom, PlayerInitPack, P
     }
 
     @Override
-    public PlayerInitPack getInitPack() {
+    public InitPack getInitPack() {
         return new PlayerInitPack(id, position);
     }
 
     @Override
-    public PlayerInitPack init() {
+    public InitPack init() {
         return getInitPack();
     }
 
     @Override
-    public PrivatePlayerUpdatePack getPrivateUpdatePack() {
+    public PrivateUpdatePack getPrivateUpdatePack() {
         return new PrivatePlayerUpdatePack(id);
     }
 }

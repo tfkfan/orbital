@@ -1,5 +1,6 @@
 package com.tfkfan.vertx.network.pack.update;
 
+import com.tfkfan.vertx.network.pack.PrivateUpdatePack;
 import com.tfkfan.vertx.network.pack.UpdatePack;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -11,8 +12,6 @@ import java.util.Collection;
 @AllArgsConstructor
 @NoArgsConstructor
 public class GameUpdatePack implements UpdatePack {
-    private PrivatePlayerUpdatePack player;
-    private Collection<PlayerUpdatePack> players;
-   // private Collection<StrikeUpdatePack> strikes;
-  //  private Collection<LootUpdatePack> loots;
+    private PrivateUpdatePack player;
+    private Collection<UpdatePack> players;
 }

@@ -14,25 +14,12 @@ import io.vertx.core.Vertx;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-public abstract class BaseRoomVerticle extends AbstractVerticle {
-    private String verticleId;
-    private GameManager<?, ?, ?> gameManager;
-    private StopListener stopListener;
-
-    protected BaseRoomVerticle stopListener(StopListener stopListener) {
-        this.stopListener = stopListener;
-        return this;
-    }
-
-    @Override
-    public void stop(Promise<Void> stopPromise) throws Exception {
-        super.stop(stopPromise);
-        stopListener.stop(stopPromise);
-    }
+public abstract class BaseRoomVerticle extends BaseVerticle {
+    private GameManager<?, ?> gameManager;
 
     @Override
     public void start(Promise<Void> startPromise) throws Exception {
-        verticleId = config().getString(Constants.ROOM_VERTICAL_ID);
+        super.start(startPromise);
         log.info("Starting room verticle with id {}", verticleId);
 
         try {
@@ -44,9 +31,9 @@ public abstract class BaseRoomVerticle extends AbstractVerticle {
         }
     }
 
-    protected GameManager<?,?,?> getGameManager(){
+    protected GameManager<?, ?> getGameManager() {
         return gameManager;
     }
 
-    protected abstract GameManager<?, ?, ?> createGameManager(String verticleId, Vertx vertx, RoomProperties properties);
+    protected abstract GameManager<?, ?> createGameManager(String verticleId, Vertx vertx, RoomProperties properties);
 }
