@@ -2,10 +2,8 @@ package com.tfkfan.vertx.game.room;
 
 import com.tfkfan.vertx.event.listener.GenericEventListener;
 import com.tfkfan.vertx.game.map.GameMap;
-import com.tfkfan.vertx.game.model.players.Player;
 import com.tfkfan.vertx.network.WebSocketMessageBroadcaster;
 import com.tfkfan.vertx.session.UserSession;
-import com.tfkfan.vertx.shared.Pair;
 import io.vertx.core.Handler;
 
 import java.util.Collection;
@@ -14,6 +12,10 @@ import java.util.Optional;
 import java.util.UUID;
 
 public interface GameRoom extends Runnable, WebSocketMessageBroadcaster, GenericEventListener {
+    static String constructEventListenerConsumer(UUID gameRoomId, Class<?> clazz) {
+        return "%s.%s".formatted(gameRoomId, clazz.getSimpleName()).toLowerCase();
+    }
+
     GameMap gameMap();
 
     void update(long timerID);

@@ -1,7 +1,7 @@
 package com.tfkfan.vertx.game.map;
 
-import com.tfkfan.vertx.game.model.BaseGameEntity;
-import com.tfkfan.vertx.game.model.players.DefaultPlayer;
+import com.tfkfan.vertx.game.model.GameEntity;
+import com.tfkfan.vertx.game.model.players.Player;
 
 import java.util.Collection;
 import java.util.HashMap;
@@ -10,26 +10,25 @@ import java.util.Map;
 /**
  * @author Baltser Artem tfkfan
  */
-
 public class GameMap {
-    private Map<Long, DefaultPlayer> players = new HashMap<>();
+    private Map<Long, Player> players = new HashMap<>();
 
     public GameMap() {
     }
 
-    public DefaultPlayer getPlayerById(long id) {
+    public Player getPlayerById(long id) {
         return players.get(id);
     }
 
-    public Collection<DefaultPlayer> getPlayers() {
+    public Collection<Player> getPlayers() {
         return players.values();
     }
 
-    public void addPlayer(DefaultPlayer player) {
+    public void addPlayer(Player player) {
         players.put(player.getId(), player);
     }
 
-    public void removePlayer(DefaultPlayer player) {
+    public void removePlayer(Player player) {
         players.remove(player.getId());
     }
 
@@ -38,6 +37,6 @@ public class GameMap {
     }
 
     public long alivePlayers() {
-        return players.values().stream().filter(BaseGameEntity::isAlive).count();
+        return players.values().stream().filter(GameEntity::isAlive).count();
     }
 }

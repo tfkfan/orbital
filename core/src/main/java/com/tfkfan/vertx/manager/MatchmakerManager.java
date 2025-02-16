@@ -7,13 +7,13 @@ import com.tfkfan.vertx.event.Event;
 import com.tfkfan.vertx.event.GameRoomInfoEvent;
 import com.tfkfan.vertx.event.InitPlayerEvent;
 import com.tfkfan.vertx.event.KeyDownPlayerEvent;
+import com.tfkfan.vertx.game.room.GameRoom;
 import com.tfkfan.vertx.network.message.Message;
 import com.tfkfan.vertx.properties.RoomProperties;
 import com.tfkfan.vertx.route.MessageRoute;
 import com.tfkfan.vertx.session.UserSession;
 import com.tfkfan.vertx.shared.ActionType;
 import com.tfkfan.vertx.shared.Pair;
-import com.tfkfan.vertx.shared.RoomUtils;
 import io.vertx.core.eventbus.DeliveryOptions;
 import io.vertx.core.eventbus.EventBus;
 import io.vertx.core.json.JsonArray;
@@ -111,7 +111,7 @@ public class MatchmakerManager extends WebSocketManager {
     }
 
     private <T extends Event> void onRoomEvent(UserSession userSession, JsonObject data, Class<T> eventClass) {
-        vertx.eventBus().publish(RoomUtils.constructEventListenerConsumer(userSession.getRoomKey(), eventClass), data,
+        vertx.eventBus().publish(GameRoom.constructEventListenerConsumer(userSession.getRoomKey(), eventClass), data,
                 new DeliveryOptions().addHeader(Fields.sessionId, userSession.getId()));
     }
 }

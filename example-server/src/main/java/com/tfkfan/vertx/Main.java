@@ -3,6 +3,7 @@ package com.tfkfan.vertx;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.tfkfan.vertx.configuration.Constants;
 import com.tfkfan.vertx.shared.VertxUtils;
+import com.tfkfan.vertx.verticle.GatewayVerticle;
 import io.vertx.core.DeploymentOptions;
 import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonObject;
@@ -14,6 +15,7 @@ public class Main {
     public static void main(String[] args) {
         init();
         final Vertx vertx = Vertx.vertx();
+
         VertxUtils.loadConfig(vertx).onSuccess(config -> {
                     vertx.deployVerticle(GatewayVerticle.class, new DeploymentOptions()
                                     .setConfig(new JsonObject().put(Constants.LOCAL_CONFIG, config))

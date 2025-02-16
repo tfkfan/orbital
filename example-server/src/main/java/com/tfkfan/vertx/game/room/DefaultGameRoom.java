@@ -1,12 +1,11 @@
 package com.tfkfan.vertx.game.room;
 
 import com.tfkfan.vertx.configuration.Fields;
+import com.tfkfan.vertx.game.map.GameMap;
 import com.tfkfan.vertx.session.UserSession;
 import com.tfkfan.vertx.configuration.Constants;
-import com.tfkfan.vertx.configuration.Fields;
 import com.tfkfan.vertx.configuration.MessageTypes;
 import com.tfkfan.vertx.event.*;
-import com.tfkfan.vertx.game.map.GameMap;
 import com.tfkfan.vertx.game.model.Direction;
 import com.tfkfan.vertx.game.model.players.DefaultPlayer;
 import com.tfkfan.vertx.manager.GameManager;
@@ -16,8 +15,6 @@ import com.tfkfan.vertx.network.pack.init.GameInitPack;
 import com.tfkfan.vertx.network.pack.shared.*;
 import com.tfkfan.vertx.network.pack.update.GameUpdatePack;
 import com.tfkfan.vertx.properties.RoomProperties;
-import com.tfkfan.vertx.session.UserSession;
-import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonObject;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
@@ -30,13 +27,15 @@ import java.util.UUID;
 @Slf4j
 @Getter
 public class DefaultGameRoom extends AbstractGameRoom {
-    private final GameMap map;
+
     private final RoomProperties roomProperties;
     private boolean started = false;
 
-    public DefaultGameRoom(String verticleId, UUID gameRoomId, GameManager gameManager, GameMap map, Vertx vertx,RoomProperties roomProperties) {
-        super(verticleId, gameRoomId, gameManager);
-        this.map = map;
+    public DefaultGameRoom(String verticleId, UUID gameRoomId,
+                           GameMap map,
+                           GameManager<?,?,?> gameManager,
+                           RoomProperties roomProperties) {
+        super(map, verticleId, gameRoomId, gameManager);
         this.roomProperties = roomProperties;
 
         addEventListener(this::onPlayerInitRequest, InitPlayerEvent.class);
@@ -97,14 +96,17 @@ public class DefaultGameRoom extends AbstractGameRoom {
     @Override
     public void update(long timerID) {
         if (!started) return;
+
+        var playerUpdatePackList = map.getPlayers()
+                .stream()
+                .map(it -> ((DefaultPlayer) it).getUpdatePack())
+                .toList();
+
         for (var currentPlayer : map.getPlayers()) {
-            if (currentPlayer.isAlive()) currentPlayer.update();
-            var updatePack = currentPlayer.getPrivateUpdatePack();
-            var playerUpdatePackList = map.getPlayers()
-                    .stream()
-                    .map(DefaultPlayer::getUpdatePack)
-                    .toList();
-            currentPlayer.getUserSession().send(
+            DefaultPlayer p = (DefaultPlayer) currentPlayer;
+            if (p.isAlive()) p.update();
+            var updatePack = p.getPrivateUpdatePack();
+            p.getUserSession().send(
                     MessageTypes.UPDATE,
                     new GameUpdatePack(
                             updatePack,
@@ -137,7 +139,7 @@ public class DefaultGameRoom extends AbstractGameRoom {
                         ((DefaultPlayer) userSession.getPlayer()).getInitPack(),
                         roomProperties.getLoopRate(),
                         map.alivePlayers(),
-                        map.getPlayers().stream().map(DefaultPlayer::getInitPack).toList())
+                        map.getPlayers().stream().map(it -> ((DefaultPlayer) it).getInitPack()).toList())
         );
     }
 
@@ -163,8 +165,4 @@ public class DefaultGameRoom extends AbstractGameRoom {
         super.onClose(userSession);
     }
 
-    @Override
-    public GameMap gameMap() {
-        return map;
-    }
 }

@@ -4,11 +4,12 @@ import com.tfkfan.vertx.configuration.Fields;
 import com.tfkfan.vertx.configuration.MessageTypes;
 import com.tfkfan.vertx.event.Event;
 import com.tfkfan.vertx.event.listener.EventListener;
+import com.tfkfan.vertx.game.map.GameMap;
+import com.tfkfan.vertx.game.model.players.Player;
 import com.tfkfan.vertx.manager.GameManager;
 import com.tfkfan.vertx.network.message.Message;
 import com.tfkfan.vertx.network.message.MessageType;
 import com.tfkfan.vertx.session.UserSession;
-import com.tfkfan.vertx.shared.RoomUtils;
 import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
 import io.vertx.core.eventbus.DeliveryOptions;
@@ -21,15 +22,17 @@ import java.util.function.Function;
 
 @Slf4j
 public abstract class AbstractGameRoom implements GameRoom {
+    protected final GameMap map;
     protected final UUID gameRoomId;
     protected final String verticleId;
     protected final Vertx vertx;
-    protected final GameManager gameManager;
+    protected final GameManager<?, ?, ?> gameManager;
     private final List<Long> roomFutureList = new ArrayList<>();
     private final Map<String, UserSession> sessions = new HashMap<>();
     private final List<MessageConsumer<?>> consumerList = new ArrayList<>();
 
-    public AbstractGameRoom(String verticleId, UUID gameRoomId, GameManager gameManager) {
+    public AbstractGameRoom(GameMap map, String verticleId, UUID gameRoomId, GameManager<?, ?, ?> gameManager) {
+        this.map = map;
         this.gameRoomId = gameRoomId;
         this.verticleId = verticleId;
         this.gameManager = gameManager;
@@ -38,7 +41,7 @@ public abstract class AbstractGameRoom implements GameRoom {
 
     @Override
     public <E extends Event> void addEventListener(EventListener<E> listener, Class<E> clazz) {
-        consumerList.add(vertx.eventBus().consumer(RoomUtils.constructEventListenerConsumer(gameRoomId, clazz), event -> {
+        consumerList.add(vertx.eventBus().consumer(GameRoom.constructEventListenerConsumer(gameRoomId, clazz), event -> {
             final String userSessionId = event.headers().get(Fields.sessionId);
             if (!sessions.containsKey(userSessionId))
                 return;
@@ -50,7 +53,7 @@ public abstract class AbstractGameRoom implements GameRoom {
 
     @Override
     public void onEvent(UserSession userSession, Event event) {
-        vertx.eventBus().publish(RoomUtils.constructEventListenerConsumer(gameRoomId, event.getClass()),
+        vertx.eventBus().publish(GameRoom.constructEventListenerConsumer(gameRoomId, event.getClass()),
                 JsonObject.mapFrom(event), new DeliveryOptions().addHeader(Fields.sessionId, userSession.getId()));
     }
 
@@ -137,6 +140,11 @@ public abstract class AbstractGameRoom implements GameRoom {
     @Override
     public int currentPlayersCount() {
         return sessions().size();
+    }
+
+    @Override
+    public GameMap gameMap() {
+        return map;
     }
 
     @Override
