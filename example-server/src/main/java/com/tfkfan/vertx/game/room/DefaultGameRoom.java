@@ -40,30 +40,23 @@ public class DefaultGameRoom extends AbstractGameRoom {
         this.roomProperties = roomProperties;
 
         addEventListener(this::onPlayerInitRequest, InitPlayerEvent.class);
-        addEventListener(this::onPlayerKeyDown, KeyDownPlayerEvent.class);
     }
 
     @Override
     public void onRoomCreated(List<UserSession> userSessions) {
         super.onRoomCreated(userSessions);
-        broadcast(_ -> new JsonObject().put(Fields.type, MessageTypes.GAME_ROOM_JOIN_SUCCESS)
-                .put(Fields.data, JsonObject.mapFrom(new GameSettingsPack(roomProperties.getLoopRate())
-                )));
+        broadcast(_ -> new JsonObject()
+                .put(Fields.type, MessageTypes.GAME_ROOM_JOIN_SUCCESS)
+                .put(Fields.data, JsonObject.mapFrom(new GameSettingsPack(roomProperties.getLoopRate())))
+        );
     }
 
     @Override
     public void onRoomStarted() {
         started = false;
-        schedulePeriodically(
-                roomProperties.getInitDelay(),
-                roomProperties.getLoopRate(),
-                this::update
-        );
-
-        schedule(roomProperties.getEndDelay() + roomProperties.getStartDelay(),
-                (_) -> gameManager.onBattleEnd(this));
+        schedulePeriodically(roomProperties.getInitDelay(), roomProperties.getLoopRate(), this::update);
+        schedule(roomProperties.getEndDelay() + roomProperties.getStartDelay(), (_) -> gameManager.onBattleEnd(this));
         schedule(roomProperties.getStartDelay(), this::onBattleStarted);
-
         broadcast(MessageTypes.GAME_ROOM_START, new GameRoomPack(
                 OffsetDateTime.now().plus(roomProperties.getStartDelay(), ChronoUnit.MILLIS).toInstant().toEpochMilli()
         ));
@@ -77,7 +70,10 @@ public class DefaultGameRoom extends AbstractGameRoom {
 
         schedule((long) (5 * 1000), (_) -> respawn());
         broadcast(MessageTypes.GAME_ROOM_BATTLE_START, new GameRoomPack(
-                OffsetDateTime.now().plus(roomProperties.getEndDelay(), ChronoUnit.MILLIS).toInstant().toEpochMilli()
+                OffsetDateTime.now()
+                        .plus(roomProperties.getEndDelay(), ChronoUnit.MILLIS)
+                        .toInstant()
+                        .toEpochMilli()
         ));
     }
 
@@ -96,7 +92,8 @@ public class DefaultGameRoom extends AbstractGameRoom {
         schedule((long) (5 * 1000), (t) -> respawn());
     }
 
-    private void onPlayerKeyDown(UserSession userSession, KeyDownPlayerEvent event) {
+    @Override
+    protected void onPlayerKeyDown(UserSession userSession, KeyDownPlayerEvent event) {
         if (!started) return;
         DefaultPlayer player = (DefaultPlayer) userSession.getPlayer();
         if (!player.isAlive()) return;

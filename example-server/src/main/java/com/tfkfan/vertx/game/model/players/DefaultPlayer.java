@@ -39,16 +39,12 @@ public class DefaultPlayer extends BasePlayer<DefaultGameRoom> {
                 -Constants.ABS_PLAYER_SPEED : (isMoving && movingState.get(Direction.DOWN) ?
                 Constants.ABS_PLAYER_SPEED : 0.0));
 
-        position.sum(velocity);
         super.update();
     }
 
     @Override
     public UpdatePack getUpdatePack() {
-        return new PlayerUpdatePack(
-                id,
-                position
-        );
+        return new PlayerUpdatePack(id, position);
     }
 
     @Override

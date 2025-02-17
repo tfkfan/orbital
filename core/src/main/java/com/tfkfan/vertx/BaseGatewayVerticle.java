@@ -10,8 +10,6 @@ import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.Router;
 import lombok.extern.slf4j.Slf4j;
 
-import java.util.UUID;
-
 @Slf4j
 public abstract class BaseGatewayVerticle extends BaseVerticle {
     private MatchmakerManager matchmakerManager;
@@ -25,11 +23,11 @@ public abstract class BaseGatewayVerticle extends BaseVerticle {
         try {
             final JsonObject cnf = config().getJsonObject(Constants.LOCAL_CONFIG);
             final ApplicationProperties properties = cnf.mapTo(ApplicationProperties.class);
-            final int httpPort = properties.getServer().getPort();
+            final int port = properties.getServer().getPort();
 
             matchmakerManager = createMatchmakerManager(properties);
 
-            vertx.createHttpServer().requestHandler(router).webSocketHandler(matchmakerManager).listen(httpPort, (done) -> {
+            vertx.createHttpServer().requestHandler(router).webSocketHandler(matchmakerManager).listen(port, (done) -> {
                 if (done.succeeded()) {
                     log.info("HTTP server started on port {}", done.result().actualPort());
                     initRoomVerticles(properties.getRoom().getRoomVerticleInstances(), cnf, startPromise);
@@ -43,13 +41,16 @@ public abstract class BaseGatewayVerticle extends BaseVerticle {
         }
     }
 
+    //protected abstract void createAndConfigureServer(ApplicationProperties properties, int port );
+
     private void initRoomVerticles(Long roomVerticleInstances, JsonObject ymlConfig, Promise<Void> startPromise) {
         for (int i = 0; i < roomVerticleInstances; i++) {
-            final String roomVerticleId = nextRoomVerticleId();
-            vertx.deployVerticle(() -> createRoomVerticle().stopListener(
-                            _ -> matchmakerManager.onVerticleDisconnected(roomVerticleId)), new DeploymentOptions()
-                            .setConfig(new JsonObject().put(Constants.LOCAL_CONFIG, ymlConfig)
-                                    .put(Constants.ROOM_VERTICAL_ID, roomVerticleId)),
+            final String roomVerticleId = nextVerticleId();
+            vertx.deployVerticle(() -> createRoomVerticle()
+                            .verticleId(verticleId)
+                            .stopListener(
+                                    _ -> matchmakerManager.onVerticleDisconnected(roomVerticleId)), new DeploymentOptions()
+                            .setConfig(new JsonObject().put(Constants.LOCAL_CONFIG, ymlConfig)),
                     ar -> {
                         if (ar.succeeded()) {
                             matchmakerManager.onVerticleConnected(roomVerticleId);
@@ -62,11 +63,7 @@ public abstract class BaseGatewayVerticle extends BaseVerticle {
         }
     }
 
-    protected String nextRoomVerticleId() {
-        return UUID.randomUUID().toString();
-    }
-
-    protected abstract BaseRoomVerticle createRoomVerticle();
+    protected abstract RoomVerticle createRoomVerticle();
 
     protected void initRouter(Router router) {
     }

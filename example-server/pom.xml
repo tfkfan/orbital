@@ -3,7 +3,7 @@
     <modelVersion>4.0.0</modelVersion>
     <parent>
         <groupId>com.tfkfan.vertx</groupId>
-        <artifactId>vertx-game-server</artifactId>
+        <artifactId>orbital</artifactId>
         <version>1.0.0-SNAPSHOT</version>
     </parent>
 
@@ -12,12 +12,6 @@
 
     <name>example-server</name>
     <url>http://maven.apache.org</url>
-
-    <properties>
-        <jib-maven-plugin.architecture>amd64</jib-maven-plugin.architecture>
-        <jib-maven-plugin.image>openjdk:${java.version}</jib-maven-plugin.image>
-        <jib-maven-plugin.version>3.4.0</jib-maven-plugin.version>
-    </properties>
 
     <dependencies>
         <dependency>
@@ -38,52 +32,4 @@
             <scope>test</scope>
         </dependency>
     </dependencies>
-
-    <build>
-        <plugins>
-            <plugin>
-                <groupId>com.google.cloud.tools</groupId>
-                <artifactId>jib-maven-plugin</artifactId>
-                <configuration>
-                    <from>
-                        <image>${jib-maven-plugin.image}</image>
-                        <platforms>
-                            <platform>
-                                <architecture>${jib-maven-plugin.architecture}</architecture>
-                                <os>linux</os>
-                            </platform>
-                        </platforms>
-                    </from>
-                    <to>
-                        <image>${project.artifactId}:latest</image>
-                    </to>
-                    <container>
-                        <entrypoint>
-                            <shell>bash</shell>
-                            <option>-c</option>
-                            <arg>/entrypoint.sh</arg>
-                        </entrypoint>
-                        <ports>
-                            <port>8080</port>
-                        </ports>
-                        <environment>
-                            <SPRING_OUTPUT_ANSI_ENABLED>ALWAYS</SPRING_OUTPUT_ANSI_ENABLED>
-                            <SLEEP>0</SLEEP>
-                        </environment>
-                        <creationTime>USE_CURRENT_TIMESTAMP</creationTime>
-                        <user>1000</user>
-                    </container>
-                    <extraDirectories>
-                        <paths>jib</paths>
-                        <permissions>
-                            <permission>
-                                <file>/entrypoint.sh</file>
-                                <mode>755</mode>
-                            </permission>
-                        </permissions>
-                    </extraDirectories>
-                </configuration>
-            </plugin>
-        </plugins>
-    </build>
 </project>

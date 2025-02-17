@@ -1,14 +1,14 @@
 package com.tfkfan.vertx.verticle;
 
-import com.tfkfan.vertx.BaseGatewayVerticle;
-import com.tfkfan.vertx.BaseRoomVerticle;
+import com.tfkfan.vertx.WebsocketGatewayVerticle;
+import com.tfkfan.vertx.RoomVerticle;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.handler.StaticHandler;
 
-public class GatewayVerticle extends BaseGatewayVerticle {
+public class DefaultGatewayVerticle extends WebsocketGatewayVerticle {
     @Override
-    protected BaseRoomVerticle createRoomVerticle() {
-        return new RoomVerticle();
+    protected RoomVerticle createRoomVerticle() {
+        return new DefaultRoomVerticle();
     }
 
     @Override

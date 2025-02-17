@@ -3,7 +3,7 @@ package com.tfkfan.vertx;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.tfkfan.vertx.configuration.Constants;
 import com.tfkfan.vertx.shared.VertxUtils;
-import com.tfkfan.vertx.verticle.GatewayVerticle;
+import com.tfkfan.vertx.verticle.DefaultGatewayVerticle;
 import io.vertx.core.DeploymentOptions;
 import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonObject;
@@ -16,7 +16,7 @@ public class Main {
         init();
         final Vertx vertx = Vertx.vertx();
 
-        VertxUtils.loadConfig(vertx).onSuccess(config -> vertx.deployVerticle(GatewayVerticle.class, new DeploymentOptions()
+        VertxUtils.loadConfig(vertx).onSuccess(config -> vertx.deployVerticle(DefaultGatewayVerticle.class, new DeploymentOptions()
                                 .setConfig(new JsonObject().put(Constants.LOCAL_CONFIG, config)))
                         .onSuccess(_ -> log.info("Gateway verticle started successfully."))
                         .onFailure(e -> log.error("Gateway verticle deployment failed", e)))

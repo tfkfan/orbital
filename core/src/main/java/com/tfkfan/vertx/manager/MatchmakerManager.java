@@ -24,11 +24,11 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 @Slf4j
-public class MatchmakerManager extends WebSocketManager {
+public class MatchmakerManager extends SocketManager {
     protected final RoomProperties roomProperties;
     protected final Queue<Pair<UserSession, JsonObject>> playersQueue = new ArrayDeque<>();
     protected final Map<UUID, Boolean> gameRoomMap = new HashMap<>();
-    protected  final List<String> roomVerticleIds = new ArrayList<>();
+    protected final List<String> roomVerticleIds = new ArrayList<>();
 
     int currentRoomVerticleIndex = 0;
 
@@ -36,11 +36,11 @@ public class MatchmakerManager extends WebSocketManager {
         this.roomProperties = roomProperties;
     }
 
-    public void onVerticleConnected(String roomVerticleId){
+    public void onVerticleConnected(String roomVerticleId) {
         roomVerticleIds.add(roomVerticleId);
     }
 
-    public void onVerticleDisconnected(String roomVerticleId){
+    public void onVerticleDisconnected(String roomVerticleId) {
         roomVerticleIds.remove(roomVerticleId);
         log.error("Room verticle {} stopped. Remains: {}", roomVerticleId, roomVerticleIds);
     }
@@ -52,7 +52,7 @@ public class MatchmakerManager extends WebSocketManager {
     }
 
     @MessageRoute(MessageTypes.GAME_ROOM_JOIN)
-    private void addPlayerToWait(UserSession userSession, JsonObject initialData) {
+    protected void addPlayerToWait(UserSession userSession, JsonObject initialData) {
         playersQueue.add(new Pair<>(userSession, initialData));
         userSession.send(new Message(MessageTypes.GAME_ROOM_JOIN_WAIT));
 
@@ -95,21 +95,21 @@ public class MatchmakerManager extends WebSocketManager {
     }
 
     @MessageRoute(MessageTypes.GAME_ROOM_INFO)
-    private void onGameRoomInfo(UserSession userSession, JsonObject data) {
+    protected void onGameRoomInfo(UserSession userSession, JsonObject data) {
         onRoomEvent(userSession, data, GameRoomInfoEvent.class);
     }
 
     @MessageRoute(MessageTypes.INIT)
-    private void onInit(UserSession userSession, JsonObject data) {
+    protected void onInit(UserSession userSession, JsonObject data) {
         onRoomEvent(userSession, data, InitPlayerEvent.class);
     }
 
     @MessageRoute(MessageTypes.PLAYER_KEY_DOWN)
-    private void onPlayerKeyDown(UserSession userSession, JsonObject data) {
+    protected void onPlayerKeyDown(UserSession userSession, JsonObject data) {
         onRoomEvent(userSession, data, KeyDownPlayerEvent.class);
     }
 
-    private <T extends Event> void onRoomEvent(UserSession userSession, JsonObject data, Class<T> eventClass) {
+    protected <T extends Event> void onRoomEvent(UserSession userSession, JsonObject data, Class<T> eventClass) {
         vertx.eventBus().publish(GameRoom.constructEventListenerConsumer(userSession.getRoomKey(), eventClass), data,
                 new DeliveryOptions().addHeader(Fields.sessionId, userSession.getId()));
     }

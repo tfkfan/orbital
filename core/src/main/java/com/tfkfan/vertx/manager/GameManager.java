@@ -20,9 +20,7 @@ import lombok.extern.slf4j.Slf4j;
 import java.util.*;
 
 @Slf4j
-public class GameManager<
-        P extends Player,
-        GR extends GameRoom> {
+public class GameManager<P extends Player, GR extends GameRoom> {
     protected final Vertx vertx;
     protected final RoomProperties roomProperties;
     protected final String verticleId;

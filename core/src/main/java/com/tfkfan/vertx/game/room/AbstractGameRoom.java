@@ -4,8 +4,10 @@ import com.tfkfan.vertx.configuration.Constants;
 import com.tfkfan.vertx.configuration.Fields;
 import com.tfkfan.vertx.configuration.MessageTypes;
 import com.tfkfan.vertx.event.Event;
+import com.tfkfan.vertx.event.KeyDownPlayerEvent;
 import com.tfkfan.vertx.event.listener.EventListener;
 import com.tfkfan.vertx.game.map.GameMap;
+import com.tfkfan.vertx.game.model.players.Player;
 import com.tfkfan.vertx.manager.GameManager;
 import com.tfkfan.vertx.network.message.Message;
 import com.tfkfan.vertx.network.message.MessageType;
@@ -39,6 +41,11 @@ public abstract class AbstractGameRoom implements GameRoom {
         this.verticleId = verticleId;
         this.gameManager = gameManager;
         this.vertx = Vertx.currentContext().owner();
+
+        addEventListener(this::onPlayerKeyDown, KeyDownPlayerEvent.class);
+    }
+
+    protected void onPlayerKeyDown(UserSession userSession, KeyDownPlayerEvent event) {
     }
 
     @Override
