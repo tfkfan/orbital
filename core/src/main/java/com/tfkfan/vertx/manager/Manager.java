@@ -34,8 +34,6 @@ public class Manager implements Handler<ServerWebSocket>, MessageBroadcaster {
             return;
         }
 
-        log.debug("client connected: {}", webSocket.textHandlerID());
-
         final UserSession session = new UserSession();
         onConnect(session);
 
@@ -72,6 +70,7 @@ public class Manager implements Handler<ServerWebSocket>, MessageBroadcaster {
     }
 
     protected void onConnect(UserSession session) {
+        log.debug("client connected: {}", session.getId());
     }
 
     protected void onDisconnect(UserSession session) {

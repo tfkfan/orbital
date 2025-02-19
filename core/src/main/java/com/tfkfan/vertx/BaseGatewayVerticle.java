@@ -21,7 +21,7 @@ public abstract class BaseGatewayVerticle extends BaseVerticle {
         initRouter(router);
 
         try {
-            final JsonObject cnf = config().getJsonObject(Constants.LOCAL_CONFIG);
+            final JsonObject cnf = config();
             final ApplicationProperties properties = cnf.mapTo(ApplicationProperties.class);
             final int port = properties.getServer().getPort();
 
@@ -47,10 +47,10 @@ public abstract class BaseGatewayVerticle extends BaseVerticle {
         for (int i = 0; i < roomVerticleInstances; i++) {
             final String roomVerticleId = nextVerticleId();
             vertx.deployVerticle(() -> createRoomVerticle()
-                            .verticleId(verticleId)
+                            .verticleId(roomVerticleId)
                             .stopListener(
                                     _ -> matchmakerManager.onVerticleDisconnected(roomVerticleId)), new DeploymentOptions()
-                            .setConfig(new JsonObject().put(Constants.LOCAL_CONFIG, ymlConfig)),
+                            .setConfig( ymlConfig),
                     ar -> {
                         if (ar.succeeded()) {
                             matchmakerManager.onVerticleConnected(roomVerticleId);

@@ -98,6 +98,7 @@ public class DefaultGameRoom extends AbstractGameRoom {
         DefaultPlayer player = (DefaultPlayer) userSession.getPlayer();
         if (!player.isAlive()) return;
         var direction = Direction.valueOf(event.getKey());
+
         player.updateState(direction, event.isState());
     }
 

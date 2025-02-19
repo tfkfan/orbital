@@ -8,7 +8,7 @@
         </encoder>
     </appender>
 
-    <logger name="com.tfkfan" level="INFO"/>
+    <logger name="com.tfkfan" level="TRACE"/>
 
     <root level="info">
         <appender-ref ref="STDOUT" />

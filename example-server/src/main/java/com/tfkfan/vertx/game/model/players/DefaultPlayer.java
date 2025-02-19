@@ -27,16 +27,15 @@ public class DefaultPlayer extends BasePlayer2D<DefaultGameRoom> {
 
     public void updateState(Direction direction, boolean state) {
         movingState.put(direction, state);
-        isMoving = this.movingState.containsValue(true);
     }
 
     @Override
     public void update() {
-        velocity.setX(isMoving && movingState.get(Direction.RIGHT) ?
-                Constants.ABS_PLAYER_SPEED : (isMoving && movingState.get(Direction.LEFT) ?
+        velocity.setX(movingState.get(Direction.RIGHT) ?
+                Constants.ABS_PLAYER_SPEED : ( movingState.get(Direction.LEFT) ?
                 -Constants.ABS_PLAYER_SPEED : 0.0));
-        velocity.setY(isMoving && movingState.get(Direction.UP) ?
-                -Constants.ABS_PLAYER_SPEED : (isMoving && movingState.get(Direction.DOWN) ?
+        velocity.setY(movingState.get(Direction.UP) ?
+                -Constants.ABS_PLAYER_SPEED : ( movingState.get(Direction.DOWN) ?
                 Constants.ABS_PLAYER_SPEED : 0.0));
 
         super.update();

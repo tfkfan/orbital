@@ -1,6 +1,5 @@
 package com.tfkfan.vertx;
 
-import com.tfkfan.vertx.configuration.Constants;
 import com.tfkfan.vertx.manager.GameManager;
 import com.tfkfan.vertx.properties.ApplicationProperties;
 import com.tfkfan.vertx.properties.RoomProperties;
@@ -18,7 +17,7 @@ public abstract class RoomVerticle extends BaseVerticle {
         log.info("Starting room verticle with id {}", verticleId);
 
         try {
-            final ApplicationProperties properties = config().getJsonObject(Constants.LOCAL_CONFIG).mapTo(ApplicationProperties.class);
+            final ApplicationProperties properties = config().mapTo(ApplicationProperties.class);
             gameManager = createGameManager(verticleId, vertx, properties.getRoom());
             startPromise.complete();
         } catch (Exception e) {
