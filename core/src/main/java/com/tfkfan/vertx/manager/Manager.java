@@ -2,7 +2,7 @@ package com.tfkfan.vertx.manager;
 
 import com.tfkfan.vertx.configuration.Constants;
 import com.tfkfan.vertx.configuration.Fields;
-import com.tfkfan.vertx.network.SocketMessageBroadcaster;
+import com.tfkfan.vertx.network.MessageBroadcaster;
 import com.tfkfan.vertx.network.message.Message;
 import com.tfkfan.vertx.network.message.MessageType;
 import com.tfkfan.vertx.route.RouteProcessor;
@@ -22,7 +22,7 @@ import java.util.Map;
 import java.util.function.Function;
 
 @Slf4j
-public class SocketManager implements Handler<ServerWebSocket>, SocketMessageBroadcaster {
+public class Manager implements Handler<ServerWebSocket>, MessageBroadcaster {
     protected final Vertx vertx = Vertx.currentContext().owner();
     protected final Map<String, List<MessageConsumer<?>>> messageConsumers = new HashMap<>();
     protected final RouteProcessor routeProcessor = new RouteProcessor(this);

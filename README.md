@@ -12,11 +12,11 @@ Supports:
 Features currently in development:
 * 2D/3D geometry and grid systems
 * TCP/UDP server mode
-* Extended room management
+* Advanced room management
 * HTTP monitoring
-* Extended player management
+* Advanced player management
 * Auth-protected REST API
-* Extended basic game objects (strikes, loot, handlers)
+* Advanced basic game objects (strikes, loot, handlers)
 
 ## Core and architecture
 

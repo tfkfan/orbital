@@ -30,7 +30,7 @@ public class RouteProcessor {
 
     private Map<Integer, Method> getMethods(Class<?> clazz) {
         return Arrays.stream(clazz.getDeclaredMethods())
-                .filter(e -> e.isAnnotationPresent(MessageRoute.class))
+                .filter(e -> e.isAnnotationPresent(MessageRoute.class) && !methods.containsKey(e.getAnnotation(MessageRoute.class).value()))
                 .collect(Collectors.toMap(e ->  e.getAnnotation(MessageRoute.class).value(), e -> e));
     }
 

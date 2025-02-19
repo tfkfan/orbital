@@ -1,8 +1,14 @@
 package com.tfkfan.vertx;
 
 import com.tfkfan.vertx.manager.StopListener;
+import io.vertx.config.ConfigRetriever;
+import io.vertx.config.ConfigRetrieverOptions;
+import io.vertx.config.ConfigStoreOptions;
 import io.vertx.core.AbstractVerticle;
+import io.vertx.core.Future;
 import io.vertx.core.Promise;
+import io.vertx.core.Vertx;
+import io.vertx.core.json.JsonObject;
 
 import java.util.Objects;
 import java.util.UUID;
@@ -43,5 +49,21 @@ public abstract class BaseVerticle extends AbstractVerticle {
 
     protected String nextVerticleId() {
         return UUID.randomUUID().toString();
+    }
+
+    public static void startupErrorHandler(Vertx vertx, Throwable e) {
+        vertx.close();
+        throw new RuntimeException(e);
+    }
+
+    public static Future<JsonObject> loadConfig(Vertx vertx) {
+        ConfigRetrieverOptions options = new ConfigRetrieverOptions()
+                .addStore(new ConfigStoreOptions()
+                        .setType("file")
+                        .setFormat("yaml")
+                        .setConfig(new JsonObject().put("path", "application.yaml")))
+                .addStore(new ConfigStoreOptions()
+                        .setType("env"));
+        return ConfigRetriever.create(vertx, options).getConfig();
     }
 }

@@ -10,6 +10,6 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 public class KeyDownPlayerEvent extends AbstractEvent{
-   private String inputId;
+   private String key;
    private boolean state;
 }

@@ -44,24 +44,24 @@ function drawPlayers() {
 document.onkeydown = function (event) {
     text = null
     if (upKeys[event.key])
-        send(PLAYER_KEY_DOWN, {inputId: "UP", state: true});
+        send(PLAYER_KEY_DOWN, {key: "UP", state: true});
     if (downKeys[event.key])
-        send(PLAYER_KEY_DOWN, {inputId: "DOWN", state: true});
+        send(PLAYER_KEY_DOWN, {key: "DOWN", state: true});
     if (rightKeys[event.key])
-        send(PLAYER_KEY_DOWN, {inputId: "RIGHT", state: true});
+        send(PLAYER_KEY_DOWN, {key: "RIGHT", state: true});
     if (leftKeys[event.key])
-        send(PLAYER_KEY_DOWN, {inputId: "LEFT", state: true});
+        send(PLAYER_KEY_DOWN, {key: "LEFT", state: true});
 };
 
 document.onkeyup = function (event) {
     if (upKeys[event.key])
-        send(PLAYER_KEY_DOWN, {inputId: "UP", state: false});
+        send(PLAYER_KEY_DOWN, {key: "UP", state: false});
     if (downKeys[event.key])
-        send(PLAYER_KEY_DOWN, {inputId: "DOWN", state: false});
+        send(PLAYER_KEY_DOWN, {key: "DOWN", state: false});
     if (rightKeys[event.key])
-        send(PLAYER_KEY_DOWN, {inputId: "RIGHT", state: false});
+        send(PLAYER_KEY_DOWN, {key: "RIGHT", state: false});
     if (leftKeys[event.key])
-        send(PLAYER_KEY_DOWN, {inputId: "LEFT", state: false});
+        send(PLAYER_KEY_DOWN, {key: "LEFT", state: false});
 };
 
 document.getElementById("joinBtn").onclick = function () {

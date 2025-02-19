@@ -3,18 +3,14 @@ package com.tfkfan.vertx.manager;
 import com.tfkfan.vertx.configuration.Constants;
 import com.tfkfan.vertx.configuration.Fields;
 import com.tfkfan.vertx.configuration.MessageTypes;
-import com.tfkfan.vertx.event.Event;
-import com.tfkfan.vertx.event.GameRoomInfoEvent;
-import com.tfkfan.vertx.event.InitPlayerEvent;
 import com.tfkfan.vertx.event.KeyDownPlayerEvent;
-import com.tfkfan.vertx.game.room.GameRoom;
+import com.tfkfan.vertx.network.RoomEventPublisher;
 import com.tfkfan.vertx.network.message.Message;
 import com.tfkfan.vertx.properties.RoomProperties;
 import com.tfkfan.vertx.route.MessageRoute;
 import com.tfkfan.vertx.session.UserSession;
 import com.tfkfan.vertx.shared.ActionType;
 import com.tfkfan.vertx.shared.Pair;
-import io.vertx.core.eventbus.DeliveryOptions;
 import io.vertx.core.eventbus.EventBus;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
@@ -24,7 +20,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 @Slf4j
-public class MatchmakerManager extends SocketManager {
+public abstract class MatchmakerManager extends Manager implements RoomEventPublisher {
     protected final RoomProperties roomProperties;
     protected final Queue<Pair<UserSession, JsonObject>> playersQueue = new ArrayDeque<>();
     protected final Map<UUID, Boolean> gameRoomMap = new HashMap<>();
@@ -94,23 +90,8 @@ public class MatchmakerManager extends SocketManager {
         playersQueue.removeIf(e -> e.getA().getId().equals(session.getId()));
     }
 
-    @MessageRoute(MessageTypes.GAME_ROOM_INFO)
-    protected void onGameRoomInfo(UserSession userSession, JsonObject data) {
-        onRoomEvent(userSession, data, GameRoomInfoEvent.class);
-    }
-
-    @MessageRoute(MessageTypes.INIT)
-    protected void onInit(UserSession userSession, JsonObject data) {
-        onRoomEvent(userSession, data, InitPlayerEvent.class);
-    }
-
     @MessageRoute(MessageTypes.PLAYER_KEY_DOWN)
     protected void onPlayerKeyDown(UserSession userSession, JsonObject data) {
-        onRoomEvent(userSession, data, KeyDownPlayerEvent.class);
-    }
-
-    protected <T extends Event> void onRoomEvent(UserSession userSession, JsonObject data, Class<T> eventClass) {
-        vertx.eventBus().publish(GameRoom.constructEventListenerConsumer(userSession.getRoomKey(), eventClass), data,
-                new DeliveryOptions().addHeader(Fields.sessionId, userSession.getId()));
+        publishRoomEvent(userSession, data, KeyDownPlayerEvent.class);
     }
 }

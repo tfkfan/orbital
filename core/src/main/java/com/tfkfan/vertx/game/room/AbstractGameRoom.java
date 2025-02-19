@@ -9,6 +9,7 @@ import com.tfkfan.vertx.event.listener.EventListener;
 import com.tfkfan.vertx.game.map.GameMap;
 import com.tfkfan.vertx.game.model.players.Player;
 import com.tfkfan.vertx.manager.GameManager;
+import com.tfkfan.vertx.network.RoomEventPublisher;
 import com.tfkfan.vertx.network.message.Message;
 import com.tfkfan.vertx.network.message.MessageType;
 import com.tfkfan.vertx.network.pack.UpdatePack;
@@ -16,7 +17,6 @@ import com.tfkfan.vertx.network.pack.update.GameUpdatePack;
 import com.tfkfan.vertx.session.UserSession;
 import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
-import io.vertx.core.eventbus.DeliveryOptions;
 import io.vertx.core.eventbus.MessageConsumer;
 import io.vertx.core.json.JsonObject;
 import lombok.extern.slf4j.Slf4j;
@@ -50,7 +50,7 @@ public abstract class AbstractGameRoom implements GameRoom {
 
     @Override
     public <E extends Event> void addEventListener(EventListener<E> listener, Class<E> clazz) {
-        consumerList.add(vertx.eventBus().consumer(GameRoom.constructEventListenerConsumer(gameRoomId, clazz), event -> {
+        consumerList.add(vertx.eventBus().localConsumer(GameRoom.constructEventListenerConsumer(gameRoomId, clazz), event -> {
             final String userSessionId = event.headers().get(Fields.sessionId);
             if (!sessions.containsKey(userSessionId))
                 return;
@@ -58,12 +58,6 @@ public abstract class AbstractGameRoom implements GameRoom {
             final E o = event.body() != null ? ((JsonObject) event.body()).mapTo(clazz) : null;
             listener.onEvent(userSession, o);
         }));
-    }
-
-    @Override
-    public void onEvent(UserSession userSession, Event event) {
-        vertx.eventBus().publish(GameRoom.constructEventListenerConsumer(gameRoomId, event.getClass()),
-                JsonObject.mapFrom(event), new DeliveryOptions().addHeader(Fields.sessionId, userSession.getId()));
     }
 
     @Override
@@ -81,6 +75,8 @@ public abstract class AbstractGameRoom implements GameRoom {
 
     @Override
     public void onDestroy() {
+        sessions().forEach(userSession -> map.removePlayer(userSession.getPlayer()));
+
         this.sessions.clear();
         consumerList.forEach(MessageConsumer::unregister);
         roomFutureList.forEach(vertx::cancelTimer);
@@ -131,19 +127,20 @@ public abstract class AbstractGameRoom implements GameRoom {
     public void update(long timerID) {
         List<UpdatePack> playerUpdatePackList = map.getPlayers()
                 .stream()
-                .map(it -> {
-                    if (it.isAlive())
-                        it.update();
-                    return it.getUpdatePack();
-                })
+                .map(this::updatePlayer)
                 .toList();
 
         for (var currentPlayer : map.getPlayers())
-            currentPlayer.getUserSession().send(MessageTypes.UPDATE,
-                    new GameUpdatePack(
-                            currentPlayer.getPrivateUpdatePack(),
-                            playerUpdatePackList
-                    ));
+            currentPlayer.getUserSession().send(MessageTypes.UPDATE, new GameUpdatePack(
+                    currentPlayer.getPrivateUpdatePack(),
+                    playerUpdatePackList
+            ));
+    }
+
+    protected UpdatePack updatePlayer(Player player) {
+        if (player.isAlive())
+            player.update();
+        return player.getUpdatePack();
     }
 
     @Override
@@ -161,8 +158,7 @@ public abstract class AbstractGameRoom implements GameRoom {
 
     @Override
     public Optional<UserSession> getPlayerSessionBySessionId(UserSession userSession) {
-        if (sessions.containsKey(userSession.getId())) return Optional.of(sessions.get(userSession.getId()));
-        return Optional.empty();
+        return Optional.ofNullable(sessions.get(userSession.getId()));
     }
 
     @Override

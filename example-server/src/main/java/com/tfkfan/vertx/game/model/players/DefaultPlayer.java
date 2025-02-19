@@ -16,7 +16,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 @Slf4j
-public class DefaultPlayer extends BasePlayer<DefaultGameRoom> {
+public class DefaultPlayer extends BasePlayer2D<DefaultGameRoom> {
     protected Map<Direction, Boolean> movingState;
 
     public DefaultPlayer(Long id, DefaultGameRoom gameRoom, UserSession userSession) {

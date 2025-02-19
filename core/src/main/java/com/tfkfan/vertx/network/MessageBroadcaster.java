@@ -10,7 +10,7 @@ import java.util.function.Function;
 /**
  * @author Baltser Artem tfkfan
  */
-public interface SocketMessageBroadcaster {
+public interface MessageBroadcaster {
     void broadcast(MessageType type, String message);
     void broadcast(Message message);
     void broadcast(int messageType, Object content);

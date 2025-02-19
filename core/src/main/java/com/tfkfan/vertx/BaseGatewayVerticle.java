@@ -68,9 +68,7 @@ public abstract class BaseGatewayVerticle extends BaseVerticle {
     protected void initRouter(Router router) {
     }
 
-    protected MatchmakerManager createMatchmakerManager(ApplicationProperties applicationProperties) {
-        return new MatchmakerManager(applicationProperties.getRoom());
-    }
+    protected abstract MatchmakerManager createMatchmakerManager(ApplicationProperties applicationProperties);
 
     private Router setupRouter() {
         Router router = Router.router(vertx);

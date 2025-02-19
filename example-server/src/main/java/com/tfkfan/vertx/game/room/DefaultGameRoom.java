@@ -97,7 +97,7 @@ public class DefaultGameRoom extends AbstractGameRoom {
         if (!started) return;
         DefaultPlayer player = (DefaultPlayer) userSession.getPlayer();
         if (!player.isAlive()) return;
-        var direction = Direction.valueOf(event.getInputId());
+        var direction = Direction.valueOf(event.getKey());
         player.updateState(direction, event.isState());
     }
 
@@ -109,12 +109,6 @@ public class DefaultGameRoom extends AbstractGameRoom {
                         map.alivePlayers(),
                         map.getPlayers().stream().map(IInitPackProvider::getInitPack).toList())
         );
-    }
-
-    @Override
-    public void onDestroy() {
-        sessions().forEach(userSession -> map.removePlayer(userSession.getPlayer()));
-        super.onDestroy();
     }
 
     @Override

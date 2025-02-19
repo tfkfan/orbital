@@ -1,8 +1,6 @@
-package com.tfkfan.vertx.math;
+package com.tfkfan.vertx.shared;
 
-import java.lang.reflect.Type;
-
-public class Utils {
+public class Random {
     public static int getRandomIndex(int max) {
         return getRandomNumber(0, max);
     }
