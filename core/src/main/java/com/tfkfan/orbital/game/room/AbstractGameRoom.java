@@ -27,6 +27,7 @@ import java.util.function.Function;
 
 @Slf4j
 public abstract class AbstractGameRoom implements GameRoom {
+    protected boolean started = false;
     protected final GameMap map;
     protected final UUID gameRoomId;
     protected final String verticleId;

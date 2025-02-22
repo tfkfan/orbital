@@ -1,33 +1,39 @@
 package com.tfkfan.orbital;
 
+import com.tfkfan.orbital.configuration.Constants;
 import com.tfkfan.orbital.manager.GameManager;
-import com.tfkfan.orbital.properties.ApplicationProperties;
-import com.tfkfan.orbital.properties.RoomProperties;
 import io.vertx.core.Promise;
-import io.vertx.core.Vertx;
+import io.vertx.core.eventbus.DeliveryOptions;
 import lombok.extern.slf4j.Slf4j;
 
+import java.util.function.Function;
+
 @Slf4j
-public abstract class RoomVerticle extends BaseVerticle {
-    private GameManager<?, ?> gameManager;
+public class RoomVerticle extends BaseVerticle {
+    final Function<String, GameManager<?, ?>> gameManagerFactory;
+    GameManager<?, ?> gameManager;
+
+    public RoomVerticle(Function<String, GameManager<?, ?>> gameManagerFactory) {
+        this.gameManagerFactory = gameManagerFactory;
+    }
 
     @Override
     public void start(Promise<Void> startPromise) throws Exception {
         super.start(startPromise);
-        log.info("Starting room verticle with id {}", verticleId);
 
-        try {
-            final ApplicationProperties properties = config().mapTo(ApplicationProperties.class);
-            gameManager = createGameManager(verticleId, vertx, properties.getRoom());
-            startPromise.complete();
-        } catch (Exception e) {
-            startPromise.fail(e);
-        }
+        gameManager = gameManagerFactory.apply(verticleId);
+        log.info("Room verticle with id {} started", verticleId);
+
+        vertx.eventBus().send(Constants.GATEWAY_ROOM_CREATE_CHANNEL, null, new DeliveryOptions().addHeader(
+                Constants.ROOM_VERTICAL_ID, verticleId
+        ).setLocalOnly(true));
     }
 
-    protected GameManager<?, ?> getGameManager() {
-        return gameManager;
+    @Override
+    public void stop(Promise<Void> stopPromise) throws Exception {
+        vertx.eventBus().send(Constants.GATEWAY_ROOM_DESTROY_CHANNEL, null, new DeliveryOptions().addHeader(
+                Constants.ROOM_VERTICAL_ID, verticleId
+        ).setLocalOnly(true));
+        super.stop(stopPromise);
     }
-
-    protected abstract GameManager<?, ?> createGameManager(String verticleId, Vertx vertx, RoomProperties properties);
 }

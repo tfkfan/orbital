@@ -16,10 +16,10 @@ public class RouteProcessor {
     private final Map<Integer, Method> methods;
     private final Object source;
 
-    public RouteProcessor(Object obj) {
-        this.source = obj;
+    public RouteProcessor(Object source) {
+        this.source = source;
         methods = new HashMap<>();
-        Class<?> clazz = obj.getClass();
+        Class<?> clazz = source.getClass();
         Map<Integer, Method> m = getMethods(clazz);
         while (!m.isEmpty()) {
             methods.putAll(m);

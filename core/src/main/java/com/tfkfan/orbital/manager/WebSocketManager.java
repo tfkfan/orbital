@@ -25,7 +25,11 @@ import java.util.function.Function;
 public class WebSocketManager implements Handler<ServerWebSocket>, MessageBroadcaster {
     protected final Vertx vertx = Vertx.currentContext().owner();
     protected final Map<String, List<MessageConsumer<?>>> messageConsumers = new HashMap<>();
-    protected final RouteProcessor routeProcessor = new RouteProcessor(this);
+    protected final RouteProcessor routeProcessor;
+
+    public WebSocketManager(RouteProcessor routeProcessor) {
+        this.routeProcessor = routeProcessor != null ? routeProcessor : new RouteProcessor(this);
+    }
 
     @Override
     public void handle(ServerWebSocket webSocket) {
@@ -59,14 +63,7 @@ public class WebSocketManager implements Handler<ServerWebSocket>, MessageBroadc
             }
         });
         webSocket.exceptionHandler(throwable -> log.error("Internal error", throwable));
-        webSocket.closeHandler(_ -> {
-            log.debug("client disconnected {}", session.getId());
-            onDisconnect(session);
-            if (messageConsumers.containsKey(session.getId())) {
-                messageConsumers.get(session.getId()).forEach(MessageConsumer::unregister);
-                messageConsumers.remove(session.getId());
-            }
-        });
+        webSocket.closeHandler(_ -> onDisconnect(session));
     }
 
     protected void onConnect(UserSession session) {
@@ -74,6 +71,11 @@ public class WebSocketManager implements Handler<ServerWebSocket>, MessageBroadc
     }
 
     protected void onDisconnect(UserSession session) {
+        log.debug("client disconnected {}", session.getId());
+        if (messageConsumers.containsKey(session.getId())) {
+            messageConsumers.get(session.getId()).forEach(MessageConsumer::unregister);
+            messageConsumers.remove(session.getId());
+        }
     }
 
     private void onMessage(UserSession userSession, JsonObject message) throws InvocationTargetException, IllegalAccessException {

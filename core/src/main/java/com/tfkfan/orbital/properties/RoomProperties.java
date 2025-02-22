@@ -9,7 +9,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class RoomProperties {
-    private Long roomVerticleInstances;
+    private Integer roomVerticleInstances;
     private Long loopRate = Constants.DEFAULT_LOOPRATE;
     private Long initDelay = Constants.ROOM_INIT_DELAY;
     private Long startDelay = Constants.ROOM_START_DELAY;

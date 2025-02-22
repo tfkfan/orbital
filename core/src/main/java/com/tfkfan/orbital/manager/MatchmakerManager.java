@@ -10,6 +10,7 @@ import com.tfkfan.orbital.network.RoomEventPublisher;
 import com.tfkfan.orbital.network.message.Message;
 import com.tfkfan.orbital.properties.RoomProperties;
 import com.tfkfan.orbital.route.MessageRoute;
+import com.tfkfan.orbital.route.RouteProcessor;
 import com.tfkfan.orbital.session.UserSession;
 import com.tfkfan.orbital.shared.ActionType;
 import com.tfkfan.orbital.shared.Pair;
@@ -22,20 +23,26 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 @Slf4j
-public abstract class MatchmakerManager extends WebSocketManager implements RoomEventPublisher {
-    protected final RoomProperties roomProperties;
-    protected final Queue<Pair<UserSession, JsonObject>> playersQueue = new ArrayDeque<>();
-    protected final Map<UUID, Boolean> gameRoomMap = new HashMap<>();
-    protected final List<String> roomVerticleIds = new ArrayList<>();
+public class MatchmakerManager extends WebSocketManager implements RoomEventPublisher {
+    final RoomProperties roomProperties;
+    final Queue<Pair<UserSession, JsonObject>> playersQueue = new ArrayDeque<>();
+    final Map<UUID, Boolean> gameRoomMap = new HashMap<>();
+    final List<String> roomVerticleIds = new ArrayList<>();
 
     int currentRoomVerticleIndex = 0;
 
     public MatchmakerManager(RoomProperties roomProperties) {
+        this(null, roomProperties);
+    }
+
+    public MatchmakerManager(RouteProcessor routeProcessor, RoomProperties roomProperties) {
+        super(routeProcessor);
         this.roomProperties = roomProperties;
     }
 
     public void onVerticleConnected(String roomVerticleId) {
         roomVerticleIds.add(roomVerticleId);
+        log.info("Room verticle {} connected. Remains: {}", roomVerticleId, roomVerticleIds);
     }
 
     public void onVerticleDisconnected(String roomVerticleId) {
@@ -43,13 +50,13 @@ public abstract class MatchmakerManager extends WebSocketManager implements Room
         log.error("Room verticle {} stopped. Remains: {}", roomVerticleId, roomVerticleIds);
     }
 
-    private String getNextRoomVerticleId() {
+    String getNextRoomVerticleId() {
         if (currentRoomVerticleIndex >= roomVerticleIds.size())
             currentRoomVerticleIndex = 0;
         return roomVerticleIds.get(currentRoomVerticleIndex++);
     }
 
-    protected void onPlayerWait(UserSession userSession, JsonObject initialData) {
+    void onPlayerWait(UserSession userSession, JsonObject initialData) {
         playersQueue.add(new Pair<>(userSession, initialData));
         userSession.send(new Message(MessageTypes.GAME_ROOM_JOIN_WAIT));
 
@@ -64,6 +71,7 @@ public abstract class MatchmakerManager extends WebSocketManager implements Room
             gameRoomMap.remove(roomId);
             userSession.setRoomKey(null);
         });
+
         final UUID roomId = UUID.randomUUID();
         final String nextVerticleId = getNextRoomVerticleId();
 

@@ -7,8 +7,8 @@ import com.tfkfan.orbital.properties.RoomProperties;
 import io.vertx.core.Vertx;
 
 public class DefaultGameManager extends GameManager<DefaultPlayer, DefaultGameRoom> {
-    public DefaultGameManager(String verticleId, Vertx vertx, RoomProperties roomProperties) {
-        super(verticleId, vertx, roomProperties,
+    public DefaultGameManager(String verticleId,  RoomProperties roomProperties) {
+        super(verticleId, Vertx.currentContext().owner(), roomProperties,
                 DefaultPlayer::new,
                 GameMap::new,
                 DefaultGameRoom::new);

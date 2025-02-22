@@ -30,7 +30,6 @@ import java.util.UUID;
 @Getter
 public class DefaultGameRoom extends AbstractGameRoom {
     private final RoomProperties roomProperties;
-    private boolean started = false;
 
     public DefaultGameRoom(String verticleId, UUID gameRoomId,
                            GameMap map,
@@ -53,8 +52,6 @@ public class DefaultGameRoom extends AbstractGameRoom {
 
     @Override
     public void onRoomStarted() {
-        started = false;
-        schedulePeriodically(roomProperties.getInitDelay(), roomProperties.getLoopRate(), this::update);
         schedule(roomProperties.getEndDelay() + roomProperties.getStartDelay(), (_) -> gameManager.onBattleEnd(this));
         schedule(roomProperties.getStartDelay(), this::onBattleStarted);
         broadcast(MessageTypes.GAME_ROOM_START, new GameRoomPack(
@@ -67,7 +64,7 @@ public class DefaultGameRoom extends AbstractGameRoom {
     public void onBattleStarted(long timerId) {
         log.trace("Room {}. Battle has been started", key());
         started = true;
-
+        schedulePeriodically(roomProperties.getInitDelay(), roomProperties.getLoopRate(), this::update);
         schedule((long) (5 * 1000), (_) -> respawn());
         broadcast(MessageTypes.GAME_ROOM_BATTLE_START, new GameRoomPack(
                 OffsetDateTime.now()
@@ -75,13 +72,6 @@ public class DefaultGameRoom extends AbstractGameRoom {
                         .toInstant()
                         .toEpochMilli()
         ));
-    }
-
-    //room's game loop
-    @Override
-    public void update(long timerID) {
-        if (!started) return;
-        super.update(timerID);
     }
 
     private void respawn() {
