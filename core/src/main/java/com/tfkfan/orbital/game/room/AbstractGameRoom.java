@@ -27,16 +27,17 @@ import java.util.function.Function;
 
 @Slf4j
 public abstract class AbstractGameRoom implements GameRoom {
+    protected boolean started = false;
     protected final GameMap map;
     protected final UUID gameRoomId;
     protected final String verticleId;
     protected final Vertx vertx;
-    protected final GameManager<?, ?> gameManager;
+    protected final GameManager gameManager;
     private final List<Long> roomFutureList = new ArrayList<>();
     private final Map<String, UserSession> sessions = new HashMap<>();
     private final List<MessageConsumer<?>> consumerList = new ArrayList<>();
 
-    public AbstractGameRoom(GameMap map, String verticleId, UUID gameRoomId, GameManager<?, ?> gameManager) {
+    public AbstractGameRoom(GameMap map, String verticleId, UUID gameRoomId, GameManager gameManager) {
         this.map = map;
         this.gameRoomId = gameRoomId;
         this.verticleId = verticleId;
