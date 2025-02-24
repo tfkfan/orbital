@@ -7,8 +7,7 @@
 </h1>
 
 <h4 align="center">
-This is high-performance vert.x based distributed java game server designed for realtime 2D/3D shooters,
-rpg games and any others requiring low-latency realtime computations</h4>
+This is high-performance vert.x based distributed java game server designed for realtime 2D/3D multiplayer games requiring low-latency realtime computations</h4>
 
 <p align="center">
   <a href="https://opensource.org/licenses/MIT" title="License: MIT" >
@@ -18,7 +17,7 @@ rpg games and any others requiring low-latency realtime computations</h4>
 
 ---
 
-**Project is in active development.**
+**Project is in active development. Looking for contributors and sponsors to make this stuff wide-used in future**
 
 The server contains example server, basic game loops, matchmaking, room management functionality and it is about to have further improvements.
 
