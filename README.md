@@ -17,30 +17,13 @@ This is high-performance vert.x based distributed java game server designed for 
 
 ---
 
-**Project is in active development. Looking for contributors and sponsors to make this stuff wide-used in future**
-
-The server contains example server, basic game loops, matchmaking, room management functionality and it is about to have further improvements.
+**Project is in active development. Looking for contributors and sponsors to make this stuff widely used in future**
 
 Supports:
 * HTTP
-* websocket
+* Websocket
 
-Features currently in development:
-* 2D/3D geometry and grid systems
-* TCP/UDP server mode
-* Advanced room management
-* HTTP monitoring
-* Advanced player management
-* Auth-protected REST API
-* Advanced basic game objects (strikes, loot, handlers)
-
-## Core and architecture
-
-The solution is based on Vert.X "Actor" approach and EventBus features. It allows to have Indefinite amount of
-room management verticles as workers to process game messages.
-The code of "Orbital" is conceived to be extended and modernized on your own.
-
-For the moment core contains:
+Features of core:
 * Gateway verticle basic functionality
 * Room verticle basic functionality
 * EventBus-based room listener system
@@ -48,3 +31,19 @@ For the moment core contains:
 * Basic rooms
 * Package classes
 * Annotation-based incoming message handlers
+
+Currently, in development:
+* 2D/3D geometry and grid systems
+* TCP/UDP server mode
+* Advanced room management
+* HTTP monitoring
+* Advanced player management
+* Auth-protected REST API
+* Advanced basic game objects (strikes, loot, handlers)
+* Infinispan-clustered game server mode
+
+## Core and architecture
+
+The solution is based on Vert.X "Actor" approach and EventBus features. It allows to have Indefinite amount of
+room management verticles as workers to process game messages.
+The code of "Orbital" is conceived to be extended and modernized on your own.
