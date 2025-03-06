@@ -8,7 +8,6 @@ import com.tfkfan.webgame.manager.GameManager;
 import com.tfkfan.webgame.network.message.Message;
 import com.tfkfan.webgame.network.message.MessageType;
 import com.tfkfan.webgame.session.UserSession;
-import com.tfkfan.webgame.shared.RoomUtils;
 import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
 import io.vertx.core.eventbus.DeliveryOptions;
@@ -38,7 +37,7 @@ public abstract class AbstractGameRoom implements GameRoom {
 
     @Override
     public <E extends Event> void addEventListener(EventListener<E> listener, Class<E> clazz) {
-        consumerList.add(vertx.eventBus().consumer(RoomUtils.constructEventListenerConsumer(gameRoomId, clazz), event -> {
+        consumerList.add(vertx.eventBus().consumer(GameRoom.constructEventListenerConsumer(gameRoomId, clazz), event -> {
             final String userSessionId = event.headers().get(Fields.sessionId);
             if (!sessions.containsKey(userSessionId))
                 return;
@@ -50,7 +49,7 @@ public abstract class AbstractGameRoom implements GameRoom {
 
     @Override
     public void onEvent(UserSession userSession, Event event) {
-        vertx.eventBus().publish(RoomUtils.constructEventListenerConsumer(gameRoomId, event.getClass()),
+        vertx.eventBus().publish(GameRoom.constructEventListenerConsumer(gameRoomId, event.getClass()),
                 JsonObject.mapFrom(event), new DeliveryOptions().addHeader(Fields.sessionId, userSession.getId()));
     }
 

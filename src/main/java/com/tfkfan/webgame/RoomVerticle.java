@@ -1,13 +1,10 @@
 package com.tfkfan.webgame;
 
 import com.tfkfan.webgame.config.Constants;
-import com.tfkfan.webgame.config.Fields;
 import com.tfkfan.webgame.manager.GameManager;
 import com.tfkfan.webgame.properties.ApplicationProperties;
-import com.tfkfan.webgame.shared.VertxUtils;
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.Promise;
-import io.vertx.core.json.JsonObject;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j

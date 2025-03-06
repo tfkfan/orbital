@@ -7,7 +7,7 @@ import com.tfkfan.webgame.game.model.players.DefaultPlayer;
 import com.tfkfan.webgame.game.room.DefaultGameRoom;
 import com.tfkfan.webgame.properties.RoomProperties;
 import com.tfkfan.webgame.session.UserSession;
-import com.tfkfan.webgame.shared.ActionType;
+import com.tfkfan.webgame.network.message.ActionType;
 import io.vertx.core.Vertx;
 import io.vertx.core.eventbus.Message;
 import io.vertx.core.json.JsonArray;

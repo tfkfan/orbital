@@ -3,14 +3,16 @@ package com.tfkfan.webgame.manager;
 import com.tfkfan.webgame.config.Constants;
 import com.tfkfan.webgame.config.Fields;
 import com.tfkfan.webgame.config.MessageTypes;
-import com.tfkfan.webgame.event.*;
+import com.tfkfan.webgame.event.Event;
+import com.tfkfan.webgame.event.GameRoomInfoEvent;
+import com.tfkfan.webgame.event.InitPlayerEvent;
+import com.tfkfan.webgame.event.KeyDownPlayerEvent;
+import com.tfkfan.webgame.game.room.GameRoom;
+import com.tfkfan.webgame.network.message.ActionType;
 import com.tfkfan.webgame.network.message.Message;
 import com.tfkfan.webgame.properties.RoomProperties;
 import com.tfkfan.webgame.route.MessageRoute;
 import com.tfkfan.webgame.session.UserSession;
-import com.tfkfan.webgame.shared.ActionType;
-import com.tfkfan.webgame.shared.Pair;
-import com.tfkfan.webgame.shared.RoomUtils;
 import io.vertx.core.eventbus.DeliveryOptions;
 import io.vertx.core.eventbus.EventBus;
 import io.vertx.core.json.JsonArray;
@@ -23,7 +25,7 @@ import java.util.stream.Collectors;
 @Slf4j
 public class MatchmakerManager extends WebSocketManager {
     final RoomProperties roomProperties;
-    final Queue<Pair<UserSession, JsonObject>> playersQueue = new ArrayDeque<>();
+    final Queue<Map.Entry<UserSession, JsonObject>> playersQueue = new ArrayDeque<>();
     final Map<UUID, Boolean> gameRoomMap = new HashMap<>();
     final List<String> roomVerticleIds = new ArrayList<>();
     int currentRoomVerticleIndex = 0;
@@ -32,11 +34,11 @@ public class MatchmakerManager extends WebSocketManager {
         this.roomProperties = roomProperties;
     }
 
-    public void onVerticleConnected(String roomVerticleId){
+    public void onVerticleConnected(String roomVerticleId) {
         roomVerticleIds.add(roomVerticleId);
     }
 
-    public void onVerticleDisconnected(String roomVerticleId){
+    public void onVerticleDisconnected(String roomVerticleId) {
         roomVerticleIds.remove(roomVerticleId);
         log.error("Room verticle {} stopped. Remains: {}", roomVerticleId, roomVerticleIds);
     }
@@ -49,7 +51,7 @@ public class MatchmakerManager extends WebSocketManager {
 
     @MessageRoute(MessageTypes.GAME_ROOM_JOIN)
     private void addPlayerToWait(UserSession userSession, JsonObject initialData) {
-        playersQueue.add(new Pair<>(userSession, initialData));
+        playersQueue.add(new AbstractMap.SimpleEntry<>(userSession, initialData));
         userSession.send(new Message(MessageTypes.GAME_ROOM_JOIN_WAIT));
 
         if (playersQueue.size() < roomProperties.getMaxPlayers() || roomVerticleIds.isEmpty())
@@ -72,7 +74,7 @@ public class MatchmakerManager extends WebSocketManager {
         userSession.setRoomKey(roomId);
         userSession.setRoomVerticleId(nextVerticleId);
 
-        final List<Pair<UserSession, JsonObject>> userSessions = new ArrayList<>();
+        final List<Map.Entry<UserSession, JsonObject>> userSessions = new ArrayList<>();
         while (userSessions.size() != roomProperties.getMaxPlayers())
             userSessions.add(playersQueue.remove());
 
@@ -82,14 +84,14 @@ public class MatchmakerManager extends WebSocketManager {
                 .put(Fields.roomId, roomId.toString())
                 .put(Fields.sessions, new JsonArray(userSessions.stream().map(e ->
                                 new JsonObject()
-                                        .put(Fields.sessionId, e.getA().getId())
-                                        .put(Fields.initialData, e.getB()))
+                                        .put(Fields.sessionId, e.getKey().getId())
+                                        .put(Fields.initialData, e.getValue()))
                         .collect(Collectors.toList()))));
     }
 
     @Override
     protected void onDisconnect(UserSession session) {
-        playersQueue.removeIf(e -> e.getA().getId().equals(session.getId()));
+        playersQueue.removeIf(e -> e.getKey().getId().equals(session.getId()));
     }
 
     @MessageRoute(MessageTypes.GAME_ROOM_INFO)
@@ -108,7 +110,7 @@ public class MatchmakerManager extends WebSocketManager {
     }
 
     private <T extends Event> void onRoomEvent(UserSession userSession, JsonObject data, Class<T> eventClass) {
-        vertx.eventBus().publish(RoomUtils.constructEventListenerConsumer(userSession.getRoomKey(), eventClass), data,
+        vertx.eventBus().publish(GameRoom.constructEventListenerConsumer(userSession.getRoomKey(), eventClass), data,
                 new DeliveryOptions().addHeader(Fields.sessionId, userSession.getId()));
     }
 }

@@ -32,7 +32,7 @@ public class DefaultGameRoom extends AbstractGameRoom {
     private final RoomProperties roomProperties;
     private boolean started = false;
 
-    public DefaultGameRoom(String verticleId, UUID gameRoomId, GameManager gameManager, GameMap map, Vertx vertx,RoomProperties roomProperties) {
+    public DefaultGameRoom(String verticleId, UUID gameRoomId, GameManager gameManager, GameMap map, Vertx vertx, RoomProperties roomProperties) {
         super(verticleId, gameRoomId, gameManager);
         this.map = map;
         this.roomProperties = roomProperties;
@@ -67,13 +67,9 @@ public class DefaultGameRoom extends AbstractGameRoom {
                 (t) -> gameManager.onBattleEnd(this));
         schedule(roomProperties.getStartDelay(), this::onBattleStarted);
 
-        broadcast(
-                MessageTypes.GAME_ROOM_START,
-                new GameRoomPack(
-                        OffsetDateTime.now().plus(roomProperties.getStartDelay(), ChronoUnit.MILLIS).toInstant().toEpochMilli()
-                )
-
-        );
+        broadcast(MessageTypes.GAME_ROOM_START, new GameRoomPack(
+                OffsetDateTime.now().plus(roomProperties.getStartDelay(), ChronoUnit.MILLIS).toInstant().toEpochMilli()
+        ));
         log.trace("Room {} has been started", key());
     }
 
@@ -83,12 +79,9 @@ public class DefaultGameRoom extends AbstractGameRoom {
         started = true;
 
         schedule((long) (5 * 1000), (t) -> respawn());
-        broadcast(
-                MessageTypes.GAME_ROOM_BATTLE_START, new GameRoomPack(
-                        OffsetDateTime.now().plus(roomProperties.getEndDelay(), ChronoUnit.MILLIS).toInstant().toEpochMilli()
-
-                )
-        );
+        broadcast(MessageTypes.GAME_ROOM_BATTLE_START, new GameRoomPack(
+                OffsetDateTime.now().plus(roomProperties.getEndDelay(), ChronoUnit.MILLIS).toInstant().toEpochMilli()
+        ));
     }
 
     //room's game loop

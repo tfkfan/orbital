@@ -13,6 +13,4 @@ import java.util.Collection;
 public class GameUpdatePack implements UpdatePack {
     private PrivatePlayerUpdatePack player;
     private Collection<PlayerUpdatePack> players;
-   // private Collection<StrikeUpdatePack> strikes;
-  //  private Collection<LootUpdatePack> loots;
 }

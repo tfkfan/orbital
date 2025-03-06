@@ -1,18 +1,44 @@
 package com.tfkfan.webgame.game.model.players;
 
 import com.tfkfan.webgame.config.Constants;
+import com.tfkfan.webgame.game.Updatable;
+import com.tfkfan.webgame.game.map.GameMap;
+import com.tfkfan.webgame.game.model.BaseGameEntity;
 import com.tfkfan.webgame.game.model.Direction;
 import com.tfkfan.webgame.game.room.DefaultGameRoom;
 import com.tfkfan.webgame.network.pack.init.PlayerInitPack;
+import com.tfkfan.webgame.network.pack.update.IPrivateUpdatePackProvider;
 import com.tfkfan.webgame.network.pack.update.PlayerUpdatePack;
 import com.tfkfan.webgame.network.pack.update.PrivatePlayerUpdatePack;
 import com.tfkfan.webgame.session.UserSession;
+import lombok.Getter;
+import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 
+import java.util.Arrays;
+import java.util.Map;
+import java.util.stream.Collectors;
+
 @Slf4j
-public class DefaultPlayer extends BasePlayer<DefaultGameRoom, PlayerInitPack, PlayerUpdatePack, PrivatePlayerUpdatePack> {
+@Getter
+@Setter
+public class DefaultPlayer
+        extends BaseGameEntity<Long, DefaultGameRoom, PlayerInitPack, PlayerUpdatePack> implements Player, Updatable, IPrivateUpdatePackProvider<PrivatePlayerUpdatePack> {
+    protected final Long id;
+
+    protected final DefaultGameRoom gameRoom;
+    protected final GameMap gameMap;
+    protected final UserSession userSession;
+    protected Map<Direction, Boolean> movingState;
+
     public DefaultPlayer(Long id, DefaultGameRoom gameRoom, UserSession userSession) {
-        super(id, Constants.DEFAULT_COOLDOWN, gameRoom, gameRoom.gameMap(), userSession);
+        super(gameRoom);
+        this.id = id;
+        this.gameRoom = gameRoom;
+        this.gameMap = gameRoom.gameMap();
+        this.userSession = userSession;
+        userSession.setPlayer(this);
+        movingState = Arrays.stream(Direction.values()).collect(Collectors.toMap(direction -> direction, e -> false));
     }
 
     public void updateState(Direction direction, boolean state) {
@@ -30,15 +56,11 @@ public class DefaultPlayer extends BasePlayer<DefaultGameRoom, PlayerInitPack, P
                 Constants.ABS_PLAYER_SPEED : 0.0));
 
         position.sum(velocity);
-        super.update();
     }
 
     @Override
     public PlayerUpdatePack getUpdatePack() {
-        return new PlayerUpdatePack(
-                id,
-                position
-        );
+        return new PlayerUpdatePack(id, position);
     }
 
     @Override

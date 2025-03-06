@@ -3,7 +3,6 @@ package com.tfkfan.webgame;
 import com.tfkfan.webgame.config.Constants;
 import com.tfkfan.webgame.manager.MatchmakerManager;
 import com.tfkfan.webgame.properties.ApplicationProperties;
-import com.tfkfan.webgame.shared.VertxUtils;
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.DeploymentOptions;
 import io.vertx.core.Promise;
