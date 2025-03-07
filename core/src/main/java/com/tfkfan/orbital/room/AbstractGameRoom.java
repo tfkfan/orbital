@@ -135,6 +135,7 @@ public abstract class AbstractGameRoom implements GameRoom {
 
         this.sessions.clear();
         consumerList.forEach(MessageConsumer::unregister);
+        consumerList.clear();
         roomFutureList.forEach(vertx::cancelTimer);
         roomFutureList.clear();
 

@@ -12,7 +12,7 @@ import java.util.Map;
  * @author Baltser Artem tfkfan
  */
 public class BaseGameState implements GameState {
-    private Map<Long, Player> players = new HashMap<>();
+    private final Map<Long, Player> players = new HashMap<>();
 
     public BaseGameState() {
     }
