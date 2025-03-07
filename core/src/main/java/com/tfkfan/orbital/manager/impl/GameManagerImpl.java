@@ -7,7 +7,6 @@ import com.tfkfan.orbital.factory.GameStateFactory;
 import com.tfkfan.orbital.factory.GameRoomFactory;
 import com.tfkfan.orbital.factory.PlayerFactory;
 import com.tfkfan.orbital.state.GameState;
-import com.tfkfan.orbital.state.impl.BaseGameState;
 import com.tfkfan.orbital.room.GameRoom;
 import com.tfkfan.orbital.manager.GameManager;
 import com.tfkfan.orbital.session.UserSession;
@@ -19,6 +18,7 @@ import io.vertx.core.json.JsonObject;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.*;
+import java.util.concurrent.atomic.AtomicLong;
 
 @Slf4j
 public class GameManagerImpl implements GameManager {
@@ -55,23 +55,24 @@ public class GameManagerImpl implements GameManager {
         final String rawAction = json.getString(Fields.action);
         if (rawAction != null) {
             ActionType actionType = ActionType.valueOf(rawAction);
-            if (actionType.equals(ActionType.CREATE)) {
+            if (actionType.equals(ActionType.NEW_ROOM)) {
                 final GameState gameState = gameStateFactory.get();
                 final UUID roomId = UUID.fromString(json.getString(Fields.roomId));
                 final JsonArray sessions = json.getJsonArray(Fields.sessions);
                 final GameRoom room = gameRoomFactory.createGameRoom(verticleId, roomId, gameState, this, roomConfig);
-                final List<UserSession> roomUserSessions = new ArrayList<>();
+                final AtomicLong lastPlayerId = new AtomicLong(1L);
+                final List<UserSession> roomUserSessions = sessions
+                        .stream()
+                        .map(s -> {
+                            JsonObject session = (JsonObject) s;
+                            final String sessionId = session
+                                    .getString(Fields.sessionId);
+                            final UserSession userSession = new UserSession(sessionId, verticleId);
+                            gameState.addPlayer(playerFactory.createPlayer(lastPlayerId.getAndIncrement(), room, userSession));
+                            playerSessionsMap.put(sessionId, userSession);
+                            return userSession;
+                        }).toList();
 
-                long lastPlayerId = 1L;
-                for (int i = 0; i < sessions.size(); i++) {
-                    final String sessionId = sessions
-                            .getJsonObject(i)
-                            .getString(Fields.sessionId);
-                    final UserSession userSession = new UserSession(sessionId, verticleId);
-                    gameState.addPlayer(playerFactory.createPlayer(lastPlayerId++, room, userSession));
-                    playerSessionsMap.put(sessionId, userSession);
-                    roomUserSessions.add(userSession);
-                }
                 gameRoomMap.put(room.key(), room);
                 room.onRoomCreated(roomUserSessions);
                 room.onRoomStarted();

@@ -99,7 +99,7 @@ public class MatchmakerManagerImpl implements MatchmakerManager {
 
         log.info("Sending create room at room verticle: {}", nextVerticleId);
         eventBus.publish(Constants.ROOM_VERTICAL_CHANNEL + nextVerticleId, new JsonObject()
-                .put(Fields.action, ActionType.CREATE)
+                .put(Fields.action, ActionType.NEW_ROOM)
                 .put(Fields.roomId, roomId.toString())
                 .put(Fields.sessions, new JsonArray(userSessions.stream().map(e ->
                                 new JsonObject()
