@@ -137,6 +137,9 @@ public abstract class AbstractGameRoom implements GameRoom {
         consumerList.forEach(MessageConsumer::unregister);
         roomFutureList.forEach(vertx::cancelTimer);
         roomFutureList.clear();
+
+        vertx.eventBus().publish(Constants.MATCHMAKER_ROOM_DESTROY_CHANNEL, new JsonObject()
+                .put(Fields.roomId, key().toString()));
     }
 
     @Override

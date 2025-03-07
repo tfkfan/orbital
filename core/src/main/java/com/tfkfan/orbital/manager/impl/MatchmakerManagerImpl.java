@@ -24,6 +24,8 @@ import java.util.stream.Collectors;
 
 @Slf4j
 public class MatchmakerManagerImpl implements MatchmakerManager {
+    final Vertx vertx;
+    final EventBus eventBus;
     final RoomConfig roomConfig;
     final Queue<Pair<UserSession, JsonObject>> playersQueue = new ArrayDeque<>();
     final Map<UUID, Boolean> gameRoomMap = new HashMap<>();
@@ -56,8 +58,20 @@ public class MatchmakerManagerImpl implements MatchmakerManager {
 
     int currentRoomVerticleIndex = 0;
 
-    public MatchmakerManagerImpl( RoomConfig roomConfig) {
+    public MatchmakerManagerImpl(RoomConfig roomConfig) {
         this.roomConfig = roomConfig;
+        vertx = Vertx.currentContext().owner();
+        eventBus = vertx.eventBus();
+        eventBus.<JsonObject>consumer(Constants.MATCHMAKER_ROOM_CREATE_CHANNEL, msg -> {
+            final UUID roomId = UUID.fromString(msg.body().getString(Fields.roomId));
+            gameRoomMap.put(roomId, true);
+            log.info("Room {} has been created and started", roomId);
+        });
+        eventBus.<JsonObject>consumer(Constants.MATCHMAKER_ROOM_DESTROY_CHANNEL, msg -> {
+            final UUID roomId = UUID.fromString(msg.body().getString(Fields.roomId));
+            gameRoomMap.remove(roomId);
+            log.info("Room {} has been deleted", roomId);
+        });
     }
 
     String getNextRoomVerticleId() {
@@ -73,19 +87,9 @@ public class MatchmakerManagerImpl implements MatchmakerManager {
         if (playersQueue.size() < roomConfig.getMaxPlayers() || roomVerticleIds.isEmpty())
             return;
 
-        final EventBus eventBus = Vertx.currentContext().owner().eventBus();
-        eventBus.<JsonObject>consumer(Constants.MATCHMAKER_ROOM_CREATE_CHANNEL, msg -> log.info("Room {} has been created and started", msg.body().getString(Fields.roomId)));
-
-        eventBus.<JsonObject>consumer(Constants.MATCHMAKER_ROOM_DESTROY_CHANNEL, msg -> {
-            final UUID roomId = UUID.fromString(msg.body().getString(Fields.roomId));
-            gameRoomMap.remove(roomId);
-            userSession.setRoomKey(null);
-        });
-
         final UUID roomId = UUID.randomUUID();
         final String nextVerticleId = getNextRoomVerticleId();
 
-        gameRoomMap.put(roomId, true);
         userSession.setRoomKey(roomId);
         userSession.setRoomVerticleId(nextVerticleId);
 

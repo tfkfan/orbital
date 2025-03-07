@@ -6,7 +6,7 @@ room:
   loopRate: 50
   initDelay: 1
   startDelay: 5000
-  endDelay: 120000
+  endDelay: 12000
   testEnemies: true
   testEnemiesCount: 20
   testRooms: false

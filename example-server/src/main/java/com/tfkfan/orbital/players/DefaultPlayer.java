@@ -57,11 +57,6 @@ public class DefaultPlayer extends BasePlayer<Vector2D> {
     }
 
     @Override
-    public InitPack init() {
-        return getInitPack();
-    }
-
-    @Override
     public PrivateUpdatePack getPrivateUpdatePack() {
         return new PrivatePlayerUpdatePack(id);
     }

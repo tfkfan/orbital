@@ -30,4 +30,7 @@ public abstract class BaseGameEntity<ID, V extends Vector<V>> implements GameEnt
         velocity.sum(acceleration);
         position.sum(velocity);
     }
+
+    public void init() {
+    }
 }
