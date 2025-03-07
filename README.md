@@ -20,10 +20,13 @@ This is high-performance vert.x based distributed java game server designed for 
 **Project is in active development. Looking for contributors and sponsors to make this stuff widely used in future**
 
 Supports:
+
 * HTTP
 * Websocket
 
 Features of core:
+
+* GameApplication launcher
 * Gateway verticle basic functionality
 * Room verticle basic functionality
 * EventBus-based room listener system
@@ -33,11 +36,10 @@ Features of core:
 * Annotation-based incoming message handlers
 
 Currently, in development:
+
 * 2D/3D geometry and grid systems
 * TCP/UDP server mode
-* Advanced room management
-* HTTP monitoring
-* Advanced player management
+* Advanced room management, player management, admin page, monitoring
 * Auth-protected REST API
 * Advanced basic game objects (strikes, loot, handlers)
 * Infinispan-clustered game server mode

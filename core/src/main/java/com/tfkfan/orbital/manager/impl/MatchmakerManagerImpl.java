@@ -3,9 +3,8 @@ package com.tfkfan.orbital.manager.impl;
 import com.tfkfan.orbital.configuration.Constants;
 import com.tfkfan.orbital.configuration.Fields;
 import com.tfkfan.orbital.configuration.MessageTypes;
-import com.tfkfan.orbital.event.KeyDownPlayerEvent;
-import com.tfkfan.orbital.event.MouseDownPlayerEvent;
-import com.tfkfan.orbital.event.MouseMovePlayerEvent;
+import com.tfkfan.orbital.configuration.props.RoomConfig;
+import com.tfkfan.orbital.event.*;
 import com.tfkfan.orbital.manager.MatchmakerManager;
 import com.tfkfan.orbital.network.SessionListener;
 import com.tfkfan.orbital.network.VerticleListener;
@@ -25,14 +24,14 @@ import java.util.stream.Collectors;
 
 @Slf4j
 public class MatchmakerManagerImpl implements MatchmakerManager {
-    final Integer roomMaxPlayers;
+    final RoomConfig roomConfig;
     final Queue<Pair<UserSession, JsonObject>> playersQueue = new ArrayDeque<>();
     final Map<UUID, Boolean> gameRoomMap = new HashMap<>();
     final List<String> roomVerticleIds = new ArrayList<>();
     final SessionListener sessionListener = new SessionListener() {
         @Override
         public void onDisconnect(UserSession data) {
-            playersQueue.removeIf(e -> e.getA().getId().equals(data.getId()));
+            playersQueue.removeIf(e -> e.a().getId().equals(data.getId()));
         }
 
         @Override
@@ -57,8 +56,8 @@ public class MatchmakerManagerImpl implements MatchmakerManager {
 
     int currentRoomVerticleIndex = 0;
 
-    public MatchmakerManagerImpl(Integer roomMaxPlayers) {
-        this.roomMaxPlayers = roomMaxPlayers;
+    public MatchmakerManagerImpl( RoomConfig roomConfig) {
+        this.roomConfig = roomConfig;
     }
 
     String getNextRoomVerticleId() {
@@ -71,7 +70,7 @@ public class MatchmakerManagerImpl implements MatchmakerManager {
         playersQueue.add(new Pair<>(userSession, initialData));
         userSession.send(new Message(MessageTypes.GAME_ROOM_JOIN_WAIT));
 
-        if (playersQueue.size() < roomMaxPlayers || roomVerticleIds.isEmpty())
+        if (playersQueue.size() < roomConfig.getMaxPlayers() || roomVerticleIds.isEmpty())
             return;
 
         final EventBus eventBus = Vertx.currentContext().owner().eventBus();
@@ -91,7 +90,7 @@ public class MatchmakerManagerImpl implements MatchmakerManager {
         userSession.setRoomVerticleId(nextVerticleId);
 
         final List<Pair<UserSession, JsonObject>> userSessions = new ArrayList<>();
-        while (userSessions.size() != roomMaxPlayers)
+        while (userSessions.size() != roomConfig.getMaxPlayers())
             userSessions.add(playersQueue.remove());
 
         log.info("Sending create room at room verticle: {}", nextVerticleId);
@@ -100,8 +99,8 @@ public class MatchmakerManagerImpl implements MatchmakerManager {
                 .put(Fields.roomId, roomId.toString())
                 .put(Fields.sessions, new JsonArray(userSessions.stream().map(e ->
                                 new JsonObject()
-                                        .put(Fields.sessionId, e.getA().getId())
-                                        .put(Fields.initialData, e.getB()))
+                                        .put(Fields.sessionId, e.a().getId())
+                                        .put(Fields.initialData, e.b()))
                         .collect(Collectors.toList()))));
     }
 
@@ -111,18 +110,28 @@ public class MatchmakerManagerImpl implements MatchmakerManager {
     }
 
     @MessageRoute(MessageTypes.PLAYER_KEY_DOWN)
-    private void onPlayerKeyDown(UserSession userSession, JsonObject data) {
+    protected void onPlayerKeyDown(UserSession userSession, JsonObject data) {
         publishRoomEvent(userSession, data, KeyDownPlayerEvent.class);
     }
 
     @MessageRoute(MessageTypes.PLAYER_MOUSE_DOWN)
-    private void onPlayerMouseDown(UserSession userSession, JsonObject data) {
+    protected void onPlayerMouseDown(UserSession userSession, JsonObject data) {
         publishRoomEvent(userSession, data, MouseDownPlayerEvent.class);
     }
 
     @MessageRoute(MessageTypes.PLAYER_MOUSE_MOVE)
-    private void onPlayerMouseMove(UserSession userSession, JsonObject data) {
+    protected void onPlayerMouseMove(UserSession userSession, JsonObject data) {
         publishRoomEvent(userSession, data, MouseMovePlayerEvent.class);
+    }
+
+    @MessageRoute(MessageTypes.GAME_ROOM_INFO)
+    protected void onGameRoomInfo(UserSession userSession, JsonObject data) {
+        publishRoomEvent(userSession, data, GameRoomInfoEvent.class);
+    }
+
+    @MessageRoute(MessageTypes.INIT)
+    protected void onInit(UserSession userSession, JsonObject data) {
+        publishRoomEvent(userSession, data, InitPlayerEvent.class);
     }
 
     @Override

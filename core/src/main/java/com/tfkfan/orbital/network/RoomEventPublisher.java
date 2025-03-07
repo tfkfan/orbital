@@ -2,7 +2,7 @@ package com.tfkfan.orbital.network;
 
 import com.tfkfan.orbital.configuration.Fields;
 import com.tfkfan.orbital.event.Event;
-import com.tfkfan.orbital.game.room.GameRoom;
+import com.tfkfan.orbital.room.GameRoom;
 import com.tfkfan.orbital.session.UserSession;
 import io.vertx.core.Vertx;
 import io.vertx.core.eventbus.DeliveryOptions;

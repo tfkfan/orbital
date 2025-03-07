@@ -2,12 +2,13 @@ package com.tfkfan.orbital.manager.impl;
 
 import com.tfkfan.orbital.configuration.Constants;
 import com.tfkfan.orbital.configuration.Fields;
-import com.tfkfan.orbital.factory.GameMapFactory;
+import com.tfkfan.orbital.configuration.props.RoomConfig;
+import com.tfkfan.orbital.factory.GameStateFactory;
 import com.tfkfan.orbital.factory.GameRoomFactory;
 import com.tfkfan.orbital.factory.PlayerFactory;
-import com.tfkfan.orbital.game.map.GameMap;
-import com.tfkfan.orbital.game.model.players.Player;
-import com.tfkfan.orbital.game.room.GameRoom;
+import com.tfkfan.orbital.state.GameState;
+import com.tfkfan.orbital.state.impl.BaseGameState;
+import com.tfkfan.orbital.room.GameRoom;
 import com.tfkfan.orbital.manager.GameManager;
 import com.tfkfan.orbital.session.UserSession;
 import com.tfkfan.orbital.shared.ActionType;
@@ -20,29 +21,29 @@ import lombok.extern.slf4j.Slf4j;
 import java.util.*;
 
 @Slf4j
-public class GameManagerImpl<P extends Player, GR extends GameRoom, RP> implements GameManager {
+public class GameManagerImpl implements GameManager {
     protected final Vertx vertx;
-    protected final RP roomProperties;
+    protected final RoomConfig roomConfig;
     protected final String verticleId;
 
     protected final Map<UUID, GameRoom> gameRoomMap = new HashMap<>();
     protected final Map<String, UserSession> playerSessionsMap = new HashMap<>();
 
-    protected final PlayerFactory<P, GR> playerFactory;
-    protected final GameMapFactory gameMapFactory;
-    protected final GameRoomFactory<GR, RP> gameRoomFactory;
+    protected final PlayerFactory playerFactory;
+    protected final GameStateFactory gameStateFactory;
+    protected final GameRoomFactory gameRoomFactory;
 
     public GameManagerImpl(String verticleId,
                            Vertx vertx,
-                           RP roomProperties,
-                           PlayerFactory<P, GR> playerFactory,
-                           GameMapFactory gameMapFactory,
-                           GameRoomFactory<GR, RP> gameRoomFactory) {
-        this.roomProperties = roomProperties;
+                           RoomConfig roomConfig,
+                           PlayerFactory playerFactory,
+                           GameStateFactory gameStateFactory,
+                           GameRoomFactory gameRoomFactory) {
+        this.roomConfig = roomConfig;
         this.verticleId = verticleId;
         this.vertx = vertx;
         this.playerFactory = playerFactory;
-        this.gameMapFactory = gameMapFactory;
+        this.gameStateFactory = gameStateFactory;
         this.gameRoomFactory = gameRoomFactory;
 
         vertx.eventBus().consumer(Constants.ROOM_VERTICAL_CHANNEL + verticleId, this::onMessage);
@@ -55,10 +56,10 @@ public class GameManagerImpl<P extends Player, GR extends GameRoom, RP> implemen
         if (rawAction != null) {
             ActionType actionType = ActionType.valueOf(rawAction);
             if (actionType.equals(ActionType.CREATE)) {
-                final GameMap gameMap = gameMapFactory.get();
+                final GameState gameState = gameStateFactory.get();
                 final UUID roomId = UUID.fromString(json.getString(Fields.roomId));
                 final JsonArray sessions = json.getJsonArray(Fields.sessions);
-                final GR room = gameRoomFactory.createGameRoom(verticleId, roomId, gameMap, this, roomProperties);
+                final GameRoom room = gameRoomFactory.createGameRoom(verticleId, roomId, gameState, this, roomConfig);
                 final List<UserSession> roomUserSessions = new ArrayList<>();
 
                 long lastPlayerId = 1L;
@@ -67,7 +68,7 @@ public class GameManagerImpl<P extends Player, GR extends GameRoom, RP> implemen
                             .getJsonObject(i)
                             .getString(Fields.sessionId);
                     final UserSession userSession = new UserSession(sessionId, verticleId);
-                    gameMap.addPlayer(playerFactory.createPlayer(lastPlayerId++, room, userSession));
+                    gameState.addPlayer(playerFactory.createPlayer(lastPlayerId++, room, userSession));
                     playerSessionsMap.put(sessionId, userSession);
                     roomUserSessions.add(userSession);
                 }

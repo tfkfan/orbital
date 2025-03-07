@@ -1,6 +1,7 @@
 package com.tfkfan.orbital.verticle.impl;
 
 import com.tfkfan.orbital.configuration.Constants;
+import com.tfkfan.orbital.configuration.props.ServerConfig;
 import com.tfkfan.orbital.manager.GatewayManager;
 import com.tfkfan.orbital.verticle.BaseVerticle;
 import io.vertx.core.Future;
@@ -18,9 +19,9 @@ public abstract class GatewayVerticle extends BaseVerticle {
     protected Consumer<Router> routerInitializer = _ -> {
     };
 
-    final int port;
-    final GatewayManager gatewayManager;
-    HttpServer server;
+    protected final ServerConfig serverConfig;
+    protected final GatewayManager gatewayManager;
+    protected HttpServer server;
 
     @Override
     public void start(Promise<Void> startPromise) throws Exception {
@@ -34,8 +35,11 @@ public abstract class GatewayVerticle extends BaseVerticle {
                     .requestHandler(router);
 
             internalCustomize(server)
-                    .flatMap(s -> s.listen(port))
-                    .onSuccess(_ -> startPromise.complete())
+                    .flatMap(s -> s.listen(serverConfig.getPort()))
+                    .onSuccess(_ -> {
+                        log.info("Websocket server started on port {}", serverConfig.getPort());
+                        startPromise.complete();
+                    })
                     .onFailure(startPromise::fail);
         } catch (Exception e) {
             startPromise.fail(e);

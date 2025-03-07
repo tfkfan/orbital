@@ -3,7 +3,7 @@ package com.tfkfan.orbital.session;
 import com.tfkfan.orbital.configuration.Constants;
 import com.tfkfan.orbital.configuration.Fields;
 import com.tfkfan.orbital.configuration.MessageTypes;
-import com.tfkfan.orbital.game.model.players.Player;
+import com.tfkfan.orbital.model.players.Player;
 import com.tfkfan.orbital.network.message.Message;
 import com.tfkfan.orbital.network.message.MessageType;
 import com.tfkfan.orbital.network.pack.shared.GameMessagePack;

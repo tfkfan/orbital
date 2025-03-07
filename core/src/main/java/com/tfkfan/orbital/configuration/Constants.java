@@ -10,7 +10,7 @@ public interface Constants {
     String MATCHMAKER_ROOM_DESTROY_CHANNEL = "matchmaker.room.destroy";
     String WEBSOCKET_PATH = "/websocket";
     String ROOM_VERTICAL_ID = "room.vertical.id";
-    Double ABS_PLAYER_SPEED = 5.0;
+
     Long DEFAULT_LOOPRATE = 300L;
     Long ROOM_START_DELAY = 30000L;
     Long ROOM_END_DELAY = 1000L * 60 * 5;

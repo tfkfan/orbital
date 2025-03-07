@@ -4,11 +4,9 @@ package com.tfkfan.orbital.math;
 import lombok.Getter;
 import lombok.Setter;
 
-import java.io.Serializable;
-
 @Getter
 @Setter
-public class Vector2D implements Serializable {
+public class Vector2D implements Vector<Vector2D> {
     private double x = 0.0;
     private double y = 0.0;
 
@@ -34,11 +32,11 @@ public class Vector2D implements Serializable {
         return new Vector2D(0.0, 0.0);
     }
 
-    public static Vector2D multiply(Vector2D vector, double scalar) {
+    public static Vector2D mult(Vector2D vector, double scalar) {
         return new Vector2D(vector.x * scalar, vector.y * scalar);
     }
 
-    public static Vector2D divide(Vector2D vector, double scalar) {
+    public static Vector2D div(Vector2D vector, double scalar) {
         return new Vector2D(vector.x / scalar, vector.y / scalar);
     }
 
@@ -67,10 +65,12 @@ public class Vector2D implements Serializable {
         set(vector);
     }
 
-    public boolean isZero(){
+    @Override
+    public boolean isZero() {
         return x == 0.0 || y == 0.0;
     }
 
+    @Override
     public Vector2D set(Vector2D vector) {
         this.x = vector.x;
         this.y = vector.y;
@@ -93,17 +93,11 @@ public class Vector2D implements Serializable {
         return this;
     }
 
+    @Override
     public Vector2D sum(Vector2D vector) {
         sumX(vector.x);
         sumY(vector.y);
         return this;
-    }
-
-    public Vector2D sumNew(Vector2D vector) {
-        var v = new Vector2D(this);
-        v.sumX(vector.x);
-        v.sumY(vector.y);
-        return v;
     }
 
     public Vector2D sum(double x, double y) {
@@ -112,57 +106,98 @@ public class Vector2D implements Serializable {
         return this;
     }
 
-    public Vector2D sumNew(double x, double y) {
+    public Vector2D nsum(double x, double y) {
         var v = new Vector2D(this);
         v.sumX(x);
         v.sumY(y);
         return v;
     }
 
-    public Vector2D multiplyX(double x) {
+    @Override
+    public Vector2D nsum(Vector2D vector) {
+        var v = new Vector2D(this);
+        v.sumX(vector.x);
+        v.sumY(vector.y);
+        return v;
+    }
+
+    public Vector2D multX(double x) {
         this.x *= x;
         return this;
     }
 
-    public Vector2D multiplyY(double y) {
+    public Vector2D multY(double y) {
         this.y *= y;
         return this;
     }
 
-    public Vector2D multiply(Vector2D vector) {
-        multiplyX(vector.x);
-        multiplyY(vector.y);
+    @Override
+    public Vector2D mult(Vector2D vector) {
+        multX(vector.x);
+        multY(vector.y);
         return this;
     }
 
-    public Vector2D multiply(double x, double y) {
-        multiplyX(x);
-        multiplyY(y);
+    public Vector2D mult(double x, double y) {
+        multX(x);
+        multY(y);
         return this;
     }
 
-    public Vector2D divideX(double x) {
+    public Vector2D nmult(double x, double y) {
+        var v = new Vector2D(this);
+        v.multX(x);
+        v.multY(y);
+        return v;
+    }
+
+    @Override
+    public Vector2D nmult(Vector2D vector) {
+        var v = new Vector2D(this);
+        v.multX(vector.x);
+        v.multY(vector.y);
+        return v;
+    }
+
+    public Vector2D divX(double x) {
         this.x /= x;
         return this;
     }
 
-    public Vector2D divideY(double y) {
+    public Vector2D divY(double y) {
         this.y /= y;
         return this;
     }
 
-    public Vector2D divide(Vector2D vector) {
-        divideX(vector.x);
-        divideY(vector.y);
+    @Override
+    public Vector2D div(Vector2D vector) {
+        divX(vector.x);
+        divY(vector.y);
         return this;
     }
 
-    public Vector2D divide(double x, double y) {
-        divideX(x);
-        divideY(y);
+    public Vector2D div(double x, double y) {
+        divX(x);
+        divY(y);
         return this;
     }
 
+    public Vector2D ndiv(double x, double y) {
+        var v = new Vector2D(this);
+        v.divX(x);
+        v.divY(y);
+        return v;
+    }
+
+    @Override
+    public Vector2D ndiv(Vector2D vector) {
+        var v = new Vector2D(this);
+        v.divX(vector.x);
+        v.divY(vector.y);
+        return v;
+    }
+
+    @Override
     public Vector2D diff(Vector2D vector) {
         diff(vector.x, vector.y);
         return this;
@@ -184,6 +219,22 @@ public class Vector2D implements Serializable {
         return this;
     }
 
+    public Vector2D ndiff(double x, double y) {
+        var v = new Vector2D(this);
+        v.diffX(x);
+        v.diffY(y);
+        return v;
+    }
+
+    @Override
+    public Vector2D ndiff(Vector2D vector) {
+        var v = new Vector2D(this);
+        v.diffX(vector.x);
+        v.diffY(vector.y);
+        return v;
+    }
+
+    @Override
     public Vector2D reduce(double value) {
         var valueNew = Math.abs(value);
         if (x > 0) diffX(valueNew);
@@ -194,27 +245,23 @@ public class Vector2D implements Serializable {
         return this;
     }
 
+    @Override
     public Vector2D inverse() {
         this.x = -this.x;
         this.y = -this.y;
         return this;
     }
 
-    public Vector2D normalize() {
-        set(normalize(this));
+    @Override
+    public Vector2D inverse(double multiplicator) {
+        x = (-multiplicator * x);
+        y = (-multiplicator * y);
         return this;
     }
 
-    public Vector2D normalizeNew() {
-        return normalize(this);
-    }
-
-    public Vector2D inverseNew() {
-        return new Vector2D(-x, -y);
-    }
-
-    public void inverse(double multiplicator) {
-        x = (-multiplicator * x);
-        y = (-multiplicator * y);
+    @Override
+    public Vector2D normalize() {
+        set(normalize(this));
+        return this;
     }
 }

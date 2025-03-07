@@ -1,21 +1,23 @@
 package com.tfkfan.orbital.manager;
 
-import com.tfkfan.orbital.game.map.GameMap;
-import com.tfkfan.orbital.game.model.players.DefaultPlayer;
-import com.tfkfan.orbital.game.room.DefaultGameRoom;
+import com.tfkfan.orbital.configuration.props.RoomConfig;
 import com.tfkfan.orbital.manager.impl.GameManagerImpl;
-import com.tfkfan.orbital.properties.RoomProperties;
+import com.tfkfan.orbital.players.DefaultPlayer;
+import com.tfkfan.orbital.room.DefaultGameRoom;
+import com.tfkfan.orbital.state.impl.BaseGameState;
 import io.vertx.core.Vertx;
 
-public class DefaultGameManager extends GameManagerImpl<DefaultPlayer, DefaultGameRoom, RoomProperties> {
-    public static DefaultGameManager create(String verticleId, RoomProperties roomProperties) {
-        return new DefaultGameManager(verticleId, roomProperties);
+import java.util.function.Function;
+
+public class DefaultGameManager extends GameManagerImpl {
+    public static Function<String, GameManager> gameManagerFactory(RoomConfig roomConfig) {
+        return (vId) -> new DefaultGameManager(vId, roomConfig);
     }
 
-    public DefaultGameManager(String verticleId, RoomProperties roomProperties) {
-        super(verticleId, Vertx.currentContext().owner(), roomProperties,
+    public DefaultGameManager(String verticleId, RoomConfig roomConfig) {
+        super(verticleId, Vertx.currentContext().owner(), roomConfig,
                 DefaultPlayer::new,
-                GameMap::new,
+                BaseGameState::new,
                 DefaultGameRoom::new);
     }
 }

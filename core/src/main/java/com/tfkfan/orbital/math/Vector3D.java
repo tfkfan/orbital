@@ -6,7 +6,7 @@ import lombok.Setter;
 
 @Getter
 @Setter
-public class Vector3D {
+public class Vector3D implements Vector<Vector3D> {
     private double x = 0.0;
     private double y = 0.0;
     private double z = 0.0;
@@ -18,16 +18,16 @@ public class Vector3D {
         return new Vector3D(v2.x - v1.x, v2.y - v1.y, v2.z - v1.z);
     }
 
-    public static double getDistance(Vector3D vector1, Vector3D vector2) {
+    public static double distance(Vector3D vector1, Vector3D vector2) {
         return Math.sqrt(Math.pow((vector2.x - vector1.x), 2.0) + Math.pow((vector2.y - vector1.y), 2.0) + Math.pow((vector2.z - vector1.z), 2.0));
     }
 
-    public static double getLength(Vector3D vector) {
+    public static double length(Vector3D vector) {
         return Math.sqrt(Math.pow(vector.x, 2.0) + Math.pow(vector.y, 2.0) + Math.pow(vector.z, 2.0));
     }
 
     public static Vector3D normalize(Vector3D v1) {
-        var length = getLength(v1);
+        var length = length(v1);
         if (length != 0.0) return new Vector3D(v1.x / length, v1.y / length, v1.z / length);
 
         return new Vector3D(0.0, 0.0, 0.0);
@@ -46,7 +46,7 @@ public class Vector3D {
     }
 
     public static double angleRadians(Vector3D v1, Vector3D v2) {
-        return Math.acos(scalar(v1, v2) / (getLength(v1) * getLength(v2)));
+        return Math.acos(scalar(v1, v2) / (length(v1) * length(v2)));
     }
 
     public static double angleDegrees(Vector3D v1, Vector3D v2) {
@@ -67,10 +67,12 @@ public class Vector3D {
         set(vector);
     }
 
+    @Override
     public boolean isZero() {
         return x == 0.0 || y == 0.0;
     }
 
+    @Override
     public Vector3D set(Vector3D vector) {
         this.x = vector.x;
         this.y = vector.y;
@@ -100,6 +102,7 @@ public class Vector3D {
         return this;
     }
 
+    @Override
     public Vector3D sum(Vector3D vector) {
         sumX(vector.x);
         sumY(vector.y);
@@ -107,7 +110,8 @@ public class Vector3D {
         return this;
     }
 
-    public Vector3D sumNew(Vector3D vector) {
+    @Override
+    public Vector3D nsum(Vector3D vector) {
         var v = new Vector3D(this);
         v.sumX(vector.x);
         v.sumY(vector.y);
@@ -122,7 +126,7 @@ public class Vector3D {
         return this;
     }
 
-    public Vector3D sumNew(double x, double y, double z) {
+    public Vector3D nsum(double x, double y, double z) {
         var v = new Vector3D(this);
         v.sumX(x);
         v.sumY(y);
@@ -130,61 +134,81 @@ public class Vector3D {
         return v;
     }
 
-    public Vector3D multiplyX(double x) {
+    public Vector3D multX(double x) {
         this.x *= x;
         return this;
     }
 
-    public Vector3D multiplyY(double y) {
+    public Vector3D multY(double y) {
         this.y *= y;
         return this;
     }
 
-    public Vector3D multiplyZ(double z) {
+    public Vector3D multZ(double z) {
         this.z *= z;
         return this;
     }
 
-    public Vector3D multiply(Vector3D vector) {
-        multiplyX(vector.x);
-        multiplyY(vector.y);
-        multiplyZ(vector.z);
+    @Override
+    public Vector3D mult(Vector3D vector) {
+        multX(vector.x);
+        multY(vector.y);
+        multZ(vector.z);
         return this;
     }
 
-    public Vector3D multiply(double x, double y, double z) {
-        multiplyX(x);
-        multiplyY(y);
-        multiplyZ(z);
+    @Override
+    public Vector3D nmult(Vector3D vector) {
+        var v = new Vector3D(this);
+        v.multX(vector.x);
+        v.multY(vector.y);
+        v.multZ(vector.z);
+        return v;
+    }
+
+    public Vector3D mult(double x, double y, double z) {
+        multX(x);
+        multY(y);
+        multZ(z);
         return this;
     }
 
-    public Vector3D divideX(double x) {
+    public Vector3D divX(double x) {
         this.x /= x;
         return this;
     }
 
-    public Vector3D divideY(double y) {
+    public Vector3D divY(double y) {
         this.y /= y;
         return this;
     }
 
-    public Vector3D divideZ(double z) {
+    public Vector3D divZ(double z) {
         this.z /= z;
         return this;
     }
 
-    public Vector3D divide(Vector3D vector) {
-        divideX(vector.x);
-        divideY(vector.y);
-        divideZ(vector.z);
+    @Override
+    public Vector3D div(Vector3D vector) {
+        divX(vector.x);
+        divY(vector.y);
+        divZ(vector.z);
         return this;
     }
 
-    public Vector3D divide(double x, double y, double z) {
-        divideX(x);
-        divideY(y);
-        divideZ(z);
+    @Override
+    public Vector3D ndiv(Vector3D vector) {
+        var v = new Vector3D(this);
+        v.divX(vector.x);
+        v.divY(vector.y);
+        v.divZ(vector.z);
+        return v;
+    }
+
+    public Vector3D div(double x, double y, double z) {
+        divX(x);
+        divY(y);
+        divZ(z);
         return this;
     }
 
@@ -203,9 +227,19 @@ public class Vector3D {
         return this;
     }
 
+    @Override
     public Vector3D diff(Vector3D vector) {
         diff(vector.x, vector.y, vector.z);
         return this;
+    }
+
+    @Override
+    public Vector3D ndiff(Vector3D vector) {
+        var v = new Vector3D(this);
+        v.diffX(vector.x);
+        v.diffY(vector.y);
+        v.diffZ(vector.z);
+        return v;
     }
 
     public Vector3D diff(double x, double y, double z) {
@@ -215,6 +249,7 @@ public class Vector3D {
         return this;
     }
 
+    @Override
     public Vector3D reduce(double value) {
         var valueNew = Math.abs(value);
         if (x > 0) diffX(valueNew);
@@ -228,6 +263,7 @@ public class Vector3D {
         return this;
     }
 
+    @Override
     public Vector3D inverse() {
         this.x = -this.x;
         this.y = -this.y;
@@ -235,22 +271,17 @@ public class Vector3D {
         return this;
     }
 
+    @Override
     public Vector3D normalize() {
         set(normalize(this));
         return this;
     }
 
-    public Vector3D normalizeNew() {
-        return normalize(this);
-    }
-
-    public Vector3D inverseNew() {
-        return new Vector3D(-x, -y, -z);
-    }
-
-    public void inverse(double multiplicator) {
+    @Override
+    public Vector3D inverse(double multiplicator) {
         x = (-multiplicator * x);
         y = (-multiplicator * y);
         z = (-multiplicator * z);
+        return this;
     }
 }
