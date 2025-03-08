@@ -49,3 +49,11 @@ Currently, in development:
 The solution is based on Vert.X "Actor" approach and EventBus features. It allows to have Indefinite amount of
 room management verticles as workers to process game messages.
 The code of "Orbital" is conceived to be extended and modernized on your own.
+The basic features are verticles and managers encapsulating business logic of the game.
+Following images represent internal framework architecture
+
+![orbital.chart.png](orbital.chart.png)
+
+Orbital cluster is easy reachable according this schema:
+
+![orbital-cluster.chart.png](orbital-cluster.chart.png)
