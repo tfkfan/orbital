@@ -1,4 +1,4 @@
 package com.tfkfan.orbital.shared;
 
-public record Pair<A, B>(A a, B b) {
+public record Pair<A, B>(A first, B second) {
 }

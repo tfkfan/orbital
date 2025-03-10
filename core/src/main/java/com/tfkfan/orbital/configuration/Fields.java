@@ -6,6 +6,7 @@ public interface Fields {
     String action = "action";
     String sessions = "sessions";
     String sessionId = "sessionId";
+    String admin = "admin";
     String initialData = "initialData";
     String type = "type";
     String data = "data";

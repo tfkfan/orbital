@@ -4,7 +4,7 @@ import com.tfkfan.orbital.event.Event;
 import com.tfkfan.orbital.event.listener.EventListener;
 import com.tfkfan.orbital.network.MessageBroadcaster;
 import com.tfkfan.orbital.network.RoomEventPublisher;
-import com.tfkfan.orbital.session.UserSession;
+import com.tfkfan.orbital.session.PlayerSession;
 import com.tfkfan.orbital.state.GameState;
 import io.vertx.core.Handler;
 
@@ -17,6 +17,7 @@ public interface GameRoom extends Runnable, MessageBroadcaster, RoomEventPublish
     static String constructEventListenerConsumer(UUID gameRoomId, Class<?> clazz) {
         return "%s.%s".formatted(gameRoomId, clazz.getSimpleName()).toLowerCase();
     }
+
     <E extends Event> void addEventListener(EventListener<E> listener, Class<E> clazz);
 
     GameState state();
@@ -25,7 +26,7 @@ public interface GameRoom extends Runnable, MessageBroadcaster, RoomEventPublish
 
     void update(long timerID);
 
-    void onRoomCreated(List<UserSession> userSessions);
+    void onRoomCreated(List<PlayerSession> userSessions);
 
     void onRoomStarted();
 
@@ -33,23 +34,23 @@ public interface GameRoom extends Runnable, MessageBroadcaster, RoomEventPublish
 
     void onDestroy();
 
-    void onRejoin(UserSession userSession, UUID reconnectKey);
+    void onRejoin(PlayerSession userSession, UUID reconnectKey);
 
-    UserSession onDisconnect(UserSession userSession);
+    PlayerSession onDisconnect(PlayerSession userSession);
 
-    Collection<UserSession> sessions();
+    Collection<PlayerSession> sessions();
 
     int currentPlayersCount();
 
-    Optional<UserSession> getPlayerSessionBySessionId(UserSession userSession);
+    Optional<PlayerSession> getPlayerSessionBySessionId(PlayerSession userSession);
 
     UUID key();
 
     String verticleId();
 
-    Collection<UserSession> close();
+    Collection<PlayerSession> close();
 
-    void onClose(UserSession userSession);
+    void onClose(PlayerSession userSession);
 
     void schedule(Long delayMillis, Handler<Long> task);
 

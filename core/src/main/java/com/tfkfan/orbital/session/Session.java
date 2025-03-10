@@ -3,7 +3,7 @@ package com.tfkfan.orbital.session;
 import com.tfkfan.orbital.configuration.Constants;
 import com.tfkfan.orbital.configuration.Fields;
 import com.tfkfan.orbital.configuration.MessageTypes;
-import com.tfkfan.orbital.model.players.Player;
+import com.tfkfan.orbital.network.MessageSender;
 import com.tfkfan.orbital.network.message.Message;
 import com.tfkfan.orbital.network.message.MessageType;
 import com.tfkfan.orbital.network.pack.shared.GameMessagePack;
@@ -12,81 +12,88 @@ import io.vertx.core.json.JsonObject;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.util.Objects;
 import java.util.UUID;
 
 @Setter
 @Getter
-public class UserSession {
+public abstract class Session implements MessageSender {
     private final String id;
-    private final boolean testUser;
-    private String roomVerticleId;
+    private final boolean test;
+    private final boolean admin;
 
-    private UUID roomKey;
-    private Player player;
-
-    public UserSession() {
+    public Session(boolean admin) {
+        this.admin = admin;
         this.id = UUID.randomUUID().toString();
-        this.testUser = false;
+        this.test = false;
     }
 
-    public UserSession(String roomVerticleId) {
-        this.id = UUID.randomUUID().toString();
-        this.roomVerticleId = roomVerticleId;
-        this.testUser = false;
-    }
-
-    public UserSession(String sessionId, String roomVerticleId) {
+    public Session(String sessionId, boolean admin) {
         this.id = sessionId;
-        this.roomVerticleId = roomVerticleId;
-        this.testUser = false;
+        this.admin = admin;
+        this.test = false;
     }
 
-    public UserSession(String sessionId, String roomVerticleId, boolean testUser) {
+    public Session(String sessionId, boolean admin, boolean test) {
         this.id = sessionId;
-        this.roomVerticleId = roomVerticleId;
-        this.testUser = testUser;
+        this.test = test;
+        this.admin = admin;
     }
 
-    public UserSession(String sessionId, String roomVerticleId, Player player) {
-        this.id = sessionId;
-        this.roomVerticleId = roomVerticleId;
-        this.testUser = false;
-        this.player = player;
-    }
-
+    @Override
     public void sendTo(String address, JsonObject message) {
         Vertx.currentContext().owner().eventBus().publish(address,
                 JsonObject.mapFrom(message));
     }
 
+    @Override
     public void send(int messageType, Object content) {
         Object data = content;
         if (!(content instanceof String) && !(content instanceof JsonObject))
             data = JsonObject.mapFrom(content);
 
-        Vertx.currentContext().owner().eventBus().publish(Constants.WS_SESSION_CHANNEL + id,
+        Vertx.currentContext().owner().eventBus().publish(
+                Constants.sessionConsumer(Constants.GAME_ADDRESS, id),
                 new JsonObject().put(Fields.type, messageType)
                         .put(Fields.data, data));
     }
 
+    @Override
     public void send(Message message) {
-        Vertx.currentContext().owner().eventBus().publish(Constants.WS_SESSION_CHANNEL + id,
+        Vertx.currentContext().owner().eventBus().publish(Constants.sessionConsumer(Constants.GAME_ADDRESS, id),
                 JsonObject.mapFrom(message));
     }
 
+    @Override
     public void send(JsonObject message) {
-        Vertx.currentContext().owner().eventBus().publish(Constants.WS_SESSION_CHANNEL + id, message);
+        Vertx.currentContext().owner().eventBus().publish(Constants.sessionConsumer(Constants.GAME_ADDRESS, id), message);
     }
 
+    @Override
     public void sendErrorMessage(String errorMsg) {
         /* if (socket == null) return;*/
     }
 
+    @Override
     public void sendText(MessageType type, String message) {
         send(MessageTypes.MESSAGE, new GameMessagePack(type.getType(), message));
     }
 
+    @Override
     public void sendText(String message) {
         sendText(MessageType.SYSTEM, message);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Session session = (Session) o;
+        return Objects.equals(id, session.id);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(id);
     }
 }

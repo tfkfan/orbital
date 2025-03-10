@@ -6,10 +6,11 @@ import com.tfkfan.orbital.configuration.props.RoomConfig;
 import com.tfkfan.orbital.factory.GameStateFactory;
 import com.tfkfan.orbital.factory.GameRoomFactory;
 import com.tfkfan.orbital.factory.PlayerFactory;
+import com.tfkfan.orbital.session.PlayerSession;
 import com.tfkfan.orbital.state.GameState;
 import com.tfkfan.orbital.room.GameRoom;
 import com.tfkfan.orbital.manager.GameManager;
-import com.tfkfan.orbital.session.UserSession;
+import com.tfkfan.orbital.session.Session;
 import com.tfkfan.orbital.shared.ActionType;
 import io.vertx.core.Vertx;
 import io.vertx.core.eventbus.Message;
@@ -27,7 +28,7 @@ public class GameManagerImpl implements GameManager {
     protected final String verticleId;
 
     protected final Map<UUID, GameRoom> gameRoomMap = new HashMap<>();
-    protected final Map<String, UserSession> playerSessionsMap = new HashMap<>();
+    protected final Map<String, PlayerSession> playerSessionsMap = new HashMap<>();
 
     protected final PlayerFactory playerFactory;
     protected final GameStateFactory gameStateFactory;
@@ -46,7 +47,7 @@ public class GameManagerImpl implements GameManager {
         this.gameStateFactory = gameStateFactory;
         this.gameRoomFactory = gameRoomFactory;
 
-        vertx.eventBus().consumer(Constants.ROOM_VERTICAL_CHANNEL + verticleId, this::onMessage);
+        vertx.eventBus().consumer(Constants.ROOM_VERTICAL_CHANNEL, this::onMessage);
     }
 
     protected void onMessage(Message<JsonObject> message) {
@@ -61,13 +62,14 @@ public class GameManagerImpl implements GameManager {
                 final JsonArray sessions = json.getJsonArray(Fields.sessions);
                 final GameRoom room = gameRoomFactory.createGameRoom(verticleId, roomId, gameState, this, roomConfig);
                 final AtomicLong lastPlayerId = new AtomicLong(1L);
-                final List<UserSession> roomUserSessions = sessions
+                final List<PlayerSession> roomUserSessions = sessions
                         .stream()
                         .map(s -> {
                             JsonObject session = (JsonObject) s;
                             final String sessionId = session
                                     .getString(Fields.sessionId);
-                            final UserSession userSession = new UserSession(sessionId, verticleId);
+                            final boolean isAdmin = session.getBoolean(Fields.admin);
+                            final PlayerSession userSession = new PlayerSession(sessionId, isAdmin);
                             gameState.addPlayer(playerFactory.createPlayer(lastPlayerId.getAndIncrement(), room, userSession));
                             playerSessionsMap.put(sessionId, userSession);
                             return userSession;

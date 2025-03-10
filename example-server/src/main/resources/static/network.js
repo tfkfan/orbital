@@ -1,7 +1,7 @@
 var socket;
 var events = {};
 
-function initializeWebsocket(wsEndpoint = "ws://localhost:8085/websocket") {
+function initializeWebsocket(wsEndpoint = "ws://localhost:8085/game") {
     if (!window.WebSocket) {
         // @ts-ignore
         window.WebSocket = window.MozWebSocket;

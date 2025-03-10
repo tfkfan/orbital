@@ -9,7 +9,8 @@ import com.tfkfan.orbital.network.pack.init.Player2DInitPack;
 import com.tfkfan.orbital.network.pack.update.Player2DUpdatePack;
 import com.tfkfan.orbital.network.pack.update.PrivatePlayerUpdatePack;
 import com.tfkfan.orbital.room.GameRoom;
-import com.tfkfan.orbital.session.UserSession;
+import com.tfkfan.orbital.session.PlayerSession;
+import com.tfkfan.orbital.session.Session;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.Arrays;
@@ -21,7 +22,7 @@ public class DefaultPlayer extends BasePlayer<Vector2D> {
     protected Map<Direction, Boolean> movingState;
     Double ABS_PLAYER_SPEED = 5.0;
 
-    public DefaultPlayer(Long id, GameRoom gameRoom, UserSession userSession) {
+    public DefaultPlayer(Long id, GameRoom gameRoom, PlayerSession userSession) {
         super(id, gameRoom, userSession);
         movingState = Arrays.stream(Direction.values())
                 .collect(Collectors.toMap(direction -> direction, _ -> false));
@@ -43,6 +44,7 @@ public class DefaultPlayer extends BasePlayer<Vector2D> {
                 -ABS_PLAYER_SPEED : (movingState.get(Direction.DOWN) ?
                 ABS_PLAYER_SPEED : 0.0));
 
+        velocity.mult(2.0,2.0);
         super.update();
     }
 

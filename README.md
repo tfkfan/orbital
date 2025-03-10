@@ -39,7 +39,7 @@ Currently, in development:
 
 * 2D/3D geometry and grid systems
 * TCP/UDP server mode
-* Advanced room management, player management, admin page, monitoring
+* Advanced room management, player management, admin/monitoring page
 * Auth-protected REST API
 * Advanced basic game objects (strikes, loot, handlers)
 * Infinispan-clustered game server mode
@@ -50,7 +50,7 @@ The solution is based on Vert.X "Actor" approach and EventBus features. It allow
 room management verticles as workers to process game messages.
 The code of "Orbital" is conceived to be extended and modernized on your own.
 The basic features are verticles and managers encapsulating business logic of the game.
-Following images represent internal framework architecture
+Following image represents internal framework architecture
 
 ![orbital.chart.png](orbital.chart.png)
 

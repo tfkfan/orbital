@@ -1,15 +1,32 @@
 package com.tfkfan.orbital.event;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.NoArgsConstructor;
+import com.tfkfan.orbital.session.GatewaySession;
+import io.vertx.core.json.JsonObject;
+import lombok.*;
 
-@EqualsAndHashCode(callSuper = true)
-@Data
+import java.util.Objects;
+
+
+@Getter
+@Setter
 @NoArgsConstructor
+@AllArgsConstructor
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class GameRoomJoinEvent extends AbstractEvent {
-    private String reconnectKey;
-    private String playerName;
+    private GatewaySession session;
+    private JsonObject data;
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        GameRoomJoinEvent that = (GameRoomJoinEvent) o;
+        return Objects.equals(session, that.session);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(session);
+    }
 }

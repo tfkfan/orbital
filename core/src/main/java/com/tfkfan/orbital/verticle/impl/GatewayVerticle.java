@@ -29,8 +29,6 @@ public abstract class GatewayVerticle extends BaseVerticle {
         final Router router = setupRouter();
 
         try {
-            initGatewayConsumers();
-
             server = vertx.createHttpServer()
                     .requestHandler(router);
 
@@ -70,12 +68,5 @@ public abstract class GatewayVerticle extends BaseVerticle {
         if (routerInitializer != null)
             routerInitializer.accept(router);
         return router;
-    }
-
-    private void initGatewayConsumers() {
-        vertx.eventBus().localConsumer(Constants.GATEWAY_ROOM_CREATE_CHANNEL, msg ->
-                gatewayManager.getVerticleListener().onConnect(msg.headers().get(Constants.ROOM_VERTICAL_ID)));
-        vertx.eventBus().localConsumer(Constants.GATEWAY_ROOM_DESTROY_CHANNEL, msg ->
-                gatewayManager.getVerticleListener().onDisconnect(msg.headers().get(Constants.ROOM_VERTICAL_ID)));
     }
 }

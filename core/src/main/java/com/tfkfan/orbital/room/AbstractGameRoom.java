@@ -16,7 +16,8 @@ import com.tfkfan.orbital.network.pack.IInitPackProvider;
 import com.tfkfan.orbital.network.pack.shared.GameRoomInfoPack;
 import com.tfkfan.orbital.network.pack.shared.GameSettingsPack;
 import com.tfkfan.orbital.network.pack.update.GameUpdatePack;
-import com.tfkfan.orbital.session.UserSession;
+import com.tfkfan.orbital.session.PlayerSession;
+import com.tfkfan.orbital.session.Session;
 import com.tfkfan.orbital.state.GameState;
 import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
@@ -38,7 +39,7 @@ public abstract class AbstractGameRoom implements GameRoom {
     protected final Vertx vertx;
     protected final GameManager gameManager;
     private final List<Long> roomFutureList = new ArrayList<>();
-    private final Map<String, UserSession> sessions = new HashMap<>();
+    private final Map<String, PlayerSession> sessions = new HashMap<>();
     private final List<MessageConsumer<?>> consumerList = new ArrayList<>();
 
     protected final RoomConfig config;
@@ -57,16 +58,16 @@ public abstract class AbstractGameRoom implements GameRoom {
         addEventListener(this::onPlayerInitRequest, InitPlayerEvent.class);
     }
 
-    protected void onPlayerKeyDown(UserSession userSession, KeyDownPlayerEvent event) {
+    protected void onPlayerKeyDown(PlayerSession userSession, KeyDownPlayerEvent event) {
     }
 
-    protected void onPlayerMouseClick(UserSession userSession, MouseDownPlayerEvent event) {
+    protected void onPlayerMouseClick(PlayerSession userSession, MouseDownPlayerEvent event) {
     }
 
-    protected void onPlayerMouseMove(UserSession userSession, MouseMovePlayerEvent event) {
+    protected void onPlayerMouseMove(PlayerSession userSession, MouseMovePlayerEvent event) {
     }
 
-    protected void onPlayerInitRequest(UserSession userSession, InitPlayerEvent event) {
+    protected void onPlayerInitRequest(PlayerSession userSession, InitPlayerEvent event) {
         userSession.send(MessageTypes.INIT,
                 new GameInitPack(userSession.getPlayer().getInitPack(),
                         config.getLoopRate(),
@@ -81,14 +82,14 @@ public abstract class AbstractGameRoom implements GameRoom {
             final String userSessionId = event.headers().get(Fields.sessionId);
             if (!sessions.containsKey(userSessionId))
                 return;
-            final UserSession userSession = sessions.get(userSessionId);
+            final PlayerSession userSession = sessions.get(userSessionId);
             final E o = event.body() != null ? ((JsonObject) event.body()).mapTo(clazz) : null;
             listener.onEvent(userSession, o);
         }));
     }
 
     @Override
-    public void onRoomCreated(List<UserSession> userSessions) {
+    public void onRoomCreated(List<PlayerSession> userSessions) {
         for (var userSession : userSessions) {
             this.sessions.put(userSession.getId(), userSession);
             broadcast(MessageTypes.MESSAGE, "%s successfully joined".formatted(userSession.getPlayer().getId().toString()));
@@ -144,15 +145,14 @@ public abstract class AbstractGameRoom implements GameRoom {
     }
 
     @Override
-    public void onRejoin(UserSession userSession, UUID reconnectKey) {
-        userSession.setRoomKey(key());
+    public void onRejoin(PlayerSession userSession, UUID reconnectKey) {
         sessions.put(userSession.getId(), userSession);
 
         userSession.send(MessageTypes.GAME_ROOM_JOIN_SUCCESS, new GameSettingsPack(config.getLoopRate()));
     }
 
     @Override
-    public UserSession onDisconnect(UserSession userSession) {
+    public PlayerSession onDisconnect(PlayerSession userSession) {
         return sessions.remove(userSession.getId());
     }
 
@@ -172,7 +172,7 @@ public abstract class AbstractGameRoom implements GameRoom {
     }
 
     @Override
-    public void broadcast(Function<UserSession, JsonObject> messageFunction) {
+    public void broadcast(Function<Session, JsonObject> messageFunction) {
         sessions.values().forEach(session -> session.send(messageFunction.apply(session)));
     }
 
@@ -206,8 +206,8 @@ public abstract class AbstractGameRoom implements GameRoom {
     }
 
     @Override
-    public Collection<UserSession> close() {
-        Collection<UserSession> result = sessions.values();
+    public Collection<PlayerSession> close() {
+        Collection<PlayerSession> result = sessions.values();
         result.forEach(this::onClose);
         onDestroy();
         log.trace("Room {} has been closed", key());
@@ -215,17 +215,17 @@ public abstract class AbstractGameRoom implements GameRoom {
     }
 
     @Override
-    public void onClose(UserSession userSession) {
+    public void onClose(PlayerSession userSession) {
         userSession.send(new Message(MessageTypes.GAME_ROOM_CLOSE));
     }
 
     @Override
-    public Optional<UserSession> getPlayerSessionBySessionId(UserSession userSession) {
+    public Optional<PlayerSession> getPlayerSessionBySessionId(PlayerSession userSession) {
         return Optional.ofNullable(sessions.get(userSession.getId()));
     }
 
     @Override
-    public Collection<UserSession> sessions() {
+    public Collection<PlayerSession> sessions() {
         return sessions.values();
     }
 
