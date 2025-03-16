@@ -278,6 +278,11 @@ public class Vector3D implements Vector<Vector3D> {
     }
 
     @Override
+    public double length() {
+        return length(this);
+    }
+
+    @Override
     public Vector3D inverse(double multiplicator) {
         x = (-multiplicator * x);
         y = (-multiplicator * y);

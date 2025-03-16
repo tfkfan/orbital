@@ -26,9 +26,12 @@ public abstract class BaseGameEntity<ID, V extends Vector<V>> implements GameEnt
 
     @Override
     public void update(long dt) {
-        isMoving = !velocity.isZero();
-        velocity.sum(acceleration);
-        position.sum(velocity);
+        isMoving = velocity != null && !velocity.isZero();
+        if (velocity != null) {
+            if (acceleration != null)
+                velocity.sum(acceleration);
+            position.sum(velocity);
+        }
     }
 
     public void init() {

@@ -21,12 +21,12 @@ public class Vector2D implements Vector<Vector2D> {
         return Math.sqrt(Math.pow((vector2.x - vector1.x), 2.0) + Math.pow((vector2.y - vector1.y), 2.0));
     }
 
-    public static double getLength(Vector2D vector) {
+    public static double length(Vector2D vector) {
         return Math.sqrt(Math.pow(vector.x, 2.0) + Math.pow(vector.y, 2.0));
     }
 
     public static Vector2D normalize(Vector2D v1) {
-        var length = getLength(v1);
+        var length = length(v1);
         if (length != 0.0) return new Vector2D(v1.x / length, v1.y / length);
 
         return new Vector2D(0.0, 0.0);
@@ -45,7 +45,7 @@ public class Vector2D implements Vector<Vector2D> {
     }
 
     public static double angleRadians(Vector2D v1, Vector2D v2) {
-        return Math.acos(scalar(v1, v2) / (getLength(v1) * getLength(v2)));
+        return Math.acos(scalar(v1, v2) / (length(v1) * length(v2)));
     }
 
     public static double angleDegrees(Vector2D v1, Vector2D v2) {
@@ -263,5 +263,10 @@ public class Vector2D implements Vector<Vector2D> {
     public Vector2D normalize() {
         set(normalize(this));
         return this;
+    }
+
+    @Override
+    public double length() {
+        return length(this);
     }
 }

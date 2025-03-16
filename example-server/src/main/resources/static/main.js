@@ -14,6 +14,7 @@ let downKeys = {'s': true, 'ы': true, 'S': true, 'Ы': true};
 let rightKeys = {'d': true, 'D': true, 'В': true, 'в': true};
 let leftKeys = {'a': true, 'A': true, 'ф': true, 'Ф': true};
 let players = {};
+let strikes = {};
 let selfId = null;
 let text = null;
 
@@ -30,6 +31,14 @@ function drawPlayer(x, y) {
     ctx.stroke();
 }
 
+function drawStrike(x, y) {
+    ctx.fillStyle = 'red';
+    ctx.beginPath();
+    ctx.arc(x, y, 20, 0, 2 * Math.PI);
+    ctx.fill();
+}
+
+
 function clear() {
     ctx.clearRect(0, 0, cnvs.width, cnvs.height);
 }
@@ -39,6 +48,21 @@ function drawPlayers() {
         let p = players[i];
         drawPlayer(p.position.x, p.position.y);
     }
+}
+
+function drawStrikes() {
+    for (let i in strikes) {
+        let p = strikes[i];
+        drawStrike(p.position.x, p.position.y);
+    }
+}
+
+document.onmousedown = function (event) {
+    send(PLAYER_MOUSE_DOWN, {
+        key: "lkb", target: {
+            x: event.clientX, y: event.clientY
+        }
+    })
 }
 
 document.onkeydown = function (event) {
@@ -102,10 +126,16 @@ on(UPDATE, function (evt) {
         map[obj.id] = obj;
         return map;
     }, {});
+    strikes = evt.strikes.reduce(function (map, obj) {
+        map[obj.id] = obj;
+        return map;
+    }, {});
+
     selfId = evt.player.id;
     playerStats.innerText = JSON.stringify(players[selfId]);
     updateMsg.innerText = JSON.stringify(evt);
     drawPlayers();
+    drawStrikes();
     if (text)
         drawText(200, 300, text)
 });

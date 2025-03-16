@@ -3,8 +3,7 @@ package com.tfkfan.orbital.model.players;
 import com.tfkfan.orbital.model.GameEntity;
 import com.tfkfan.orbital.network.pack.IPrivateUpdatePackProvider;
 import com.tfkfan.orbital.session.PlayerSession;
-import com.tfkfan.orbital.session.Session;
 
 public interface Player extends GameEntity<Long>, IPrivateUpdatePackProvider {
-    PlayerSession getUserSession();
+    PlayerSession getPlayerSession();
 }

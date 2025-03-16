@@ -33,4 +33,6 @@ public interface Vector<V extends Vector<V>> extends Serializable {
     V inverse(double multiplicator);
 
     V normalize();
+
+    double length();
 }

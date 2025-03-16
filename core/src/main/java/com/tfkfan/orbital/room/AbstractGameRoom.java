@@ -10,9 +10,9 @@ import com.tfkfan.orbital.manager.GameManager;
 import com.tfkfan.orbital.model.players.Player;
 import com.tfkfan.orbital.network.message.Message;
 import com.tfkfan.orbital.network.message.MessageType;
+import com.tfkfan.orbital.network.pack.IInitPackProvider;
 import com.tfkfan.orbital.network.pack.UpdatePack;
 import com.tfkfan.orbital.network.pack.init.GameInitPack;
-import com.tfkfan.orbital.network.pack.IInitPackProvider;
 import com.tfkfan.orbital.network.pack.shared.GameRoomInfoPack;
 import com.tfkfan.orbital.network.pack.shared.GameSettingsPack;
 import com.tfkfan.orbital.network.pack.update.GameUpdatePack;
@@ -192,16 +192,23 @@ public abstract class AbstractGameRoom implements GameRoom {
 
     @Override
     public void update(long dt) {
-        final List<UpdatePack> playerUpdatePackList = state.getPlayers()
+        final List<UpdatePack> playerUpdatePackList = updatePlayers(dt);
+        sendUpdate(dt, currentPlayer -> new GameUpdatePack(
+                currentPlayer.getPrivateUpdatePack(),
+                playerUpdatePackList
+        ));
+    }
+
+    protected List<UpdatePack> updatePlayers(long dt) {
+        return state.getPlayers()
                 .stream()
                 .map(it -> updatePlayer(dt, it))
                 .toList();
+    }
 
+    protected void sendUpdate(long dt, Function<Player, GameUpdatePack> updatePackFunction) {
         for (var currentPlayer : state.getPlayers())
-            currentPlayer.getUserSession().send(MessageTypes.UPDATE, new GameUpdatePack(
-                    currentPlayer.getPrivateUpdatePack(),
-                    playerUpdatePackList
-            ));
+            currentPlayer.getPlayerSession().send(MessageTypes.UPDATE, updatePackFunction.apply(currentPlayer));
     }
 
     protected UpdatePack updatePlayer(long dt, Player player) {
