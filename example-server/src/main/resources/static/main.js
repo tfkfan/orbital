@@ -8,13 +8,11 @@ var debugMsg = document.getElementById("debugMsg");
 
 var ctx = cnvs.getContext("2d");
 
-
 let upKeys = {'w': true, 'ц': true, 'W': true, 'Ц': true};
 let downKeys = {'s': true, 'ы': true, 'S': true, 'Ы': true};
 let rightKeys = {'d': true, 'D': true, 'В': true, 'в': true};
 let leftKeys = {'a': true, 'A': true, 'ф': true, 'Ф': true};
 let players = {};
-let strikes = {};
 let selfId = null;
 let text = null;
 
@@ -25,19 +23,12 @@ function drawText(x, y, text) {
         ctx.strokeText(lines[i], x, y + (i * 48));
 }
 
-function drawPlayer(x, y) {
+function fillCircle(x, y, color, radius) {
+    ctx.fillStyle = color;
     ctx.beginPath();
-    ctx.arc(x, y, 50, 0, 2 * Math.PI);
-    ctx.stroke();
-}
-
-function drawStrike(x, y) {
-    ctx.fillStyle = 'red';
-    ctx.beginPath();
-    ctx.arc(x, y, 20, 0, 2 * Math.PI);
+    ctx.arc(x, y, radius, 0, 2 * Math.PI);
     ctx.fill();
 }
-
 
 function clear() {
     ctx.clearRect(0, 0, cnvs.width, cnvs.height);
@@ -46,14 +37,7 @@ function clear() {
 function drawPlayers() {
     for (let i in players) {
         let p = players[i];
-        drawPlayer(p.position.x, p.position.y);
-    }
-}
-
-function drawStrikes() {
-    for (let i in strikes) {
-        let p = strikes[i];
-        drawStrike(p.position.x, p.position.y);
+        fillCircle(p.position.x, p.position.y, "black", 50);
     }
 }
 
@@ -126,16 +110,11 @@ on(UPDATE, function (evt) {
         map[obj.id] = obj;
         return map;
     }, {});
-    strikes = evt.strikes.reduce(function (map, obj) {
-        map[obj.id] = obj;
-        return map;
-    }, {});
 
     selfId = evt.player.id;
     playerStats.innerText = JSON.stringify(players[selfId]);
     updateMsg.innerText = JSON.stringify(evt);
     drawPlayers();
-    drawStrikes();
     if (text)
         drawText(200, 300, text)
 });
