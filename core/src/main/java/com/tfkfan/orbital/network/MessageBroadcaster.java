@@ -15,4 +15,5 @@ public interface MessageBroadcaster {
     void broadcast(Message message);
     void broadcast(int messageType, Object content);
     void broadcast(Function<Session, JsonObject> messageFunction);
+    void broadcast(JsonObject jsonObject);
 }

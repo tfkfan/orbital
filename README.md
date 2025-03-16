@@ -37,6 +37,7 @@ Features of core:
 
 Currently, in development:
 
+* GraalVM native image optimizations
 * 2D/3D geometry and grid systems
 * TCP/UDP server mode
 * Advanced room management, player management, admin/monitoring page

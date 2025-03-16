@@ -1,5 +1,5 @@
 package com.tfkfan.orbital;
 
 public interface Updatable {
-    void update();
+    void update(long dt);
 }

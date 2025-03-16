@@ -24,7 +24,7 @@ public interface GameRoom extends Runnable, MessageBroadcaster, RoomEventPublish
 
     <S extends GameState> S state(Class<S> clazz);
 
-    void update(long timerID);
+    void update(long dt);
 
     void onRoomCreated(List<PlayerSession> userSessions);
 

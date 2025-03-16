@@ -2,7 +2,7 @@ package com.tfkfan.orbital.manager;
 
 import com.tfkfan.orbital.configuration.props.RoomConfig;
 import com.tfkfan.orbital.manager.impl.GameManagerImpl;
-import com.tfkfan.orbital.players.DefaultPlayer;
+import com.tfkfan.orbital.model.DefaultPlayer;
 import com.tfkfan.orbital.room.DefaultGameRoom;
 import com.tfkfan.orbital.state.impl.BaseGameState;
 import io.vertx.core.Vertx;

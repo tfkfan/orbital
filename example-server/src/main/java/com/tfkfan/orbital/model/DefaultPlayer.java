@@ -1,4 +1,4 @@
-package com.tfkfan.orbital.players;
+package com.tfkfan.orbital.model;
 
 import com.tfkfan.orbital.math.Vector2D;
 import com.tfkfan.orbital.model.players.BasePlayer;
@@ -10,7 +10,6 @@ import com.tfkfan.orbital.network.pack.update.Player2DUpdatePack;
 import com.tfkfan.orbital.network.pack.update.PrivatePlayerUpdatePack;
 import com.tfkfan.orbital.room.GameRoom;
 import com.tfkfan.orbital.session.PlayerSession;
-import com.tfkfan.orbital.session.Session;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.Arrays;
@@ -36,7 +35,7 @@ public class DefaultPlayer extends BasePlayer<Vector2D> {
     }
 
     @Override
-    public void update() {
+    public void update(long dt) {
         velocity.setX(movingState.get(Direction.RIGHT) ?
                 ABS_PLAYER_SPEED : (movingState.get(Direction.LEFT) ?
                 -ABS_PLAYER_SPEED : 0.0));
@@ -45,7 +44,7 @@ public class DefaultPlayer extends BasePlayer<Vector2D> {
                 ABS_PLAYER_SPEED : 0.0));
 
         velocity.mult(2.0,2.0);
-        super.update();
+        super.update(dt);
     }
 
     @Override

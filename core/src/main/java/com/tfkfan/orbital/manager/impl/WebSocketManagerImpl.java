@@ -90,4 +90,9 @@ public class WebSocketManagerImpl extends BaseGatewayManager implements WebSocke
     @Override
     public void broadcast(Function<Session, JsonObject> messageFunction) {
     }
+
+    @Override
+    public void broadcast(JsonObject jsonObject) {
+
+    }
 }

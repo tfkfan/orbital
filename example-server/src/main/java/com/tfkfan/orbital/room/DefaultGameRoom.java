@@ -3,9 +3,8 @@ package com.tfkfan.orbital.room;
 import com.tfkfan.orbital.configuration.props.RoomConfig;
 import com.tfkfan.orbital.event.KeyDownPlayerEvent;
 import com.tfkfan.orbital.manager.GameManager;
-import com.tfkfan.orbital.players.DefaultPlayer;
+import com.tfkfan.orbital.model.DefaultPlayer;
 import com.tfkfan.orbital.session.PlayerSession;
-import com.tfkfan.orbital.session.Session;
 import com.tfkfan.orbital.state.GameState;
 
 import java.util.UUID;

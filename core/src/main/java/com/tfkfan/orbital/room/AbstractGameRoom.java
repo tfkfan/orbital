@@ -41,7 +41,7 @@ public abstract class AbstractGameRoom implements GameRoom {
     private final List<Long> roomFutureList = new ArrayList<>();
     private final Map<String, PlayerSession> sessions = new HashMap<>();
     private final List<MessageConsumer<?>> consumerList = new ArrayList<>();
-
+    private long lastTimestamp = 0L;
     protected final RoomConfig config;
 
     public AbstractGameRoom(GameState state, String verticleId, UUID gameRoomId, GameManager gameManager, RoomConfig config) {
@@ -98,10 +98,9 @@ public abstract class AbstractGameRoom implements GameRoom {
         vertx.eventBus().publish(Constants.MATCHMAKER_ROOM_CREATE_CHANNEL, new JsonObject()
                 .put(Fields.roomId, key().toString()));
 
-        broadcast(_ -> new JsonObject()
+        broadcast(new JsonObject()
                 .put(Fields.type, MessageTypes.GAME_ROOM_JOIN_SUCCESS)
-                .put(Fields.data, JsonObject.mapFrom(new GameSettingsPack(config.getLoopRate())))
-        );
+                .put(Fields.data, JsonObject.mapFrom(new GameSettingsPack(config.getLoopRate()))));
 
         log.trace("Room {} has been created", key());
     }
@@ -177,19 +176,25 @@ public abstract class AbstractGameRoom implements GameRoom {
     }
 
     @Override
+    public void broadcast(JsonObject jsonObject) {
+        sessions.values().forEach(session -> session.send(jsonObject));
+    }
+
+    @Override
     public void run() {
         try {
-            update(0);
+            update(lastTimestamp == 0 ? System.currentTimeMillis() : System.currentTimeMillis() - lastTimestamp);
+            lastTimestamp = System.currentTimeMillis();
         } catch (Exception e) {
             log.error("room update exception", e);
         }
     }
 
     @Override
-    public void update(long timerID) {
-        List<UpdatePack> playerUpdatePackList = state.getPlayers()
+    public void update(long dt) {
+        final List<UpdatePack> playerUpdatePackList = state.getPlayers()
                 .stream()
-                .map(this::updatePlayer)
+                .map(it -> updatePlayer(dt, it))
                 .toList();
 
         for (var currentPlayer : state.getPlayers())
@@ -199,9 +204,9 @@ public abstract class AbstractGameRoom implements GameRoom {
             ));
     }
 
-    protected UpdatePack updatePlayer(Player player) {
+    protected UpdatePack updatePlayer(long dt, Player player) {
         if (player.isAlive())
-            player.update();
+            player.update(dt);
         return player.getUpdatePack();
     }
 
