@@ -20,7 +20,6 @@ public class DefaultGameRoom extends AbstractGameRoom {
 
     @Override
     protected void onPlayerKeyDown(PlayerSession userSession, KeyDownPlayerEvent event) {
-        if (!started) return;
         DefaultPlayer player = (DefaultPlayer) userSession.getPlayer();
         if (!player.isAlive()) return;
         var direction = DefaultPlayer.Direction.valueOf(event.getKey());

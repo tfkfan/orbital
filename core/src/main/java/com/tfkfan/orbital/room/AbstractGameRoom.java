@@ -16,6 +16,7 @@ import com.tfkfan.orbital.network.pack.init.GameInitPack;
 import com.tfkfan.orbital.network.pack.shared.GameRoomInfoPack;
 import com.tfkfan.orbital.network.pack.shared.GameSettingsPack;
 import com.tfkfan.orbital.network.pack.update.GameUpdatePack;
+import com.tfkfan.orbital.scheduler.RoomScheduler;
 import com.tfkfan.orbital.session.PlayerSession;
 import com.tfkfan.orbital.session.Session;
 import com.tfkfan.orbital.state.GameState;
@@ -32,16 +33,17 @@ import java.util.function.Function;
 
 @Slf4j
 public abstract class AbstractGameRoom implements GameRoom {
-    protected boolean started = false;
     protected final GameState state;
     protected final UUID gameRoomId;
     protected final String verticleId;
     protected final Vertx vertx;
     protected final GameManager gameManager;
-    private final List<Long> roomFutureList = new ArrayList<>();
+
+    private final RoomScheduler scheduler;
     private final Map<String, PlayerSession> sessions = new HashMap<>();
     private final List<MessageConsumer<?>> consumerList = new ArrayList<>();
     private long lastTimestamp = 0L;
+    private boolean started = false;
     protected final RoomConfig config;
 
     public AbstractGameRoom(GameState state, String verticleId, UUID gameRoomId, GameManager gameManager, RoomConfig config) {
@@ -51,7 +53,7 @@ public abstract class AbstractGameRoom implements GameRoom {
         this.gameManager = gameManager;
         this.config = config;
         this.vertx = Vertx.currentContext().owner();
-
+        this.scheduler = new RoomScheduler(vertx);
 
         addEventListener(this::onPlayerKeyDown, KeyDownPlayerEvent.class);
         addEventListener(this::onPlayerMouseClick, MouseDownPlayerEvent.class);
@@ -59,18 +61,18 @@ public abstract class AbstractGameRoom implements GameRoom {
         addEventListener(this::onPlayerInitRequest, InitPlayerEvent.class);
     }
 
-    protected void onPlayerKeyDown(PlayerSession userSession, KeyDownPlayerEvent event) {
+    protected void onPlayerKeyDown(PlayerSession playerSession, KeyDownPlayerEvent event) {
     }
 
-    protected void onPlayerMouseClick(PlayerSession userSession, MouseDownPlayerEvent event) {
+    protected void onPlayerMouseClick(PlayerSession playerSession, MouseDownPlayerEvent event) {
     }
 
-    protected void onPlayerMouseMove(PlayerSession userSession, MouseMovePlayerEvent event) {
+    protected void onPlayerMouseMove(PlayerSession playerSession, MouseMovePlayerEvent event) {
     }
 
-    protected void onPlayerInitRequest(PlayerSession userSession, InitPlayerEvent event) {
-        userSession.send(MessageTypes.INIT,
-                new GameInitPack(userSession.getPlayer().getInitPack(),
+    protected void onPlayerInitRequest(PlayerSession playerSession, InitPlayerEvent event) {
+        playerSession.send(MessageTypes.INIT,
+                new GameInitPack(playerSession.getPlayer().getInitPack(),
                         config.getLoopRate(),
                         state.alivePlayers(),
                         state.getPlayers().stream().map(IInitPackProvider::getInitPack).toList())
@@ -80,12 +82,12 @@ public abstract class AbstractGameRoom implements GameRoom {
     @Override
     public <E extends Event> void addEventListener(EventListener<E> listener, Class<E> clazz) {
         consumerList.add(vertx.eventBus().localConsumer(GameRoom.constructEventListenerConsumer(gameRoomId, clazz), event -> {
-            final String userSessionId = event.headers().get(Fields.sessionId);
-            if (!sessions.containsKey(userSessionId))
+            final String playerSessionId = event.headers().get(Fields.sessionId);
+            if (!sessions.containsKey(playerSessionId) || !started)
                 return;
-            final PlayerSession userSession = sessions.get(userSessionId);
+            final PlayerSession playerSession = sessions.get(playerSessionId);
             final E o = event.body() != null ? ((JsonObject) event.body()).mapTo(clazz) : null;
-            listener.onEvent(userSession, o);
+            listener.onEvent(playerSession, o);
         }));
     }
 
@@ -111,7 +113,7 @@ public abstract class AbstractGameRoom implements GameRoom {
 
     @Override
     public void onBattleStart() {
-        log.trace("Room {}. Battle has been started", key());
+        log.trace("Room {} battle has been started", key());
         started = true;
         gameManager.onBattleStart(this);
 
@@ -133,13 +135,13 @@ public abstract class AbstractGameRoom implements GameRoom {
 
     @Override
     public void onDestroy() {
-        sessions().forEach(userSession -> state.removePlayer(userSession.getPlayer()));
+        sessions().forEach(playerSession -> state.removePlayer(playerSession.getPlayer()));
 
         this.sessions.clear();
         consumerList.forEach(MessageConsumer::unregister);
         consumerList.clear();
-        roomFutureList.forEach(vertx::cancelTimer);
-        roomFutureList.clear();
+
+        scheduler.eraseTasks();
 
         vertx.eventBus().publish(Constants.MATCHMAKER_ROOM_DESTROY_CHANNEL, new JsonObject()
                 .put(Fields.roomId, key().toString()));
@@ -160,8 +162,8 @@ public abstract class AbstractGameRoom implements GameRoom {
     }
 
     @Override
-    public PlayerSession onDisconnect(PlayerSession userSession) {
-        return sessions.remove(userSession.getId());
+    public PlayerSession onDisconnect(PlayerSession playerSession) {
+        return sessions.remove(playerSession.getId());
     }
 
     @Override
@@ -236,8 +238,8 @@ public abstract class AbstractGameRoom implements GameRoom {
     }
 
     @Override
-    public void onClose(PlayerSession userSession) {
-        userSession.send(new Message(MessageTypes.GAME_ROOM_CLOSE));
+    public void onClose(PlayerSession playerSession) {
+        playerSession.send(new Message(MessageTypes.GAME_ROOM_CLOSE));
     }
 
     @Override
@@ -272,19 +274,11 @@ public abstract class AbstractGameRoom implements GameRoom {
 
     @Override
     public void schedule(Long delayMillis, Handler<Long> task) {
-        if (delayMillis <= 1) {
-            task.handle(0L);
-            return;
-        }
-
-        roomFutureList.add(vertx.setTimer(delayMillis, (t) -> {
-            task.handle(t);
-            roomFutureList.remove(t);
-        }));
+        scheduler.schedule(delayMillis, task);
     }
 
     @Override
     public void schedulePeriodically(Long initDelay, Long loopRate, Handler<Long> task) {
-        roomFutureList.add(vertx.setPeriodic(initDelay, loopRate, task));
+        scheduler.schedulePeriodically(initDelay, loopRate, task);
     }
 }
