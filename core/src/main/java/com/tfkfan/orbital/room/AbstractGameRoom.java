@@ -52,6 +52,7 @@ public abstract class AbstractGameRoom implements GameRoom {
         this.config = config;
         this.vertx = Vertx.currentContext().owner();
 
+
         addEventListener(this::onPlayerKeyDown, KeyDownPlayerEvent.class);
         addEventListener(this::onPlayerMouseClick, MouseDownPlayerEvent.class);
         addEventListener(this::onPlayerMouseMove, MouseMovePlayerEvent.class);
@@ -89,37 +90,31 @@ public abstract class AbstractGameRoom implements GameRoom {
     }
 
     @Override
-    public void onRoomCreated(List<PlayerSession> userSessions) {
-        for (var userSession : userSessions) {
-            this.sessions.put(userSession.getId(), userSession);
-            broadcast(MessageTypes.MESSAGE, "%s successfully joined".formatted(userSession.getPlayer().getId().toString()));
-        }
-
+    public void onCreate() {
         vertx.eventBus().publish(Constants.MATCHMAKER_ROOM_CREATE_CHANNEL, new JsonObject()
                 .put(Fields.roomId, key().toString()));
-
-        broadcast(new JsonObject()
-                .put(Fields.type, MessageTypes.GAME_ROOM_JOIN_SUCCESS)
-                .put(Fields.data, JsonObject.mapFrom(new GameSettingsPack(config.getLoopRate()))));
-
+        gameManager.onCreate(this);
         log.trace("Room {} has been created", key());
     }
 
     @Override
-    public void onRoomStarted() {
-        schedule(config.getEndDelay() + config.getStartDelay(), (_) -> gameManager.onBattleEnd(this));
-        schedule(config.getStartDelay(), this::onBattleStarted);
+    public void onStart() {
+        schedule(config.getEndDelay() + config.getStartDelay(), (_) -> onBattleEnd());
+        schedule(config.getStartDelay(), (_) -> onBattleStart());
         broadcast(MessageTypes.GAME_ROOM_START, new GameRoomInfoPack(
                 OffsetDateTime.now().plus(config.getStartDelay(), ChronoUnit.MILLIS).toInstant().toEpochMilli()
         ));
+
+        gameManager.onStart(this);
         log.trace("Room {} has been started", key());
     }
 
     @Override
-    public void onBattleStarted(long timerId) {
+    public void onBattleStart() {
         log.trace("Room {}. Battle has been started", key());
         started = true;
         gameManager.onBattleStart(this);
+
         schedulePeriodically(config.getInitDelay(), config.getLoopRate(), this::update);
         broadcast(MessageTypes.GAME_ROOM_BATTLE_START, new GameRoomInfoPack(
                 OffsetDateTime.now()
@@ -127,6 +122,13 @@ public abstract class AbstractGameRoom implements GameRoom {
                         .toInstant()
                         .toEpochMilli()
         ));
+    }
+
+    @Override
+    public void onBattleEnd() {
+        log.trace("Room {}. Battle has been ended", key());
+
+        gameManager.onBattleEnd(this);
     }
 
     @Override
@@ -141,13 +143,20 @@ public abstract class AbstractGameRoom implements GameRoom {
 
         vertx.eventBus().publish(Constants.MATCHMAKER_ROOM_DESTROY_CHANNEL, new JsonObject()
                 .put(Fields.roomId, key().toString()));
+
+        gameManager.onDestroy(this);
     }
 
     @Override
-    public void onRejoin(PlayerSession userSession, UUID reconnectKey) {
-        sessions.put(userSession.getId(), userSession);
+    public void onJoin(PlayerSession playerSession) {
+        this.sessions.put(playerSession.getId(), playerSession);
+        playerSession.send(MessageTypes.GAME_ROOM_JOIN_SUCCESS, new GameSettingsPack(config.getLoopRate()));
+    }
 
-        userSession.send(MessageTypes.GAME_ROOM_JOIN_SUCCESS, new GameSettingsPack(config.getLoopRate()));
+    @Override
+    public void onRejoin(PlayerSession playerSession, UUID reconnectKey) {
+        sessions.put(playerSession.getId(), playerSession);
+        playerSession.send(MessageTypes.GAME_ROOM_JOIN_SUCCESS, new GameSettingsPack(config.getLoopRate()));
     }
 
     @Override
@@ -232,17 +241,12 @@ public abstract class AbstractGameRoom implements GameRoom {
     }
 
     @Override
-    public Optional<PlayerSession> getPlayerSessionBySessionId(PlayerSession userSession) {
-        return Optional.ofNullable(sessions.get(userSession.getId()));
-    }
-
-    @Override
     public Collection<PlayerSession> sessions() {
         return sessions.values();
     }
 
     @Override
-    public int currentPlayersCount() {
+    public int players() {
         return sessions().size();
     }
 
@@ -262,7 +266,7 @@ public abstract class AbstractGameRoom implements GameRoom {
     }
 
     @Override
-    public String verticleId() {
+    public String verticleID() {
         return verticleId;
     }
 

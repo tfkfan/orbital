@@ -1,8 +1,6 @@
 package com.tfkfan.orbital.manager;
 
-import com.tfkfan.orbital.room.GameRoom;
+import com.tfkfan.orbital.room.GameRoomLifecycle;
 
-public interface GameManager {
-    void onBattleEnd(GameRoom room);
-    void onBattleStart(GameRoom room);
+public interface GameManager extends GameRoomLifecycle.GameRoomLifecycleHandler {
 }

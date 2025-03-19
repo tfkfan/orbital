@@ -10,7 +10,6 @@ import com.tfkfan.orbital.session.PlayerSession;
 import com.tfkfan.orbital.state.GameState;
 import com.tfkfan.orbital.room.GameRoom;
 import com.tfkfan.orbital.manager.GameManager;
-import com.tfkfan.orbital.session.Session;
 import com.tfkfan.orbital.shared.ActionType;
 import io.vertx.core.Vertx;
 import io.vertx.core.eventbus.Message;
@@ -19,7 +18,6 @@ import io.vertx.core.json.JsonObject;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.*;
-import java.util.concurrent.atomic.AtomicLong;
 
 @Slf4j
 public class GameManagerImpl implements GameManager {
@@ -59,38 +57,31 @@ public class GameManagerImpl implements GameManager {
             if (actionType.equals(ActionType.NEW_ROOM)) {
                 final GameState gameState = gameStateFactory.get();
                 final UUID roomId = UUID.fromString(json.getString(Fields.roomId));
-                final JsonArray sessions = json.getJsonArray(Fields.sessions);
                 final GameRoom room = gameRoomFactory.createGameRoom(verticleId, roomId, gameState, this, roomConfig);
-                final AtomicLong lastPlayerId = new AtomicLong(1L);
-                final List<PlayerSession> roomUserSessions = sessions
+                room.onCreate();
+
+                json.getJsonArray(Fields.sessions)
                         .stream()
-                        .map(s -> {
+                        .forEach(s -> {
                             JsonObject session = (JsonObject) s;
                             final String sessionId = session
                                     .getString(Fields.sessionId);
                             final boolean isAdmin = session.getBoolean(Fields.admin);
                             final PlayerSession userSession = new PlayerSession(sessionId, isAdmin);
-                            gameState.addPlayer(playerFactory.createPlayer(lastPlayerId.getAndIncrement(), room, userSession));
+                            gameState.addPlayer(playerFactory.createPlayer(gameState.nextPlayerId(), room, userSession));
                             playerSessionsMap.put(sessionId, userSession);
-                            return userSession;
-                        }).toList();
+                            room.onJoin(userSession);
+                        });
 
                 gameRoomMap.put(room.key(), room);
-                room.onRoomCreated(roomUserSessions);
-                room.onRoomStarted();
+                room.onStart();
             }
         }
     }
 
     @Override
     public void onBattleEnd(GameRoom room) {
-        log.info("onBattleEnd : {}", room.key());
-        room.close();
         gameRoomMap.remove(room.key());
-    }
-
-    @Override
-    public void onBattleStart(GameRoom room) {
-        log.info("onBattleStart : {}", room.key());
+        room.close();
     }
 }

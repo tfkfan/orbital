@@ -9,11 +9,9 @@ import com.tfkfan.orbital.state.GameState;
 import io.vertx.core.Handler;
 
 import java.util.Collection;
-import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 
-public interface GameRoom extends Runnable, MessageBroadcaster, RoomEventPublisher {
+public interface GameRoom extends Runnable, MessageBroadcaster, RoomEventPublisher, GameRoomLifecycle {
     static String constructEventListenerConsumer(UUID gameRoomId, Class<?> clazz) {
         return "%s.%s".formatted(gameRoomId, clazz.getSimpleName()).toLowerCase();
     }
@@ -26,13 +24,7 @@ public interface GameRoom extends Runnable, MessageBroadcaster, RoomEventPublish
 
     void update(long dt);
 
-    void onRoomCreated(List<PlayerSession> userSessions);
-
-    void onRoomStarted();
-
-    void onBattleStarted(long timerId);
-
-    void onDestroy();
+    void onJoin(PlayerSession playerSession);
 
     void onRejoin(PlayerSession userSession, UUID reconnectKey);
 
@@ -40,13 +32,11 @@ public interface GameRoom extends Runnable, MessageBroadcaster, RoomEventPublish
 
     Collection<PlayerSession> sessions();
 
-    int currentPlayersCount();
-
-    Optional<PlayerSession> getPlayerSessionBySessionId(PlayerSession userSession);
+    int players();
 
     UUID key();
 
-    String verticleId();
+    String verticleID();
 
     Collection<PlayerSession> close();
 
