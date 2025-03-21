@@ -40,7 +40,7 @@ Currently, in development:
 * GraalVM native image optimizations
 * 2D/3D geometry and grid systems
 * TCP/UDP server mode
-* Advanced room management, player management, admin/monitoring page
+* Advanced room management, player management, admin/monitoring page https://github.com/tfkfan/orbital-monitor
 * Auth-protected REST API
 * Advanced basic game objects (strikes, loot, handlers)
 * Infinispan-clustered game server mode
