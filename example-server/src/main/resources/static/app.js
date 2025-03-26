@@ -1,12 +1,12 @@
-var cnvs = document.getElementById("cnvs");
+let cnvs = document.getElementById("cnvs");
 cnvs.width = window.innerWidth - 350;
 cnvs.height = window.innerHeight - 50;
 
-var updateMsg = document.getElementById("updateMsg");
-var playerStats = document.getElementById("playerStats");
-var debugMsg = document.getElementById("debugMsg");
+let updateMsg = document.getElementById("updateMsg");
+let playerStats = document.getElementById("playerStats");
+let debugMsg = document.getElementById("debugMsg");
 
-var ctx = cnvs.getContext("2d");
+let ctx = cnvs.getContext("2d");
 
 let upKeys = {'w': true, 'ц': true, 'W': true, 'Ц': true};
 let downKeys = {'s': true, 'ы': true, 'S': true, 'Ы': true};
@@ -15,6 +15,8 @@ let leftKeys = {'a': true, 'A': true, 'ф': true, 'Ф': true};
 let players = {};
 let selfId = null;
 let text = null;
+
+let ws = new Websocket();
 
 function drawText(x, y, text) {
     ctx.font = "48px serif";
@@ -41,53 +43,52 @@ function drawPlayers() {
     }
 }
 
-document.onmousedown = function (event) {
-    send(PLAYER_MOUSE_DOWN, {
-        key: "lkb", target: {
-            x: event.clientX, y: event.clientY
-        }
-    })
-}
-
-document.onkeydown = function (event) {
+document.onmousedown = (event) => ws.send(ws.PLAYER_MOUSE_DOWN, {
+    key: "lkb",
+    target: {x: event.clientX, y: event.clientY}
+})
+document.onkeydown = (event) => {
     text = null
     if (upKeys[event.key])
-        send(PLAYER_KEY_DOWN, {key: "UP", state: true});
+        ws.send(ws.PLAYER_KEY_DOWN, {key: "UP", state: true});
     if (downKeys[event.key])
-        send(PLAYER_KEY_DOWN, {key: "DOWN", state: true});
+        ws.send(ws.PLAYER_KEY_DOWN, {key: "DOWN", state: true});
     if (rightKeys[event.key])
-        send(PLAYER_KEY_DOWN, {key: "RIGHT", state: true});
+        ws.send(ws.PLAYER_KEY_DOWN, {key: "RIGHT", state: true});
     if (leftKeys[event.key])
-        send(PLAYER_KEY_DOWN, {key: "LEFT", state: true});
+        ws.send(ws.PLAYER_KEY_DOWN, {key: "LEFT", state: true});
 };
 
-document.onkeyup = function (event) {
+document.onkeyup = (event) => {
     if (upKeys[event.key])
-        send(PLAYER_KEY_DOWN, {key: "UP", state: false});
+        ws.send(ws.PLAYER_KEY_DOWN, {key: "UP", state: false});
     if (downKeys[event.key])
-        send(PLAYER_KEY_DOWN, {key: "DOWN", state: false});
+        ws.send(ws.PLAYER_KEY_DOWN, {key: "DOWN", state: false});
     if (rightKeys[event.key])
-        send(PLAYER_KEY_DOWN, {key: "RIGHT", state: false});
+        ws.send(ws.PLAYER_KEY_DOWN, {key: "RIGHT", state: false});
     if (leftKeys[event.key])
-        send(PLAYER_KEY_DOWN, {key: "LEFT", state: false});
+        ws.send(ws.PLAYER_KEY_DOWN, {key: "LEFT", state: false});
 };
 
-document.getElementById("joinBtn").onclick = function () {
-    send(JOIN, {});
-}
-initializeWebsocket();
-on(JOIN_WAIT, function (evt) {
+document.getElementById("joinBtn").onclick = () => ws.send(ws.JOIN, {})
+
+ws.init("ws://localhost:8085/game")
+    .then(() => console.log("Connection established"));
+
+ws.on(ws.JOIN_WAIT, (evt) => {
     debugMsg.innerText = "Wait"
 });
-on(JOIN_SUCCESS, function (evt) {
+
+ws.on(ws.JOIN_SUCCESS, (evt) => {
     debugMsg.innerText = "Connected to game room"
     document.getElementById("joinBtn").setAttribute("disabled", "disabled");
 });
-on(ROOM_START, function (evt) {
+
+ws.on(ws.ROOM_START, (evt) => {
     debugMsg.innerText = "Room started, please wait for battle start"
 });
 
-on(ROOM_CLOSE, function (evt) {
+ws.on(ws.ROOM_CLOSE, (evt) => {
     debugMsg.innerText = "Room closed."
     updateMsg.innerText = ""
     playerStats.innerText = ""
@@ -96,17 +97,17 @@ on(ROOM_CLOSE, function (evt) {
     joinBtn.removeAttribute("disabled");
     joinBtn.innerText = "Join again"
 });
-on(BATTLE_START, function (evt) {
+ws.on(ws.BATTLE_START, (evt) => {
     const msg = "Battle started. Click on battlefield.\nUse WASD to move."
     debugMsg.innerText = msg
     text = msg
 });
-on(FAILURE, function (evt) {
+ws.on(ws.FAILURE, (evt) => {
     debugMsg.innerText = "Internal error occurred"
 });
-on(UPDATE, function (evt) {
+ws.on(ws.UPDATE, (evt) => {
     clear();
-    players = evt.players.reduce(function (map, obj) {
+    players = evt.players.reduce((map, obj) => {
         map[obj.id] = obj;
         return map;
     }, {});
