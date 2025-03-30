@@ -6,6 +6,8 @@ import com.tfkfan.orbital.verticle.BaseVerticle;
 import io.vertx.core.Future;
 import io.vertx.core.Promise;
 import io.vertx.core.http.HttpServer;
+import io.vertx.core.json.JsonArray;
+import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.Router;
 import lombok.extern.slf4j.Slf4j;
 
@@ -27,7 +29,12 @@ public abstract class GatewayVerticle extends BaseVerticle {
         this.serverConfig = serverConfig;
         this.gatewayManager = gatewayManager;
 
-        withRouterInitializer(router -> router.get("/health").handler(rc -> rc.response().end("OK")));
+        withRouterInitializer(router -> router.get("/health").handler(rc -> rc.response().end(
+                new JsonObject()
+                        .put("game", new JsonObject()
+                                .put("status", "UP")
+                                .put("details", new JsonArray().add("GatewayVerticle").add("RoomVerticle")))
+                        .encode())));
     }
 
     @Override

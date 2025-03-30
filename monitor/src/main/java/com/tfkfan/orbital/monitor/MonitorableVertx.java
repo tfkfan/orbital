@@ -13,6 +13,9 @@ public final class MonitorableVertx {
     }
 
     public Vertx build(PrometheusMeterRegistry registry) {
-        return Vertx.builder().with(new VertxOptions().setMetricsOptions(new MicrometerMetricsOptions().setEnabled(true).setPrometheusOptions(new VertxPrometheusOptions().setEnabled(true)))).withMetrics(new MicrometerMetricsFactory(registry)).build();
+        return Vertx.builder().with(new VertxOptions().setMetricsOptions(new MicrometerMetricsOptions()
+                .setEnabled(true)
+                .setPrometheusOptions(new VertxPrometheusOptions().setEnabled(true))))
+                .withMetrics(new MicrometerMetricsFactory(registry)).build();
     }
 }
