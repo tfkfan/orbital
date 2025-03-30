@@ -4,9 +4,8 @@ import com.fasterxml.jackson.databind.SerializationFeature;
 import com.tfkfan.orbital.configuration.props.RoomConfig;
 import com.tfkfan.orbital.configuration.props.ServerConfig;
 import com.tfkfan.orbital.manager.DefaultGameManager;
-import com.tfkfan.orbital.manager.MatchmakerManager;
-import com.tfkfan.orbital.manager.WebSocketManager;
-import com.tfkfan.orbital.manager.impl.WebSocketManagerImpl;
+import com.tfkfan.orbital.monitor.MonitorableVertx;
+import com.tfkfan.orbital.monitor.MonitorEndpoint;
 import com.tfkfan.orbital.properties.ApplicationProperties;
 import com.tfkfan.orbital.verticle.impl.GatewayVerticle;
 import com.tfkfan.orbital.verticle.impl.WebsocketGatewayVerticle;
@@ -28,17 +27,16 @@ public class Main {
     }
 
     public static void main(String[] args) {
-        final Vertx vertx = Vertx.vertx();
+        final Vertx vertx = new MonitorableVertx().build();
 
         loadConfig(vertx)
                 .flatMap(cnf -> {
                     final ApplicationProperties properties = cnf.mapTo(ApplicationProperties.class);
                     final RoomConfig roomConfig = properties.getRoom();
                     final ServerConfig serverConfig = properties.getServer();
-                    final GatewayVerticle gatewayVerticle = new WebsocketGatewayVerticle(serverConfig,roomConfig)
-                            .withRouterInitializer(router -> router
-                                    .route()
-                                    .handler(StaticHandler.create("static")));
+                    final GatewayVerticle gatewayVerticle = new WebsocketGatewayVerticle(serverConfig, roomConfig)
+                            .withRouterInitializer(router -> router.route().handler(StaticHandler.create("static")))
+                            .withRouterInitializer(MonitorEndpoint::create);
 
                     final DeploymentOptions gatewayOptions = new DeploymentOptions().setConfig(cnf);
                     final DeploymentOptions roomOptions = new DeploymentOptions(gatewayOptions)

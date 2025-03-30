@@ -1,6 +1,5 @@
 package com.tfkfan.orbital.verticle.impl;
 
-import com.tfkfan.orbital.configuration.Constants;
 import com.tfkfan.orbital.configuration.props.ServerConfig;
 import com.tfkfan.orbital.manager.GatewayManager;
 import com.tfkfan.orbital.verticle.BaseVerticle;
@@ -8,20 +7,28 @@ import io.vertx.core.Future;
 import io.vertx.core.Promise;
 import io.vertx.core.http.HttpServer;
 import io.vertx.ext.web.Router;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 import java.util.function.Consumer;
 
 @Slf4j
-@RequiredArgsConstructor
 public abstract class GatewayVerticle extends BaseVerticle {
-    protected Consumer<Router> routerInitializer = _ -> {
-    };
-
+    protected final Collection<Consumer<Router>> routerInitializers = new ArrayList<>();
+    protected final Collection<Consumer<HttpServer>> serverConsumers = new ArrayList<>();
     protected final ServerConfig serverConfig;
     protected final GatewayManager gatewayManager;
+
     protected HttpServer server;
+
+    protected GatewayVerticle(ServerConfig serverConfig, GatewayManager gatewayManager) {
+        this.serverConfig = serverConfig;
+        this.gatewayManager = gatewayManager;
+
+        withRouterInitializer(router -> router.get("/health").handler(rc -> rc.response().end("OK")));
+    }
 
     @Override
     public void start(Promise<Void> startPromise) throws Exception {
@@ -46,7 +53,7 @@ public abstract class GatewayVerticle extends BaseVerticle {
 
     Future<HttpServer> internalCustomize(HttpServer server) {
         try {
-            customize(server);
+            serverConsumers.forEach(it -> it.accept(server));
             return Future.succeededFuture(server);
         } catch (Throwable e) {
             log.error("Http server customization error", e);
@@ -54,19 +61,19 @@ public abstract class GatewayVerticle extends BaseVerticle {
         }
     }
 
-    abstract void customize(HttpServer server);
+    public GatewayVerticle withServerCustomizer(Consumer<HttpServer> serverConsumer) {
+        this.serverConsumers.add(serverConsumer);
+        return this;
+    }
 
     public GatewayVerticle withRouterInitializer(Consumer<Router> routerInitializer) {
-        this.routerInitializer = routerInitializer;
+        this.routerInitializers.add(routerInitializer);
         return this;
     }
 
     private Router setupRouter() {
-        Router router = Router.router(vertx);
-        router.get("/health").handler(rc -> rc.response().end("OK"));
-
-        if (routerInitializer != null)
-            routerInitializer.accept(router);
+        final Router router = Router.router(vertx);
+        routerInitializers.forEach(it -> it.accept(router));
         return router;
     }
 }

@@ -9,7 +9,7 @@
     </appender>
 
     <logger name="com.tfkfan" level="TRACE"/>
-
+    <logger name="io.vertx.ext.web" level="TRACE"/>
     <root level="info">
         <appender-ref ref="STDOUT" />
     </root>

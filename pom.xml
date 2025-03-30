@@ -6,6 +6,7 @@
     <modules>
         <module>example-server</module>
         <module>core</module>
+        <module>monitor</module>
     </modules>
 
     <groupId>com.tfkfan</groupId>

@@ -16,15 +16,16 @@ public class WebsocketGatewayVerticle extends GatewayVerticle {
     public WebsocketGatewayVerticle(ServerConfig serverConfig, RoomConfig roomConfig) {
         super(serverConfig, new WebSocketManagerImpl(MatchmakerManager.create(roomConfig)));
         webSocketManager = (WebSocketManager) gatewayManager;
+        websocket();
     }
 
     public WebsocketGatewayVerticle(ServerConfig serverConfig, WebSocketManager webSocketManager) {
         super(serverConfig, webSocketManager);
         this.webSocketManager = webSocketManager;
+        websocket();
     }
 
-    @Override
-    void customize(HttpServer server) {
-        server.webSocketHandler(webSocketManager);
+    private void websocket(){
+       withServerCustomizer(server-> server.webSocketHandler(webSocketManager));
     }
 }
