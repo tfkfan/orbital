@@ -44,6 +44,8 @@ public abstract class GatewayVerticle extends BaseVerticle {
                     .onSuccess(_ -> {
                         log.info("Websocket server started on port {}", serverConfig.getPort());
                         startPromise.complete();
+                        routerInitializers.clear();
+                        serverConsumers.clear();
                     })
                     .onFailure(startPromise::fail);
         } catch (Exception e) {

@@ -4,7 +4,7 @@
     <modelVersion>4.0.0</modelVersion>
     <name>orbital</name>
     <modules>
-        <module>example-server</module>
+        <module>example</module>
         <module>core</module>
         <module>monitor</module>
     </modules>
