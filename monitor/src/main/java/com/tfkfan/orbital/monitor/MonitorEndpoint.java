@@ -12,10 +12,9 @@ public interface MonitorEndpoint {
         final MetricsService metricsService = MetricsService.create(Vertx.currentContext().owner());
 
         router.route("/prometheus").handler(PrometheusScrapingHandler.create());
-        router.route("/metrics").handler(rc -> {
-            rc.response().putHeader(HttpHeaders.CONTENT_TYPE, "application/json; charset=utf-8")
-                    .end(metricsService.getMetricsSnapshot().encode());
-        });
+        router.route("/metrics").handler(rc -> rc.response().putHeader(HttpHeaders.CONTENT_TYPE, "application/json; charset=utf-8")
+                .end(metricsService.getMetricsSnapshot().encode())
+        );
         router.route("/monitor/*").handler(StaticHandler.create("monitor"));
     }
 }

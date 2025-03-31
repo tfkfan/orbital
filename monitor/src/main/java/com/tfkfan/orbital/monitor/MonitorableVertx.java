@@ -16,17 +16,13 @@ public final class MonitorableVertx {
     }
 
     public Vertx build(PrometheusMeterRegistry registry) {
-        try (var m = new JvmGcMetrics()) {
-            m.bindTo(registry);
-        }
-        try (var m = new JvmHeapPressureMetrics()) {
-            m.bindTo(registry);
-        }
-
+        new JvmGcMetrics().bindTo(registry);
+        new JvmHeapPressureMetrics().bindTo(registry);
         new ClassLoaderMetrics().bindTo(registry);
         new JvmMemoryMetrics().bindTo(registry);
         new ProcessorMetrics().bindTo(registry);
         new JvmThreadMetrics().bindTo(registry);
+        new JvmInfoMetrics().bindTo(registry);
         return Vertx.builder().with(new VertxOptions().setMetricsOptions(new MicrometerMetricsOptions()
                         .setEnabled(true)
                         .setPrometheusOptions(new VertxPrometheusOptions().setEnabled(true))))
