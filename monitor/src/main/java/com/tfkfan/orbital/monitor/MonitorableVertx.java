@@ -3,6 +3,7 @@ package com.tfkfan.orbital.monitor;
 import io.micrometer.core.instrument.binder.jvm.*;
 import io.micrometer.core.instrument.binder.system.DiskSpaceMetrics;
 import io.micrometer.core.instrument.binder.system.ProcessorMetrics;
+import io.micrometer.core.instrument.binder.system.UptimeMetrics;
 import io.micrometer.prometheus.PrometheusMeterRegistry;
 import io.vertx.core.Vertx;
 import io.vertx.core.VertxOptions;
@@ -18,6 +19,8 @@ public final class MonitorableVertx {
     public Vertx build(PrometheusMeterRegistry registry) {
         new JvmGcMetrics().bindTo(registry);
         new JvmHeapPressureMetrics().bindTo(registry);
+        new UptimeMetrics().bindTo(registry);
+        new ClassLoaderMetrics().bindTo(registry);
         new ClassLoaderMetrics().bindTo(registry);
         new JvmMemoryMetrics().bindTo(registry);
         new ProcessorMetrics().bindTo(registry);
