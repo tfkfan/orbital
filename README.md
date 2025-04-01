@@ -95,7 +95,16 @@ public static void main(String[] args) {
 
 ### Monitor page
 
-To setup monitor-related instance your vertx instance should be monitorable this way:
+To setup monitor-related instance add required dependency:
+
+```
+<dependency>
+    <groupId>com.tfkfan</groupId>
+    <artifactId>core</artifactId>
+    <version>1.0.0-SNAPSHOT</version>
+</dependency>
+```
+Your vertx instance should be monitorable this way:
 
 ```
 final Vertx vertx = new MonitorableVertx().build();
