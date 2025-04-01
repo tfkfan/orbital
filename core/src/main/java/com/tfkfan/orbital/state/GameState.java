@@ -16,4 +16,6 @@ public interface GameState {
     long nextPlayerId();
 
     long alivePlayers();
+
+    long deadPlayers();
 }

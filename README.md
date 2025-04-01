@@ -33,6 +33,7 @@ Features of core:
 * 2D geometry
 * Basic rooms
 * Package classes
+* Micrometer + prometheus metrics and monitor web page https://github.com/tfkfan/orbital-monitor
 * Annotation-based incoming message handlers
 
 Currently, in development:
@@ -40,12 +41,12 @@ Currently, in development:
 * GraalVM native image optimizations
 * 2D/3D geometry and grid systems
 * TCP/UDP server mode
-* Advanced room management, player management, admin/monitoring page https://github.com/tfkfan/orbital-monitor
+* Advanced room management, player management, admin page https://github.com/tfkfan/orbital-monitor
 * Auth-protected REST API
 * Advanced basic game objects (strikes, loot, handlers)
 * Infinispan-clustered game server mode
 
-## Core and architecture
+## Core and features
 
 The solution is based on Vert.X "Actor" approach and EventBus features. It allows to have Indefinite amount of
 room management verticles as workers to process game messages.
@@ -58,3 +59,63 @@ Following image represents internal framework architecture
 Orbital cluster is easy reachable according this schema:
 
 ![orbital-cluster.chart.png](orbital-cluster.chart.png)
+
+The monitor app allows you to check every metrics:
+
+![orbital.monitor.png](orbital.monitor.png)
+
+
+## Usage
+
+See "example" module for complete starter. Please pay attention example already contains frontend resources.
+
+### Requirements
+
+Before running your first orbital game server your app should have:
+
+- GameManager implementation
+- Player model implementation
+- Game room implementation
+
+### Launch
+
+To run orbital microcluster with gateway verticle and N room verticles write:
+
+```
+public static void main(String[] args) {
+    final Vertx vertx = Vertx.vertx();
+
+    int N = 10;
+    final RoomConfig roomConfig = new RoomConfig(N);
+    runGame(vertx, new WebsocketGatewayVerticle(new ServerConfig(8080), roomConfig), DefaultGameManager.gameManagerFactory(roomConfig),
+            new DeploymentOptions(), new DeploymentOptions(), roomConfig)
+            .onFailure(throwable -> startupErrorHandler(vertx, throwable));
+}
+```
+
+### Monitor page
+
+To setup monitor-related instance your vertx instance should be monitorable this way:
+
+```
+final Vertx vertx = new MonitorableVertx().build();
+```
+
+You can specify certain metrics binders and registries on your own:
+
+```
+final Vertx vertx = new MonitorableVertx(registry).build();
+```
+
+```
+final Vertx vertx = new MonitorableVertx(registry, new JvmHeapPressureMetrics()).build();
+```
+
+Final step is static monitor resources linking with gateway verticle:
+
+```
+   final GatewayVerticle gatewayVerticle = new WebsocketGatewayVerticle(serverConfig, roomConfig)
+                            .withRouterInitializer(MonitorEndpoint::create);
+```
+
+Monitor web app is available at http://localhost:8085/monitor (8085 by default)

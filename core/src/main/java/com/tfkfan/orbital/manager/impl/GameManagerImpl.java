@@ -3,21 +3,24 @@ package com.tfkfan.orbital.manager.impl;
 import com.tfkfan.orbital.configuration.Constants;
 import com.tfkfan.orbital.configuration.Fields;
 import com.tfkfan.orbital.configuration.props.RoomConfig;
-import com.tfkfan.orbital.factory.GameStateFactory;
 import com.tfkfan.orbital.factory.GameRoomFactory;
+import com.tfkfan.orbital.factory.GameStateFactory;
 import com.tfkfan.orbital.factory.PlayerFactory;
-import com.tfkfan.orbital.session.PlayerSession;
-import com.tfkfan.orbital.state.GameState;
-import com.tfkfan.orbital.room.GameRoom;
 import com.tfkfan.orbital.manager.GameManager;
+import com.tfkfan.orbital.metrics.registrar.GameManagerMetricsRegistrar;
+import com.tfkfan.orbital.room.GameRoom;
+import com.tfkfan.orbital.session.PlayerSession;
 import com.tfkfan.orbital.shared.ActionType;
+import com.tfkfan.orbital.state.GameState;
 import io.vertx.core.Vertx;
 import io.vertx.core.eventbus.Message;
-import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
+import io.vertx.micrometer.backends.BackendRegistries;
 import lombok.extern.slf4j.Slf4j;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.UUID;
 
 @Slf4j
 public class GameManagerImpl implements GameManager {
@@ -46,6 +49,8 @@ public class GameManagerImpl implements GameManager {
         this.gameRoomFactory = gameRoomFactory;
 
         vertx.eventBus().consumer(Constants.ROOM_VERTICAL_CHANNEL, this::onMessage);
+
+        new GameManagerMetricsRegistrar(BackendRegistries.getDefaultNow(), this).register();
     }
 
     protected void onMessage(Message<JsonObject> message) {
@@ -82,6 +87,19 @@ public class GameManagerImpl implements GameManager {
     @Override
     public void onBattleEnd(GameRoom room) {
         gameRoomMap.remove(room.key());
-        room.close();
+        room.close().forEach(it -> playerSessionsMap.remove(it.getId()));
+    }
+
+    public Integer totalRooms() {
+        return gameRoomMap.size();
+    }
+
+    public Integer totalPlayers() {
+        return playerSessionsMap.size();
+    }
+
+    @Override
+    public String id() {
+        return verticleId;
     }
 }

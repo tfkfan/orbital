@@ -13,6 +13,10 @@ public interface GameEntity<I> extends Updatable, Initializable, IUpdatePackProv
 
     boolean isAlive();
 
+    default boolean isDead(){
+        return !isAlive();
+    }
+
     GameRoom getGameRoom();
 
     <R extends GameRoom> R getGameRoom(Class<R> roomClass);

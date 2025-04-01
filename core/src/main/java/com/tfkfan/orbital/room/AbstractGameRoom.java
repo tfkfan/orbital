@@ -7,6 +7,8 @@ import com.tfkfan.orbital.configuration.props.RoomConfig;
 import com.tfkfan.orbital.event.*;
 import com.tfkfan.orbital.event.listener.EventListener;
 import com.tfkfan.orbital.manager.GameManager;
+import com.tfkfan.orbital.metrics.GameRoomMetrics;
+import com.tfkfan.orbital.metrics.registrar.GameRoomMetricsRegistrar;
 import com.tfkfan.orbital.model.players.Player;
 import com.tfkfan.orbital.network.message.Message;
 import com.tfkfan.orbital.network.message.MessageType;
@@ -24,6 +26,7 @@ import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
 import io.vertx.core.eventbus.MessageConsumer;
 import io.vertx.core.json.JsonObject;
+import io.vertx.micrometer.backends.BackendRegistries;
 import lombok.extern.slf4j.Slf4j;
 
 import java.time.OffsetDateTime;
@@ -46,6 +49,8 @@ public abstract class AbstractGameRoom implements GameRoom {
     private boolean started = false;
     protected final RoomConfig config;
 
+    private final GameRoomMetricsRegistrar gameRoomMetricsRegistrar;
+
     public AbstractGameRoom(GameState state, String verticleId, UUID gameRoomId, GameManager gameManager, RoomConfig config) {
         this.state = state;
         this.gameRoomId = gameRoomId;
@@ -59,6 +64,33 @@ public abstract class AbstractGameRoom implements GameRoom {
         addEventListener(this::onPlayerMouseClick, MouseDownPlayerEvent.class);
         addEventListener(this::onPlayerMouseMove, MouseMovePlayerEvent.class);
         addEventListener(this::onPlayerInitRequest, InitPlayerEvent.class);
+
+        gameRoomMetricsRegistrar = new GameRoomMetricsRegistrar(BackendRegistries.getDefaultNow(), new GameRoomMetrics() {
+            @Override
+            public Integer currentPlayers() {
+                return state.getPlayers().size();
+            }
+
+            @Override
+            public Integer maxPlayers() {
+                return config.getMaxPlayers();
+            }
+
+            @Override
+            public long alivePlayers() {
+                return state.alivePlayers();
+            }
+
+            @Override
+            public long deadPlayers() {
+                return 0;
+            }
+
+            @Override
+            public String id() {
+                return key().toString();
+            }
+        });
     }
 
     protected void onPlayerKeyDown(PlayerSession playerSession, KeyDownPlayerEvent event) {
@@ -95,6 +127,7 @@ public abstract class AbstractGameRoom implements GameRoom {
     public void onCreate() {
         vertx.eventBus().publish(Constants.MATCHMAKER_ROOM_CREATE_CHANNEL, new JsonObject()
                 .put(Fields.roomId, key().toString()));
+        gameRoomMetricsRegistrar.register();
         gameManager.onCreate(this);
         log.trace("Room {} has been created", key());
     }
@@ -135,6 +168,8 @@ public abstract class AbstractGameRoom implements GameRoom {
 
     @Override
     public void onDestroy() {
+        gameRoomMetricsRegistrar.unregister();
+
         sessions().forEach(playerSession -> state.removePlayer(playerSession.getPlayer()));
 
         this.sessions.clear();
@@ -163,6 +198,7 @@ public abstract class AbstractGameRoom implements GameRoom {
 
     @Override
     public PlayerSession onDisconnect(PlayerSession playerSession) {
+        state.removePlayer(playerSession.getPlayer());
         return sessions.remove(playerSession.getId());
     }
 
@@ -230,7 +266,7 @@ public abstract class AbstractGameRoom implements GameRoom {
 
     @Override
     public Collection<PlayerSession> close() {
-        Collection<PlayerSession> result = sessions.values();
+        Collection<PlayerSession> result = new ArrayList<>(sessions.values());
         result.forEach(this::onClose);
         onDestroy();
         log.trace("Room {} has been closed", key());

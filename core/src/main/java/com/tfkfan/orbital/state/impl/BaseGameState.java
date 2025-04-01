@@ -46,4 +46,9 @@ public class BaseGameState implements GameState {
     public long alivePlayers() {
         return players.values().stream().filter(GameEntity::isAlive).count();
     }
+
+    @Override
+    public long deadPlayers() {
+        return players.values().stream().filter(GameEntity::isDead).count();
+    }
 }
