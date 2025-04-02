@@ -31,7 +31,7 @@ public abstract class GatewayVerticle extends BaseVerticle {
 
         withRouterInitializer(router -> router.get("/health").handler(rc -> rc.response().end(
                 new JsonObject()
-                        .put("game", new JsonObject()
+                        .put("orbital-server", new JsonObject()
                                 .put("status", "UP")
                                 .put("details", new JsonArray().add("GatewayVerticle").add("RoomVerticle")))
                         .encode())));

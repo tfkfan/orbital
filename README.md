@@ -23,8 +23,9 @@ Supports:
 
 * HTTP
 * Websocket
+* English/Russian web app localization 
 
-Features of core:
+Features:
 
 * GameApplication launcher
 * Gateway verticle basic functionality
@@ -59,12 +60,6 @@ Following image represents internal framework architecture
 Orbital cluster is easy reachable according this schema:
 
 ![orbital-cluster.chart.png](orbital-cluster.chart.png)
-
-The monitor app allows you to check every metrics:
-
-![orbital.monitor.png](orbital.monitor.png)
-
-
 ## Usage
 
 See "example" module for complete starter. Please pay attention example already contains frontend resources.
@@ -93,14 +88,16 @@ public static void main(String[] args) {
 }
 ```
 
-### Monitor page
+## Monitoring
+
+### Setup
 
 To setup monitor-related instance add required dependency:
 
 ```
 <dependency>
     <groupId>com.tfkfan</groupId>
-    <artifactId>core</artifactId>
+    <artifactId>monitor</artifactId>
     <version>1.0.0-SNAPSHOT</version>
 </dependency>
 ```
@@ -123,8 +120,22 @@ final Vertx vertx = new MonitorableVertx(registry, new JvmHeapPressureMetrics())
 Final step is static monitor resources linking with gateway verticle:
 
 ```
-   final GatewayVerticle gatewayVerticle = new WebsocketGatewayVerticle(serverConfig, roomConfig)
+final GatewayVerticle gatewayVerticle = new WebsocketGatewayVerticle(serverConfig, roomConfig)
                             .withRouterInitializer(MonitorEndpoint::create);
 ```
 
-Monitor web app is available at http://localhost:8085/monitor (8085 by default)
+### Web app
+The monitor app allows you to check every metrics:
+
+![orbital.monitor-1.png](orbital.monitor-1.png)
+![orbital.monitor-2.png](orbital.monitor-2.png)
+![orbital.monitor-3.png](orbital.monitor-3.png)
+![orbital.monitor-4.png](orbital.monitor-4.png)
+
+### Endpoints
+
+Server port is 8085 by default
+
+- Monitor web app is available at http://localhost:8085/monitor
+- Prometheus metrics are available at http://localhost:8085/prometheus
+- JSON metrics are available at http://localhost:8085/metrics

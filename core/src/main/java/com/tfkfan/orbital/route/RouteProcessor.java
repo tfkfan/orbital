@@ -23,7 +23,7 @@ public class RouteProcessor {
         methods = new HashMap<>();
         Class<?> clazz = source.getClass();
         Map<Integer, Method> m = getMethods(clazz);
-        while (!m.isEmpty()) {
+        while (!clazz.equals(Object.class)) {
             methods.putAll(m);
             clazz = clazz.getSuperclass();
             m = getMethods(clazz);
