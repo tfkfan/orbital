@@ -1,5 +1,5 @@
 dependencies {
-    api project(":core")
+    api project(":orbital-core")
     compileOnly("org.projectlombok:lombok:${lombokVersion}")
     annotationProcessor("org.projectlombok:lombok:${lombokVersion}")
 }

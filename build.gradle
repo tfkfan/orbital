@@ -1,21 +1,65 @@
 description = "A blueprint adapting vert.x to a distributed game server"
 
 allprojects {
-    group = "com.tfkfan.orbital"
+    group = "io.github.tfkfan"
     version = "1.0.0"
 }
 
 subprojects {
     apply plugin: "java-library"
     apply plugin: "maven-publish"
+
+    java {
+        withJavadocJar()
+        withSourcesJar()
+    }
+
     repositories {
         mavenCentral()
         mavenLocal()
     }
+
     publishing {
         publications {
             mavenJava(MavenPublication) {
                 from components.java
+                pom {
+                    name = project.name
+                    description = (project.name + ' description')
+                    url = 'https://github.com/tfkfan/orbital'
+
+                    developers {
+                        developer {
+                            id = 'tfkfan'
+                            name = 'Artem Baltser'
+                            email = 'abaltserdev@outlook.com'
+                            organizationUrl = 'https://tfkfan.github.io/page'
+                        }
+                    }
+
+                    licenses {
+                        license {
+                            name = 'MIT'
+                            url = 'https://github.com/tfkfan/orbital/blob/master/LICENSE.md'
+                        }
+                    }
+
+                    scm {
+                        connection = 'scm:git:git://github.com/tfkfan/orbital.git'
+                        developerConnection = 'scm:git:ssh://git@github.com:tfkfan/orbital.git'
+                        url = 'https://tfkfan.github.io/page'
+                    }
+                }
+                groupId project.group
+                artifactId project.name
+                version project.version
+
+                withBuildIdentifier()
+            }
+        }
+        repositories {
+            maven {
+                setUrl(layout.buildDirectory.dir("staging-deploy"))
             }
         }
     }
