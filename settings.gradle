@@ -1,0 +1,6 @@
+rootProject.name = "orbital"
+
+include 'core'
+include 'example'
+include 'monitor'
+

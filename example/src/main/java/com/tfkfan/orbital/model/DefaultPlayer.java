@@ -24,7 +24,7 @@ public class DefaultPlayer extends BasePlayer<Vector2D> {
     public DefaultPlayer(Long id, GameRoom gameRoom, PlayerSession userSession) {
         super(id, gameRoom, userSession);
         movingState = Arrays.stream(Direction.values())
-                .collect(Collectors.toMap(direction -> direction, _ -> false));
+                .collect(Collectors.toMap(direction -> direction, t -> false));
         position = new Vector2D();
         velocity = new Vector2D();
         acceleration = new Vector2D();

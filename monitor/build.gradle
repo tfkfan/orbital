@@ -1,0 +1,5 @@
+dependencies {
+    api project(":core")
+    compileOnly("org.projectlombok:lombok:${lombokVersion}")
+    annotationProcessor("org.projectlombok:lombok:${lombokVersion}")
+}

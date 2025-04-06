@@ -134,8 +134,8 @@ public abstract class AbstractGameRoom implements GameRoom {
 
     @Override
     public void onStart() {
-        schedule(config.getEndDelay() + config.getStartDelay(), (_) -> onBattleEnd());
-        schedule(config.getStartDelay(), (_) -> onBattleStart());
+        schedule(config.getEndDelay() + config.getStartDelay(), (t) -> onBattleEnd());
+        schedule(config.getStartDelay(), (t) -> onBattleStart());
         broadcast(MessageTypes.GAME_ROOM_START, new GameRoomInfoPack(
                 OffsetDateTime.now().plus(config.getStartDelay(), ChronoUnit.MILLIS).toInstant().toEpochMilli()
         ));

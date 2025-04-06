@@ -76,7 +76,7 @@ public abstract class BaseMatchmakerManager implements MatchmakerManager {
                                                 .put(Fields.admin, e.getSession().isAdmin())
                                                 .put(Fields.initialData, e.getData()))
                                 .collect(Collectors.toList()))))
-                .onSuccess(_ -> userSessions.forEach(it -> it.getSession().setRoomKey(roomId)))
+                .onSuccess(t -> userSessions.forEach(it -> it.getSession().setRoomKey(roomId)))
                 .onFailure(t -> {
                     log.error("Room verticle {} failed to join", roomId, t);
                     userSessions.forEach(it -> it.getSession().close());

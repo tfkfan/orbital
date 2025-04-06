@@ -1,0 +1,9 @@
+plugins {
+    id "java"
+}
+
+dependencies {
+    implementation project(":monitor")
+    compileOnly("org.projectlombok:lombok:${lombokVersion}")
+    annotationProcessor("org.projectlombok:lombok:${lombokVersion}")
+}

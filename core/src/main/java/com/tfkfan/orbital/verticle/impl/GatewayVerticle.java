@@ -48,7 +48,7 @@ public abstract class GatewayVerticle extends BaseVerticle {
 
             internalCustomize(server)
                     .flatMap(s -> s.listen(serverConfig.getPort()))
-                    .onSuccess(_ -> {
+                    .onSuccess(t -> {
                         log.info("Websocket server started on port {}", serverConfig.getPort());
                         startPromise.complete();
                         routerInitializers.clear();

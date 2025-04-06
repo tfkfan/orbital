@@ -20,14 +20,14 @@ public final class GameApplication {
     public static Future<?> runGame(Vertx vertx, GatewayVerticle gatewayVerticle, Function<String, GameManager> gameManagerFactory,
                                     DeploymentOptions gatewayOptions, DeploymentOptions roomOptions, RoomConfig roomConfig) {
         return run(vertx, gatewayVerticle, gatewayOptions)
-                .flatMap(_ -> runRooms(vertx, roomOptions, roomConfig, gameManagerFactory))
-                .onSuccess(_ -> log.info("Orbital has started successfully"));
+                .flatMap(t -> runRooms(vertx, roomOptions, roomConfig, gameManagerFactory))
+                .onSuccess(t -> log.info("Orbital has started successfully"));
     }
 
     public static CompositeFuture runRooms(Vertx vertx, DeploymentOptions options, RoomConfig roomConfig,
                                            Function<String, GameManager> gameManagerFactory) {
         return Future.all(IntStream.range(0, roomConfig.getInstances())
-                .mapToObj(_ -> vertx.deployVerticle(
+                .mapToObj(t -> vertx.deployVerticle(
                         new RoomVerticle(gameManagerFactory),
                         options)).toList());
     }

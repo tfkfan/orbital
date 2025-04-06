@@ -1,0 +1,22 @@
+description = "A blueprint adapting vert.x to a distributed game server"
+
+allprojects {
+    group = "com.tfkfan.orbital"
+    version = "1.0.0"
+}
+
+subprojects {
+    apply plugin: "java-library"
+    apply plugin: "maven-publish"
+    repositories {
+        mavenCentral()
+        mavenLocal()
+    }
+    publishing {
+        publications {
+            mavenJava(MavenPublication) {
+                from components.java
+            }
+        }
+    }
+}
