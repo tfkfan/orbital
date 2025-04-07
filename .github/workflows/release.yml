@@ -22,7 +22,7 @@ jobs:
           java-version: '21'
           distribution: 'temurin'
 
-      - name: Build
+      - name: Build and release
         uses: gradle/actions/setup-gradle@v3
         env:
           JRELEASER_GPG_SECRET_KEY: ${{ secrets.JRELEASER_GPG_SECRET_KEY }}
@@ -30,28 +30,6 @@ jobs:
           JRELEASER_GITHUB_TOKEN: ${{ secrets.GTOKEN }}
           JRELEASER_MAVENCENTRAL_USERNAME: ${{ secrets.JRELEASER_MAVENCENTRAL_SONATYPE_USERNAME }}
           JRELEASER_MAVENCENTRAL_PASSWORD: ${{ secrets.JRELEASER_MAVENCENTRAL_SONATYPE_TOKEN }}
-          JRELEASER_NEXUS2_USERNAME: ${{ secrets.JRELEASER_MAVENCENTRAL_SONATYPE_USERNAME }}
-          JRELEASER_NEXUS2_PASSWORD: ${{ secrets.JRELEASER_MAVENCENTRAL_SONATYPE_TOKEN }}
           JRELEASER_GPG_PUBLIC_KEY: ${{ secrets.JRELEASER_GPG_PUBLIC_KEY }}
         with:
-          arguments: --no-daemon -i :orbital-core:jreleaserConfig :orbital-core:build :orbital-core:test :orbital-core:publish
-
-      - name: Release
-        uses: gradle/actions/setup-gradle@v3
-        env:
-          JRELEASER_GPG_SECRET_KEY: ${{ secrets.JRELEASER_GPG_SECRET_KEY }}
-          JRELEASER_GPG_PASSPHRASE: ${{ secrets.JRELEASER_GPG_PASSPHRASE }}
-          JRELEASER_GITHUB_TOKEN: ${{ secrets.GTOKEN }}
-          JRELEASER_MAVENCENTRAL_USERNAME: ${{ secrets.JRELEASER_MAVENCENTRAL_SONATYPE_USERNAME }}
-          JRELEASER_MAVENCENTRAL_PASSWORD: ${{ secrets.JRELEASER_MAVENCENTRAL_SONATYPE_TOKEN }}
-          JRELEASER_NEXUS2_USERNAME: ${{ secrets.JRELEASER_MAVENCENTRAL_SONATYPE_USERNAME }}
-          JRELEASER_NEXUS2_PASSWORD: ${{ secrets.JRELEASER_MAVENCENTRAL_SONATYPE_TOKEN }}
-          JRELEASER_GPG_PUBLIC_KEY: ${{ secrets.JRELEASER_GPG_PUBLIC_KEY }}
-        with:
-          arguments: --no-daemon -i :orbital-core:jreleaserFullRelease --stacktrace
-
-      - name: Post release
-        if: always()
-        run: |
-          cat ./core/build/jreleaser/trace.log
-          cat ./core/build/jreleaser/output.properties
+          arguments: --no-daemon -i build publish jreleaserConfig jreleaserFullRelease --stacktrace

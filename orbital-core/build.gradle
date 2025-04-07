@@ -1,7 +1,3 @@
-plugins {
-    id 'org.jreleaser' version '1.17.0'
-}
-
 dependencies {
     api("io.vertx:vertx-web:${vertxVersion}")
     api("io.vertx:vertx-config:${vertxVersion}")
@@ -13,43 +9,4 @@ dependencies {
 
     compileOnly("org.projectlombok:lombok:${lombokVersion}")
     annotationProcessor("org.projectlombok:lombok:${lombokVersion}")
-}
-
-jreleaser {
-    gitRootSearch = true
-
-    project {
-        authors = ['tfkfan']
-        license = 'MIT'
-        links {
-            homepage = 'https://tfkfan.github.io/page'
-        }
-        description = "Orbital core"
-        inceptionYear = '2025'
-    }
-
-    signing {
-        active = 'ALWAYS'
-        armored = true
-    }
-
-    deploy {
-        maven {
-            mavenCentral {
-                app {
-                    active = 'ALWAYS'
-                    url = 'https://central.sonatype.com/api/v1/publisher'
-                    sign = true
-                    retryDelay = 200
-                    maxRetries = 3
-                    checksums = true
-                    sourceJar = true
-                    javadocJar = true
-                    //applyMavenCentralRules = false
-                    stagingRepository("build/staging-deploy")
-                    setAuthorization("Basic")
-                }
-            }
-        }
-    }
 }

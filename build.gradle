@@ -1,13 +1,19 @@
-description = "A blueprint adapting vert.x to a distributed game server"
+plugins {
+    id 'org.jreleaser' version '1.17.0'
+    id 'java'
+}
 
 allprojects {
+    description = "A blueprint adapting vert.x to a distributed game server"
     group = "io.github.tfkfan"
-    version = "1.0.0"
+    version = "1.0.1"
 }
 
 subprojects {
+    apply plugin: "java"
     apply plugin: "java-library"
     apply plugin: "maven-publish"
+    apply plugin: "org.jreleaser"
 
     java {
         withJavadocJar()
@@ -18,6 +24,8 @@ subprojects {
         mavenCentral()
         mavenLocal()
     }
+
+    var staging = layout.buildDirectory.dir("staging-deploy")
 
     publishing {
         publications {
@@ -45,8 +53,8 @@ subprojects {
                     }
 
                     scm {
-                        connection = 'scm:git:git://github.com/tfkfan/orbital.git'
-                        developerConnection = 'scm:git:ssh://git@github.com:tfkfan/orbital.git'
+                        connection = 'scm:git://github.com/tfkfan/orbital.git'
+                        developerConnection = 'scm:ssh://git@github.com:tfkfan/orbital.git'
                         url = 'https://tfkfan.github.io/page'
                     }
                 }
@@ -59,8 +67,55 @@ subprojects {
         }
         repositories {
             maven {
-                setUrl(layout.buildDirectory.dir("staging-deploy"))
+                setUrl(staging)
+            }
+        }
+    }
+
+
+    jreleaser {
+        gitRootSearch = true
+        project {
+            authors = ['tfkfan']
+            license = 'MIT'
+            links {
+                homepage = 'https://tfkfan.github.io/page'
+            }
+            description = "Orbital"
+            inceptionYear = '2025'
+        }
+
+        signing {
+            active = 'ALWAYS'
+            armored = true
+            verify = true
+        }
+
+        release {
+            github {
+                skipRelease = true
+                skipTag = true
+            }
+        }
+
+        deploy {
+            maven {
+                mavenCentral {
+                    app {
+                        active = 'ALWAYS'
+                        url = 'https://central.sonatype.com/api/v1/publisher'
+                        sign = true
+                        retryDelay = 200
+                        checksums = true
+                        sourceJar = true
+                        javadocJar = true
+                        stagingRepository(staging.get().toString())
+                    }
+                }
             }
         }
     }
 }
+
+jreleaserConfig.enabled = false
+jreleaserFullRelease.enabled = false

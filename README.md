@@ -7,7 +7,7 @@
 </h1>
 
 <h4 align="center">
-This is high-performance vert.x based distributed java game server designed for realtime 2D/3D multiplayer games requiring low-latency realtime computations</h4>
+This is high-performance vert.x based distributed java game server designed for realtime indie multiplayers development</h4>
 
 <p align="center">
   <a href="https://opensource.org/licenses/MIT" title="License: MIT" >
@@ -23,7 +23,6 @@ Supports:
 
 * HTTP
 * Websocket
-* English/Russian web app localization 
 
 Features:
 
@@ -36,15 +35,18 @@ Features:
 * Package classes
 * Micrometer + prometheus metrics and monitor web page https://github.com/tfkfan/orbital-monitor
 * Annotation-based incoming message handlers
+* English/Russian web app localization
 
-Currently, in development:
+Backlog:
 
 * GraalVM native image optimizations
-* 2D/3D geometry and grid systems
+* Grid/Mesh systems and 2D collision models
 * TCP/UDP server mode
 * Advanced room management, player management, admin page https://github.com/tfkfan/orbital-monitor
-* Auth-protected REST API
-* Advanced basic game objects (strikes, loot, handlers)
+* Auth-protected REST API and social accounts oidc providers (google,vk,facebook,X etc...)
+* Advanced basic game objects
+* Payments api integrations
+* Meta game logic tools
 * Infinispan-clustered game server mode
 
 ## Core and features
@@ -96,9 +98,9 @@ To setup monitor-related instance add required dependency:
 
 ```
 <dependency>
-    <groupId>com.tfkfan</groupId>
-    <artifactId>monitor</artifactId>
-    <version>1.0.0-SNAPSHOT</version>
+    <groupId>io.github.tfkfan</groupId>
+    <artifactId>orbital-monitor</artifactId>
+    <version>1.0.0</version>
 </dependency>
 ```
 Your vertx instance should be monitorable this way:

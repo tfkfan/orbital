@@ -1,9 +1,8 @@
-plugins {
-    id "java"
-}
-
 dependencies {
-    implementation project(":monitor")
+    implementation project(":orbital-monitor")
     compileOnly("org.projectlombok:lombok:${lombokVersion}")
     annotationProcessor("org.projectlombok:lombok:${lombokVersion}")
 }
+
+jreleaserConfig.enabled = false
+jreleaserFullRelease.enabled = false
