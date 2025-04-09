@@ -37,5 +37,5 @@ jobs:
       - name: Post release
         if: always()
         run: |
-          cat ./orbital-core/build/jreleaser/trace.log
-          cat ./orbital-core/build/jreleaser/output.properties
+          cat ./orbital/build/jreleaser/trace.log
+          cat ./orbital/build/jreleaser/output.properties
