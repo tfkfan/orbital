@@ -25,6 +25,8 @@ subprojects {
         mavenLocal()
     }
 
+    var staging = layout.buildDirectory.dir("staging-deploy")
+
     publishing {
         publications {
             mavenJava(MavenPublication) {
@@ -65,7 +67,7 @@ subprojects {
         }
         repositories {
             maven {
-                setUrl(layout.buildDirectory.dir("staging-deploy"))
+                setUrl(staging)
             }
         }
     }
@@ -80,7 +82,7 @@ subprojects {
             links {
                 homepage = 'https://tfkfan.github.io/page'
             }
-            description = "Orbital core"
+            description = "Orbital"
             inceptionYear = '2025'
         }
 
@@ -103,7 +105,7 @@ subprojects {
                         javadocJar = true
                         username = System.getenv("JRELEASER_MAVENCENTRAL_USERNAME")
                         password = System.getenv("JRELEASER_MAVENCENTRAL_PASSWORD")
-                        stagingRepository("build/staging-deploy")
+                        stagingRepository(staging.get().toString())
                     }
                 }
             }
