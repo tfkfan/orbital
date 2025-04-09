@@ -7,7 +7,7 @@ description = "A blueprint adapting vert.x to a distributed game server"
 
 allprojects {
     group = "io.github.tfkfan"
-    version = "1.0.0"
+    version = "0.0.1"
 }
 
 subprojects {
