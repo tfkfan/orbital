@@ -53,8 +53,8 @@ subprojects {
                     }
 
                     scm {
-                        connection = 'scm:git:git://github.com/tfkfan/orbital.git'
-                        developerConnection = 'scm:git:ssh://git@github.com:tfkfan/orbital.git'
+                        connection = 'scm:git://github.com/tfkfan/orbital.git'
+                        developerConnection = 'scm:ssh://git@github.com:tfkfan/orbital.git'
                         url = 'https://tfkfan.github.io/page'
                     }
                 }
