@@ -95,7 +95,6 @@ subprojects {
             github {
                 skipRelease = true
                 skipTag = true
-                gitRootSearch=true
             }
         }
 
@@ -118,3 +117,5 @@ subprojects {
         }
     }
 }
+
+jreleaserFullRelease.enabled = false
