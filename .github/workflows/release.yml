@@ -33,9 +33,3 @@ jobs:
           JRELEASER_GPG_PUBLIC_KEY: ${{ secrets.JRELEASER_GPG_PUBLIC_KEY }}
         with:
           arguments: --no-daemon -i jreleaserConfig build publish jreleaserFullRelease --stacktrace
-
-      - name: Post release
-        if: always()
-        run: |
-          cat ./orbital/build/jreleaser/trace.log
-          cat ./orbital/build/jreleaser/output.properties

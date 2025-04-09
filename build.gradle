@@ -89,6 +89,7 @@ subprojects {
         signing {
             active = 'ALWAYS'
             armored = true
+            verify = true
         }
 
         release {
@@ -110,8 +111,6 @@ subprojects {
                         checksums = true
                         sourceJar = true
                         javadocJar = true
-                        username = System.getenv("JRELEASER_MAVENCENTRAL_USERNAME")
-                        password = System.getenv("JRELEASER_MAVENCENTRAL_PASSWORD")
                         stagingRepository(staging.get().toString())
                     }
                 }
