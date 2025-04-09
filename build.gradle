@@ -106,7 +106,6 @@ subprojects {
                         url = 'https://central.sonatype.com/api/v1/publisher'
                         sign = true
                         retryDelay = 200
-                        maxRetries = 3
                         checksums = true
                         sourceJar = true
                         javadocJar = true
@@ -118,4 +117,5 @@ subprojects {
     }
 }
 
+jreleaserConfig.enabled = false
 jreleaserFullRelease.enabled = false
