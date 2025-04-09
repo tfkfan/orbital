@@ -32,4 +32,4 @@ jobs:
           JRELEASER_MAVENCENTRAL_PASSWORD: ${{ secrets.JRELEASER_MAVENCENTRAL_SONATYPE_TOKEN }}
           JRELEASER_GPG_PUBLIC_KEY: ${{ secrets.JRELEASER_GPG_PUBLIC_KEY }}
         with:
-          arguments: --no-daemon -i jreleaserConfig build publish jreleaserFullRelease --stacktrace
+          arguments: --no-daemon -i build publish jreleaserConfig jreleaserFullRelease --stacktrace
