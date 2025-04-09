@@ -4,7 +4,6 @@ import io.github.tfkfan.orbital.core.configuration.Constants;
 import io.github.tfkfan.orbital.core.configuration.Fields;
 import io.github.tfkfan.orbital.core.configuration.MessageTypes;
 import io.github.tfkfan.orbital.core.configuration.props.RoomConfig;
-import com.tfkfan.orbital.event.*;
 import io.github.tfkfan.orbital.core.event.*;
 import io.github.tfkfan.orbital.core.network.message.Message;
 import io.github.tfkfan.orbital.core.route.MessageRoute;
