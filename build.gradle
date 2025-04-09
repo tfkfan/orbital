@@ -75,7 +75,6 @@ subprojects {
 
     jreleaser {
         gitRootSearch = true
-
         project {
             authors = ['tfkfan']
             license = 'MIT'
@@ -96,8 +95,8 @@ subprojects {
             github {
                 skipRelease = true
                 skipTag = true
+                branch = "master"
             }
-           gitRootSearch = true
         }
 
         deploy {
