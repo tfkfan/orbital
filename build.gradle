@@ -95,7 +95,7 @@ subprojects {
             github {
                 skipRelease = true
                 skipTag = true
-                branch = "master"
+                gitRootSearch=true
             }
         }
 
