@@ -1,6 +1,4 @@
 rootProject.name = "orbital"
 
-include 'orbital-core'
-include 'example'
-include 'monitor'
+include("orbital-core", "example", "orbital-monitor")
 
