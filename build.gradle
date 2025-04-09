@@ -91,6 +91,13 @@ subprojects {
             armored = true
         }
 
+        release {
+            github {
+                skipRelease = true
+                skipTag = true
+            }
+        }
+
         deploy {
             maven {
                 mavenCentral {
