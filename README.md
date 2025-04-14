@@ -100,7 +100,7 @@ To setup monitor-related instance add required dependency:
 <dependency>
     <groupId>io.github.tfkfan</groupId>
     <artifactId>orbital-monitor</artifactId>
-    <version>1.0.0</version>
+    <version>1.0.1</version>
 </dependency>
 ```
 Your vertx instance should be monitorable this way:
