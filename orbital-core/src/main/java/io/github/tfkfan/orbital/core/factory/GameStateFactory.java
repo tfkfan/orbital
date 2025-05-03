@@ -5,5 +5,5 @@ import io.github.tfkfan.orbital.core.state.GameState;
 import java.util.function.Supplier;
 
 @FunctionalInterface
-public interface GameStateFactory extends Supplier<GameState> {
+public interface GameStateFactory<S extends GameState> extends Supplier<S> {
 }

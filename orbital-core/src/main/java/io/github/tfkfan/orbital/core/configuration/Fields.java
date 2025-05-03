@@ -10,4 +10,5 @@ public interface Fields {
     String initialData = "initialData";
     String type = "type";
     String data = "data";
+    String name = "name";
 }

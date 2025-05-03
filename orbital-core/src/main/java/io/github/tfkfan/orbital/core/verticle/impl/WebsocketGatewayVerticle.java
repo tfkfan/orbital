@@ -18,6 +18,12 @@ public class WebsocketGatewayVerticle extends GatewayVerticle {
         websocket();
     }
 
+    public WebsocketGatewayVerticle(ServerConfig serverConfig, MatchmakerManager matchmakerManager) {
+        super(serverConfig, new WebSocketManagerImpl(matchmakerManager));
+        webSocketManager = (WebSocketManager) gatewayManager;
+        websocket();
+    }
+
     public WebsocketGatewayVerticle(ServerConfig serverConfig, WebSocketManager webSocketManager) {
         super(serverConfig, webSocketManager);
         this.webSocketManager = webSocketManager;

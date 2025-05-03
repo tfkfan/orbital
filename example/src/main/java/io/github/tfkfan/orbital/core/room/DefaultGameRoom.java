@@ -9,7 +9,7 @@ import io.github.tfkfan.orbital.core.state.GameState;
 
 import java.util.UUID;
 
-public class DefaultGameRoom extends AbstractGameRoom {
+public class DefaultGameRoom extends AbstractGameRoom<GameState> {
 
     public DefaultGameRoom(String verticleId, UUID gameRoomId,
                            GameState state,

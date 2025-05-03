@@ -41,15 +41,23 @@ public class RouteProcessor {
             log.warn("Method not found for type {}", type);
             return;
         }
-        Method method = methods.get(type);
+
+        final Method method = methods.get(type);
         method.setAccessible(true);
 
-        method.invoke(source, Arrays.stream(method.getParameters()).map(it -> {
+        final Object[] args = Arrays.stream(method.getParameters()).map(it -> {
             if (it.getType().equals(GatewaySession.class))
                 return userSession;
-            if (it.getType().equals(JsonObject.class))
+            if (it.getType().equals(JsonObject.class)) {
+                if (data == null)
+                    return new JsonObject();
                 return data;
+            }
             return null;
-        }).filter(Objects::nonNull).toArray(Object[]::new));
+        }).toArray(Object[]::new);
+
+        log.trace("Method {} invoked with args: {}", method.getName(), Arrays.toString(args));
+
+        method.invoke(source, args);
     }
 }

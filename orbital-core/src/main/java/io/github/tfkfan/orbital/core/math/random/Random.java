@@ -1,4 +1,4 @@
-package io.github.tfkfan.orbital.core.math;
+package io.github.tfkfan.orbital.core.math.random;
 
 public class Random {
     public static int getRandomIndex(int max) {

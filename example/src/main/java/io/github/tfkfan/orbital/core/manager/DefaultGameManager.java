@@ -9,7 +9,7 @@ import io.vertx.core.Vertx;
 
 import java.util.function.Function;
 
-public class DefaultGameManager extends GameManagerImpl {
+public class DefaultGameManager extends GameManagerImpl<DefaultGameRoom, BaseGameState> {
     public static Function<String, GameManager> gameManagerFactory(RoomConfig roomConfig) {
         return (vId) -> new DefaultGameManager(vId, roomConfig);
     }

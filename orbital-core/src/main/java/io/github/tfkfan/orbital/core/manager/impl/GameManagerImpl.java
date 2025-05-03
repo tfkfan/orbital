@@ -23,7 +23,7 @@ import java.util.Map;
 import java.util.UUID;
 
 @Slf4j
-public class GameManagerImpl implements GameManager {
+public class GameManagerImpl<R extends GameRoom, S extends GameState> implements GameManager {
     protected final Vertx vertx;
     protected final RoomConfig roomConfig;
     protected final String verticleId;
@@ -32,15 +32,15 @@ public class GameManagerImpl implements GameManager {
     protected final Map<String, PlayerSession> playerSessionsMap = new HashMap<>();
 
     protected final PlayerFactory playerFactory;
-    protected final GameStateFactory gameStateFactory;
-    protected final GameRoomFactory gameRoomFactory;
+    protected final GameStateFactory<S> gameStateFactory;
+    protected final GameRoomFactory<R, S> gameRoomFactory;
 
     public GameManagerImpl(String verticleId,
                            Vertx vertx,
                            RoomConfig roomConfig,
                            PlayerFactory playerFactory,
-                           GameStateFactory gameStateFactory,
-                           GameRoomFactory gameRoomFactory) {
+                           GameStateFactory<S> gameStateFactory,
+                           GameRoomFactory<R, S> gameRoomFactory) {
         this.roomConfig = roomConfig;
         this.verticleId = verticleId;
         this.vertx = vertx;
@@ -60,9 +60,10 @@ public class GameManagerImpl implements GameManager {
         if (rawAction != null) {
             ActionType actionType = ActionType.valueOf(rawAction);
             if (actionType.equals(ActionType.NEW_ROOM)) {
-                final GameState gameState = gameStateFactory.get();
+                final S gameState = gameStateFactory.get();
                 final UUID roomId = UUID.fromString(json.getString(Fields.roomId));
-                final GameRoom room = gameRoomFactory.createGameRoom(verticleId, roomId, gameState, this, roomConfig);
+                final GameRoom room = gameRoomFactory.createGameRoom(verticleId, roomId, gameState,
+                        this, roomConfig);
                 room.onCreate();
 
                 json.getJsonArray(Fields.sessions)
@@ -73,7 +74,8 @@ public class GameManagerImpl implements GameManager {
                                     .getString(Fields.sessionId);
                             final boolean isAdmin = session.getBoolean(Fields.admin);
                             final PlayerSession userSession = new PlayerSession(sessionId, isAdmin);
-                            gameState.addPlayer(playerFactory.createPlayer(gameState.nextPlayerId(), room, userSession));
+                            gameState.addPlayer(playerFactory.createPlayer(gameState.nextPlayerId(),
+                                    room, userSession, session.getJsonObject(Fields.initialData)));
                             playerSessionsMap.put(sessionId, userSession);
                             room.onJoin(userSession);
                         });

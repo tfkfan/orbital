@@ -10,7 +10,7 @@ import java.util.Collection;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class GameInitPack implements InitPack {
+public class BaseGameInitPack implements InitPack {
     private InitPack player;
     private long loopRate;
     private long playersCount;

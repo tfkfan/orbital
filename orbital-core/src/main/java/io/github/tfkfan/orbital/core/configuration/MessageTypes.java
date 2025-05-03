@@ -18,6 +18,4 @@ public interface MessageTypes {
     int PLAYER_KEY_DOWN = 200;
     int PLAYER_MOUSE_DOWN = 201;
     int PLAYER_MOUSE_MOVE = 202;
-    int PLAYER_KILL = 203;
-    int PLAYER_CHOICE = 204;
 }

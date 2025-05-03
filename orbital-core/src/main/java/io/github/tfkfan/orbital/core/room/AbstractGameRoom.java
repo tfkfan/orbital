@@ -14,10 +14,10 @@ import io.github.tfkfan.orbital.core.network.message.Message;
 import io.github.tfkfan.orbital.core.network.message.MessageType;
 import io.github.tfkfan.orbital.core.network.pack.IInitPackProvider;
 import io.github.tfkfan.orbital.core.network.pack.UpdatePack;
-import io.github.tfkfan.orbital.core.network.pack.init.GameInitPack;
+import io.github.tfkfan.orbital.core.network.pack.init.BaseGameInitPack;
 import io.github.tfkfan.orbital.core.network.pack.shared.GameRoomInfoPack;
 import io.github.tfkfan.orbital.core.network.pack.shared.GameSettingsPack;
-import io.github.tfkfan.orbital.core.network.pack.update.GameUpdatePack;
+import io.github.tfkfan.orbital.core.network.pack.update.BaseGameUpdatePack;
 import io.github.tfkfan.orbital.core.scheduler.RoomScheduler;
 import io.github.tfkfan.orbital.core.session.PlayerSession;
 import io.github.tfkfan.orbital.core.session.Session;
@@ -35,8 +35,8 @@ import java.util.*;
 import java.util.function.Function;
 
 @Slf4j
-public abstract class AbstractGameRoom implements GameRoom {
-    protected final GameState state;
+public abstract class AbstractGameRoom<S extends GameState> implements GameRoom {
+    protected final S state;
     protected final UUID gameRoomId;
     protected final String verticleId;
     protected final Vertx vertx;
@@ -51,7 +51,7 @@ public abstract class AbstractGameRoom implements GameRoom {
 
     private final GameRoomMetricsRegistrar gameRoomMetricsRegistrar;
 
-    public AbstractGameRoom(GameState state, String verticleId, UUID gameRoomId, GameManager gameManager, RoomConfig config) {
+    public AbstractGameRoom(S state, String verticleId, UUID gameRoomId, GameManager gameManager, RoomConfig config) {
         this.state = state;
         this.gameRoomId = gameRoomId;
         this.verticleId = verticleId;
@@ -63,7 +63,7 @@ public abstract class AbstractGameRoom implements GameRoom {
         addEventListener(this::onPlayerKeyDown, KeyDownPlayerEvent.class);
         addEventListener(this::onPlayerMouseClick, MouseDownPlayerEvent.class);
         addEventListener(this::onPlayerMouseMove, MouseMovePlayerEvent.class);
-        addEventListener(this::onPlayerInitRequest, InitPlayerEvent.class);
+        addEventListener(this::onPlayerInitRequest, InitPlayerEvent.class, false);
 
         gameRoomMetricsRegistrar = new GameRoomMetricsRegistrar(BackendRegistries.getDefaultNow(), new GameRoomMetrics() {
             @Override
@@ -93,6 +93,11 @@ public abstract class AbstractGameRoom implements GameRoom {
         });
     }
 
+    @Override
+    public RoomConfig config() {
+        return config;
+    }
+
     protected void onPlayerKeyDown(PlayerSession playerSession, KeyDownPlayerEvent event) {
     }
 
@@ -104,7 +109,7 @@ public abstract class AbstractGameRoom implements GameRoom {
 
     protected void onPlayerInitRequest(PlayerSession playerSession, InitPlayerEvent event) {
         playerSession.send(MessageTypes.INIT,
-                new GameInitPack(playerSession.getPlayer().getInitPack(),
+                new BaseGameInitPack(playerSession.getPlayer().getInitPack(),
                         config.getLoopRate(),
                         state.alivePlayers(),
                         state.getPlayers().stream().map(IInitPackProvider::getInitPack).toList())
@@ -112,10 +117,10 @@ public abstract class AbstractGameRoom implements GameRoom {
     }
 
     @Override
-    public <E extends Event> void addEventListener(EventListener<E> listener, Class<E> clazz) {
+    public <E extends Event> void addEventListener(EventListener<E> listener, Class<E> clazz, boolean startCheck) {
         consumerList.add(vertx.eventBus().localConsumer(GameRoom.constructEventListenerConsumer(gameRoomId, clazz), event -> {
             final String playerSessionId = event.headers().get(Fields.sessionId);
-            if (!sessions.containsKey(playerSessionId) || !started)
+            if (!sessions.containsKey(playerSessionId) || startCheck && !started)
                 return;
             final PlayerSession playerSession = sessions.get(playerSessionId);
             final E o = event.body() != null ? ((JsonObject) event.body()).mapTo(clazz) : null;
@@ -124,12 +129,17 @@ public abstract class AbstractGameRoom implements GameRoom {
     }
 
     @Override
+    public <E extends Event> void addEventListener(EventListener<E> listener, Class<E> clazz) {
+        addEventListener(listener, clazz, true);
+    }
+
+    @Override
     public void onCreate() {
         vertx.eventBus().publish(Constants.MATCHMAKER_ROOM_CREATE_CHANNEL, new JsonObject()
                 .put(Fields.roomId, key().toString()));
         gameRoomMetricsRegistrar.register();
         gameManager.onCreate(this);
-        log.trace("Room {} has been created", key());
+        log.debug("Room {} has been created", key());
     }
 
     @Override
@@ -141,12 +151,12 @@ public abstract class AbstractGameRoom implements GameRoom {
         ));
 
         gameManager.onStart(this);
-        log.trace("Room {} has been started", key());
+        log.debug("Room {} has been started", key());
     }
 
     @Override
     public void onBattleStart() {
-        log.trace("Room {} battle has been started", key());
+        log.debug("Room {} battle has been started", key());
         started = true;
         gameManager.onBattleStart(this);
 
@@ -161,7 +171,7 @@ public abstract class AbstractGameRoom implements GameRoom {
 
     @Override
     public void onBattleEnd() {
-        log.trace("Room {}. Battle has been ended", key());
+        log.debug("Room {}. Battle has been ended", key());
 
         gameManager.onBattleEnd(this);
     }
@@ -240,7 +250,7 @@ public abstract class AbstractGameRoom implements GameRoom {
     @Override
     public void update(long dt) {
         final List<UpdatePack> playerUpdatePackList = updatePlayers(dt);
-        sendUpdate(dt, currentPlayer -> new GameUpdatePack(
+        sendUpdate(dt, currentPlayer -> new BaseGameUpdatePack(
                 currentPlayer.getPrivateUpdatePack(),
                 playerUpdatePackList
         ));
@@ -253,7 +263,7 @@ public abstract class AbstractGameRoom implements GameRoom {
                 .toList();
     }
 
-    protected void sendUpdate(long dt, Function<Player, GameUpdatePack> updatePackFunction) {
+    protected void sendUpdate(long dt, Function<Player, BaseGameUpdatePack> updatePackFunction) {
         for (var currentPlayer : state.getPlayers())
             currentPlayer.getPlayerSession().send(MessageTypes.UPDATE, updatePackFunction.apply(currentPlayer));
     }
@@ -269,7 +279,7 @@ public abstract class AbstractGameRoom implements GameRoom {
         Collection<PlayerSession> result = new ArrayList<>(sessions.values());
         result.forEach(this::onClose);
         onDestroy();
-        log.trace("Room {} has been closed", key());
+        log.debug("Room {} has been closed", key());
         return result;
     }
 
@@ -289,13 +299,8 @@ public abstract class AbstractGameRoom implements GameRoom {
     }
 
     @Override
-    public GameState state() {
+    public S state() {
         return state;
-    }
-
-    @Override
-    public <S extends GameState> S state(Class<S> clazz) {
-        return clazz.cast(state);
     }
 
     @Override

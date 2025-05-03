@@ -7,6 +7,9 @@ import io.github.tfkfan.orbital.core.state.GameState;
 
 import java.util.UUID;
 
-public interface GameRoomFactory {
-    GameRoom createGameRoom(String verticleId, UUID roomId, GameState gameState, GameManager gameManager, RoomConfig roomConfig);
+public interface GameRoomFactory<R extends GameRoom, S extends GameState> {
+    R createGameRoom(String verticleId, UUID roomId,
+                     S gameState,
+                     GameManager gameManager,
+                     RoomConfig roomConfig);
 }
