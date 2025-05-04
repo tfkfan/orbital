@@ -1,5 +1,6 @@
 package io.github.tfkfan.orbital.core.verticle.impl;
 
+import io.github.tfkfan.orbital.core.factory.GameManagerFactory;
 import io.github.tfkfan.orbital.core.manager.GameManager;
 import io.github.tfkfan.orbital.core.verticle.BaseVerticle;
 import io.vertx.core.Promise;
@@ -9,10 +10,10 @@ import java.util.function.Function;
 
 @Slf4j
 public class RoomVerticle extends BaseVerticle {
-    final Function<String, GameManager> gameManagerFactory;
+    final GameManagerFactory gameManagerFactory;
     GameManager gameManager;
 
-    public RoomVerticle(Function<String, GameManager> gameManagerFactory) {
+    public RoomVerticle(GameManagerFactory gameManagerFactory) {
         this.gameManagerFactory = gameManagerFactory;
     }
 
@@ -21,6 +22,7 @@ public class RoomVerticle extends BaseVerticle {
         super.start(startPromise);
 
         gameManager = gameManagerFactory.apply(verticleId);
+
         log.info("Room verticle with id {} started", verticleId);
 
         startPromise.complete();

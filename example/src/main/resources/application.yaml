@@ -1,7 +1,7 @@
 server:
   port: 8085
+  roomVerticleInstances: 5
 room:
-  instances: 5
   maxPlayers: 1
   loopRate: 50
   initDelay: 1

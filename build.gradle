@@ -41,7 +41,7 @@ subprojects {
                             id = 'tfkfan'
                             name = 'Artem Baltser'
                             email = 'abaltserdev@outlook.com'
-                            organizationUrl = 'https://tfkfan.github.io/page'
+                            organizationUrl = 'https://tfkfan.github.io'
                         }
                     }
 
@@ -55,7 +55,7 @@ subprojects {
                     scm {
                         connection = 'scm:git://github.com/tfkfan/orbital.git'
                         developerConnection = 'scm:ssh://git@github.com:tfkfan/orbital.git'
-                        url = 'https://tfkfan.github.io/page'
+                        url = 'https://tfkfan.github.io'
                     }
                 }
                 groupId project.group
@@ -79,7 +79,7 @@ subprojects {
             authors = ['tfkfan']
             license = 'MIT'
             links {
-                homepage = 'https://tfkfan.github.io/page'
+                homepage = 'https://tfkfan.github.io'
             }
             description = "Orbital"
             inceptionYear = '2025'

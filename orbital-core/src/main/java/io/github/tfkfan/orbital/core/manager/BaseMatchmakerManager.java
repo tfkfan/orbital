@@ -22,7 +22,7 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Slf4j
-public abstract class BaseMatchmakerManager implements MatchmakerManager {
+public abstract class BaseMatchmakerManager extends BaseManager implements MatchmakerManager {
     protected final Vertx vertx;
     protected final EventBus eventBus;
     protected final RoomConfig roomConfig;

@@ -3,6 +3,7 @@ package io.github.tfkfan.orbital.core.verticle.impl;
 import io.github.tfkfan.orbital.core.configuration.props.ServerConfig;
 import io.github.tfkfan.orbital.core.manager.GatewayManager;
 import io.github.tfkfan.orbital.core.verticle.BaseVerticle;
+import io.vertx.core.DeploymentOptions;
 import io.vertx.core.Future;
 import io.vertx.core.Promise;
 import io.vertx.core.http.HttpServer;
@@ -24,7 +25,13 @@ public abstract class GatewayVerticle extends BaseVerticle {
 
     protected HttpServer server;
 
-    protected GatewayVerticle(ServerConfig serverConfig, GatewayManager gatewayManager) {
+    protected GatewayVerticle(ServerConfig serverConfig, GatewayManager gatewayManager){
+        this(serverConfig, gatewayManager, null);
+    }
+
+    protected GatewayVerticle(ServerConfig serverConfig, GatewayManager gatewayManager, DeploymentOptions deploymentOptions) {
+        super(deploymentOptions);
+
         this.serverConfig = serverConfig;
         this.gatewayManager = gatewayManager;
 

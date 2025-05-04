@@ -20,6 +20,7 @@ import lombok.extern.slf4j.Slf4j;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 import java.util.UUID;
 
 @Slf4j
@@ -41,12 +42,12 @@ public class GameManagerImpl<R extends GameRoom, S extends GameState> implements
                            PlayerFactory playerFactory,
                            GameStateFactory<S> gameStateFactory,
                            GameRoomFactory<R, S> gameRoomFactory) {
-        this.roomConfig = roomConfig;
-        this.verticleId = verticleId;
-        this.vertx = vertx;
-        this.playerFactory = playerFactory;
-        this.gameStateFactory = gameStateFactory;
-        this.gameRoomFactory = gameRoomFactory;
+        this.verticleId = Objects.requireNonNull(verticleId);
+        this.roomConfig = Objects.requireNonNull(roomConfig);
+        this.vertx = Objects.requireNonNull(vertx);
+        this.playerFactory = Objects.requireNonNull(playerFactory);
+        this.gameStateFactory = Objects.requireNonNull(gameStateFactory);
+        this.gameRoomFactory = Objects.requireNonNull(gameRoomFactory);
 
         vertx.eventBus().consumer(Constants.ROOM_VERTICAL_CHANNEL, this::onMessage);
 

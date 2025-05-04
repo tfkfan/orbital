@@ -1,6 +1,7 @@
 package io.github.tfkfan.orbital.core.manager;
 
 import io.github.tfkfan.orbital.core.configuration.props.RoomConfig;
+import io.github.tfkfan.orbital.core.factory.GameManagerFactory;
 import io.github.tfkfan.orbital.core.manager.impl.GameManagerImpl;
 import io.github.tfkfan.orbital.core.model.DefaultPlayer;
 import io.github.tfkfan.orbital.core.room.DefaultGameRoom;
@@ -10,7 +11,7 @@ import io.vertx.core.Vertx;
 import java.util.function.Function;
 
 public class DefaultGameManager extends GameManagerImpl<DefaultGameRoom, BaseGameState> {
-    public static Function<String, GameManager> gameManagerFactory(RoomConfig roomConfig) {
+    public static GameManagerFactory factory(RoomConfig roomConfig) {
         return (vId) -> new DefaultGameManager(vId, roomConfig);
     }
 

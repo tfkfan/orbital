@@ -9,6 +9,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class ServerConfig {
+public final class ServerConfig {
     private int port;
+    private Integer roomVerticleInstances;
 }

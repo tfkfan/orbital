@@ -62,6 +62,7 @@ Following image represents internal framework architecture
 Orbital cluster is easy reachable according this schema:
 
 ![orbital-cluster.chart.png](orbital-cluster.chart.png)
+
 ## Usage
 
 See "example" module for complete starter. Please pay attention example already contains frontend resources.
@@ -83,10 +84,16 @@ public static void main(String[] args) {
     final Vertx vertx = Vertx.vertx();
 
     int N = 10;
-    final RoomConfig roomConfig = new RoomConfig(N);
-    runGame(vertx, new WebsocketGatewayVerticle(new ServerConfig(8080), roomConfig), DefaultGameManager.gameManagerFactory(roomConfig),
-            new DeploymentOptions(), new DeploymentOptions(), roomConfig)
-            .onFailure(throwable -> startupErrorHandler(vertx, throwable));
+    new Orbital(vertx)
+                .withConfig(N, new RoomConfig())
+                .withWebsocketGateway(it ->
+                        it.withRouterInitializer(router -> router.route().handler(StaticHandler.create("static")))
+                                .withRouterInitializer(MonitorEndpoint::create))
+                .withGameManagerFactory(config -> DefaultGameManager.factory(config.getRoom()))
+                .withRoomClusterLauncher(pair -> new RoomDeploymentConfig(new DeploymentOptions()
+                        .setThreadingModel(ThreadingModel.VIRTUAL_THREAD)
+                        .setWorkerPoolSize(100)))
+                .run();
 }
 ```
 
@@ -100,9 +107,10 @@ To setup monitor-related instance add required dependency:
 <dependency>
     <groupId>io.github.tfkfan</groupId>
     <artifactId>orbital-monitor</artifactId>
-    <version>1.0.1</version>
+    <version>1.1.0</version>
 </dependency>
 ```
+
 Your vertx instance should be monitorable this way:
 
 ```
@@ -127,6 +135,7 @@ final GatewayVerticle gatewayVerticle = new WebsocketGatewayVerticle(serverConfi
 ```
 
 ### Web app
+
 The monitor app allows you to check every metrics:
 
 ![orbital.monitor-1.png](orbital.monitor-1.png)
@@ -136,7 +145,7 @@ The monitor app allows you to check every metrics:
 
 ### Endpoints
 
-Server port is 8085 by default
+Server port is 8080 by default
 
 - Monitor web app is available at http://localhost:8085/monitor
 - Prometheus metrics are available at http://localhost:8085/prometheus
