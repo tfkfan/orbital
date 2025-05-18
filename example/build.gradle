@@ -2,6 +2,8 @@ dependencies {
     implementation project(":orbital-monitor")
     compileOnly("org.projectlombok:lombok:${lombokVersion}")
     annotationProcessor("org.projectlombok:lombok:${lombokVersion}")
+
+    implementation("io.vertx:vertx-infinispan:${vertxVersion}")
 }
 
 jreleaserConfig.enabled = false
