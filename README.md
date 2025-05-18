@@ -31,6 +31,7 @@ Features:
 * Room verticle basic functionality
 * EventBus-based room listener system
 * 2D geometry
+* Lucene and spatial geo indices (JTS based)
 * Basic rooms
 * Package classes
 * Micrometer + prometheus metrics and monitor web page https://github.com/tfkfan/orbital-monitor
@@ -40,7 +41,6 @@ Features:
 Backlog:
 
 * GraalVM native image optimizations
-* Grid/Mesh systems and 2D collision models
 * TCP/UDP server mode
 * Advanced room management, player management, admin page https://github.com/tfkfan/orbital-monitor
 * Auth-protected REST API and social accounts oidc providers (google,vk,facebook,X etc...)
@@ -107,7 +107,7 @@ To setup monitor-related instance add required dependency:
 <dependency>
     <groupId>io.github.tfkfan</groupId>
     <artifactId>orbital-monitor</artifactId>
-    <version>1.1.0</version>
+    <version>1.2.0</version>
 </dependency>
 ```
 
@@ -145,7 +145,7 @@ The monitor app allows you to check every metrics:
 
 ### Endpoints
 
-Server port is 8080 by default
+Server port is 8085 by default
 
 - Monitor web app is available at http://localhost:8085/monitor
 - Prometheus metrics are available at http://localhost:8085/prometheus

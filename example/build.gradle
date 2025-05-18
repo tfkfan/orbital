@@ -1,5 +1,6 @@
 dependencies {
     implementation project(":orbital-monitor")
+    implementation project(":orbital-resources")
     compileOnly("org.projectlombok:lombok:${lombokVersion}")
     annotationProcessor("org.projectlombok:lombok:${lombokVersion}")
 }

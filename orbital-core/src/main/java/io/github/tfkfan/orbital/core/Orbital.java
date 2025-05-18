@@ -4,6 +4,7 @@ import io.github.tfkfan.orbital.core.configuration.props.OrbitalConfig;
 import io.github.tfkfan.orbital.core.configuration.props.RoomConfig;
 import io.github.tfkfan.orbital.core.configuration.props.ServerConfig;
 import io.github.tfkfan.orbital.core.factory.GameManagerFactory;
+import io.github.tfkfan.orbital.core.shared.Pair;
 import io.github.tfkfan.orbital.core.verticle.GameVerticle;
 import io.github.tfkfan.orbital.core.verticle.impl.GatewayVerticle;
 import io.github.tfkfan.orbital.core.verticle.impl.RoomVerticle;
@@ -12,9 +13,11 @@ import io.vertx.core.CompositeFuture;
 import io.vertx.core.DeploymentOptions;
 import io.vertx.core.Future;
 import io.vertx.core.Vertx;
+import io.vertx.core.json.JsonObject;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.Objects;
+import java.util.function.BiFunction;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
@@ -30,9 +33,9 @@ public final class Orbital {
 
     private final Vertx vertx;
 
-    private Supplier<Future<OrbitalConfig>> configSupplier;
+    private Supplier<Future<Pair<JsonObject, OrbitalConfig>>> configSupplier;
     private Function<OrbitalConfig, Future<GatewayVerticle>> gateway;
-    private Function<OrbitalConfig, Future<GameManagerFactory>> gameManagerFactory;
+    private Function<Pair<JsonObject, OrbitalConfig>, Future<GameManagerFactory>> gameManagerFactory;
     private Function<OrbitalConfig, Future<RoomDeploymentConfig>> roomClusterConfig;
 
     public Orbital(Vertx vertx) {
@@ -44,12 +47,12 @@ public final class Orbital {
     }
 
     public Orbital withConfig(OrbitalConfig orbitalConfig) {
-        configSupplier = () -> Future.succeededFuture(orbitalConfig);
+        configSupplier = () -> loadConfig(vertx).flatMap(it -> Future.succeededFuture(new Pair<>(it, orbitalConfig)));
         return this;
     }
 
     public Orbital withConfig(String fullPath) {
-        configSupplier = () -> loadConfig(vertx, fullPath).map(cnf -> cnf.mapTo(OrbitalConfig.class));
+        configSupplier = () -> loadConfig(vertx, fullPath).map(cnf -> new Pair<>(cnf, cnf.mapTo(OrbitalConfig.class)));
         return this;
     }
 
@@ -70,8 +73,8 @@ public final class Orbital {
         });
     }
 
-    public Orbital withGameManagerFactory(Function<OrbitalConfig, GameManagerFactory> function) {
-        gameManagerFactory = (configFuture) -> Future.succeededFuture(function.apply(configFuture));
+    public Orbital withGameManagerFactory(Function<Pair<JsonObject, OrbitalConfig>, GameManagerFactory> function) {
+        gameManagerFactory = (config) -> Future.succeededFuture(function.apply(config));
         return this;
     }
 
@@ -83,15 +86,18 @@ public final class Orbital {
     public void run() {
         Objects.requireNonNull(configSupplier, "Config supplier is required")
                 .get()
-                .flatMap(config -> Objects.requireNonNull(gateway, "Gateway is required").apply(config)
+                .flatMap(config -> Objects.requireNonNull(gateway, "Gateway is required").apply(config.second())
                         .flatMap(gatewayVerticle -> GameVerticle.run(vertx, gatewayVerticle, gatewayVerticle.options()))
-                        .flatMap(deployment -> Objects.requireNonNull(gameManagerFactory, "Game manager factory is required").apply(config))
-                        .flatMap(gameManagerFactory -> Objects.requireNonNull(roomClusterConfig, "Room cluster config is required").apply(config)
-                                .flatMap(roomDeploymentConfig -> runRooms(vertx,
-                                        roomDeploymentConfig.getDeploymentOptions(),
-                                        config.getServer().getRoomVerticleInstances(),
-                                        gameManagerFactory
-                                )))
+                        .flatMap(deployment ->
+                                Objects.requireNonNull(gameManagerFactory, "Game manager factory is required").apply(config)
+                                        .flatMap(
+                                                gameManagerFactory -> Objects.requireNonNull(roomClusterConfig, "Room cluster config is required").apply(config.second())
+                                                        .flatMap(roomDeploymentConfig -> runRooms(vertx,
+                                                                roomDeploymentConfig.getDeploymentOptions(),
+                                                                config.second().getServer().getRoomVerticleInstances(),
+                                                                gameManagerFactory
+                                                        ))
+                                        ))
                         .flatMap(gameManagerFactory -> Future.succeededFuture(config))
                 )
                 .onFailure(throwable -> startupErrorHandler(vertx, throwable));

@@ -5,6 +5,7 @@ import io.github.tfkfan.orbital.core.model.players.Player;
 import java.util.Collection;
 
 public interface GameState {
+
     Player getPlayerById(long id);
 
     Collection<Player> getPlayers();

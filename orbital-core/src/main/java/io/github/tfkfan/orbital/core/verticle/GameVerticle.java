@@ -27,6 +27,13 @@ public interface GameVerticle extends Verticle {
         return ConfigRetriever.create(vertx, options).getConfig();
     }
 
+    static Future<JsonObject> loadConfig(Vertx vertx) {
+        ConfigRetrieverOptions options = new ConfigRetrieverOptions()
+                .addStore(new ConfigStoreOptions()
+                        .setType("env"));
+        return ConfigRetriever.create(vertx, options).getConfig();
+    }
+
     static String nextVerticleId() {
         return UUID.randomUUID().toString();
     }
