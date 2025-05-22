@@ -1,9 +1,12 @@
 package io.github.tfkfan.orbital.geo.index;
 
 import io.github.tfkfan.orbital.core.math.Vector2D;
+import org.apache.lucene.spatial.SpatialStrategy;
+import org.apache.lucene.spatial.prefix.tree.SpatialPrefixTree;
 import org.apache.lucene.store.Directory;
 import org.locationtech.jts.geom.Polygon;
 import org.locationtech.spatial4j.context.SpatialContext;
+import org.locationtech.spatial4j.context.SpatialContextFactory;
 import org.locationtech.spatial4j.shape.ShapeFactory;
 import org.locationtech.spatial4j.shape.jts.JtsGeometry;
 
@@ -12,17 +15,32 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-public class PolygonIndex extends GeometryIndex<Polygon> {
-    public PolygonIndex(SpatialContext ctx, int maxLevels) {
+/**
+ * @author Baltser Artem tfkfan
+ */
+public class Polygon2DIndex extends Geometry2DIndex<Polygon> {
+    public Polygon2DIndex(SpatialContextFactory factory, int maxLevels) {
+        super(factory, maxLevels);
+    }
+
+    public Polygon2DIndex(SpatialContext ctx, int maxLevels) {
         super(ctx, maxLevels);
     }
 
-    public PolygonIndex(SpatialContext ctx, Directory directory, int maxLevels) {
+    public Polygon2DIndex(SpatialContext ctx, Directory directory, int maxLevels) {
         super(ctx, directory, maxLevels);
     }
 
-    public PolygonIndex(SpatialContext ctx, Directory directory, int maxLevels, String geoIndexedField) {
+    public Polygon2DIndex(Directory directory, SpatialPrefixTree grid, String geoIndexedField) {
+        super(directory, grid, geoIndexedField);
+    }
+
+    public Polygon2DIndex(SpatialContext ctx, Directory directory, int maxLevels, String geoIndexedField) {
         super(ctx, directory, maxLevels, geoIndexedField);
+    }
+
+    public Polygon2DIndex(SpatialStrategy strategy, Directory directory) {
+        super(strategy, directory);
     }
 
     public void index(Vector2D[][] shapes) {

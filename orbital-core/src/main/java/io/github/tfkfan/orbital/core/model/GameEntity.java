@@ -6,9 +6,9 @@ import io.github.tfkfan.orbital.core.network.pack.IInitPackProvider;
 import io.github.tfkfan.orbital.core.network.pack.IUpdatePackProvider;
 import io.github.tfkfan.orbital.core.room.GameRoom;
 
-public interface GameEntity<I> extends Updatable, Initializable, IUpdatePackProvider, IInitPackProvider {
-    I getId();
+import java.io.Serializable;
 
+public interface GameEntity<I extends Serializable> extends Entity<I>, Updatable, Initializable, IUpdatePackProvider, IInitPackProvider {
     boolean isMoving();
 
     boolean isAlive();

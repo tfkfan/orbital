@@ -10,12 +10,10 @@ import lombok.Setter;
 @Getter
 @Setter
 public abstract class BasePlayer<V extends Vector<V>> extends BaseGameEntity<Long,V> implements Player {
-    protected final Long id;
     protected final PlayerSession playerSession;
 
     protected BasePlayer(Long id, GameRoom gameRoom, PlayerSession playerSession) {
-        super(gameRoom);
-        this.id = id;
+        super(id, gameRoom);
         this.playerSession = playerSession;
         playerSession.setPlayer(this);
     }

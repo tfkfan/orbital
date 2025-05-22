@@ -44,23 +44,23 @@ public class DefaultPlayer extends BasePlayer<Vector2D> {
                 -ABS_PLAYER_SPEED : (movingState.get(Direction.DOWN) ?
                 ABS_PLAYER_SPEED : 0.0));
 
-        velocity.mult(2.0,2.0);
+        velocity.mult(2.0, 2.0);
         super.update(dt);
     }
 
     @Override
     public UpdatePack getUpdatePack() {
-        return new Player2DUpdatePack(id, position);
+        return new Player2DUpdatePack(getId(), position);
     }
 
     @Override
     public InitPack getInitPack() {
-        return new Player2DInitPack(id, position);
+        return new Player2DInitPack(getId(), position);
     }
 
     @Override
     public PrivateUpdatePack getPrivateUpdatePack() {
-        return new BasePrivatePlayerUpdatePack(id);
+        return new BasePrivatePlayerUpdatePack(getId());
     }
 
     public enum Direction {

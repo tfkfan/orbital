@@ -2,10 +2,12 @@ package io.github.tfkfan.orbital.core.session;
 
 import io.github.tfkfan.orbital.core.model.players.Player;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 @Getter
 @Setter
+@NoArgsConstructor
 public final class PlayerSession extends Session {
     private Player player;
 

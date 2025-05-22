@@ -2,7 +2,9 @@ package io.github.tfkfan.orbital.core.model;
 
 import io.github.tfkfan.orbital.core.math.Vector;
 
-public interface DynamicEntity<I, V extends Vector<V>> extends GameEntity<I>{
+import java.io.Serializable;
+
+public interface DynamicEntity<I extends Serializable, V extends Vector<V>> extends GameEntity<I>{
 
     void setPosition(V position);
 

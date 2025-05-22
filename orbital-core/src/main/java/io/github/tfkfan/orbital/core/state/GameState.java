@@ -6,13 +6,13 @@ import java.util.Collection;
 
 public interface GameState {
 
-    Player getPlayerById(long id);
+    <T extends Player> T getPlayerById(long id);
 
-    Collection<Player> getPlayers();
+    <T extends Player> Collection<T> getPlayers();
 
-    void addPlayer(Player player);
+    <T extends Player> void addPlayer(T player);
 
-    void removePlayer(Player player);
+    <T extends Player> void removePlayer(T player);
 
     long nextPlayerId();
 

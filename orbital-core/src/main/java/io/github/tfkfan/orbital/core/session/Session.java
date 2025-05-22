@@ -22,16 +22,16 @@ public abstract class Session implements MessageSender {
     private final boolean test;
     private final boolean admin;
 
+    public Session() {
+        this(UUID.randomUUID().toString(), false, false);
+    }
+
     public Session(boolean admin) {
-        this.admin = admin;
-        this.id = UUID.randomUUID().toString();
-        this.test = false;
+        this(UUID.randomUUID().toString(), admin, false);
     }
 
     public Session(String sessionId, boolean admin) {
-        this.id = sessionId;
-        this.admin = admin;
-        this.test = false;
+        this(sessionId, admin, false);
     }
 
     public Session(String sessionId, boolean admin, boolean test) {

@@ -6,10 +6,14 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
 
+import java.io.Serializable;
+
 @Data
 @RequiredArgsConstructor
 @AllArgsConstructor
-public abstract class BaseGameEntity<ID, V extends Vector<V>> implements GameEntity<ID>, DynamicEntity<ID, V> {
+public abstract class BaseGameEntity<ID extends Serializable, V extends Vector<V>> implements GameEntity<ID>, DynamicEntity<ID, V> {
+    private final ID id;
+
     protected final GameRoom gameRoom;
     protected boolean isMoving = false;
     protected boolean isAlive = true;
@@ -17,6 +21,11 @@ public abstract class BaseGameEntity<ID, V extends Vector<V>> implements GameEnt
     protected V position;
     protected V velocity;
     protected V acceleration;
+
+    @Override
+    public ID getId() {
+        return id;
+    }
 
     @Override
     public <R extends GameRoom> R getGameRoom(Class<R> roomClass) {
