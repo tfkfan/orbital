@@ -3,12 +3,16 @@ package io.github.tfkfan.orbital.geo.index;
 import io.github.tfkfan.orbital.core.math.Vector;
 import io.github.tfkfan.orbital.core.model.BaseGameEntity;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.index.Term;
 import org.apache.lucene.spatial.SpatialStrategy;
 import org.apache.lucene.spatial.prefix.tree.SpatialPrefixTree;
 import org.apache.lucene.store.Directory;
 import org.locationtech.spatial4j.context.SpatialContext;
 import org.locationtech.spatial4j.context.SpatialContextFactory;
+
+import java.io.IOException;
+import java.io.Serializable;
 
 /**
  * @author Baltser Artem tfkfan
@@ -41,6 +45,11 @@ public abstract class GameEntityIndex<V extends Vector<V>, E extends BaseGameEnt
 
     @Override
     public void delete(E o) {
-        wrapCall(false, w -> w.deleteDocuments(new Term(ID, String.valueOf(o.getId().hashCode()))));
+        wrapCall(false, w -> deleteInternal(w, o));
+    }
+
+    @Override
+    void deleteInternal(IndexWriter luceneIndexWriter, E e) throws IOException {
+        luceneIndexWriter.deleteDocuments(new Term(ID, String.valueOf(e.getId().hashCode())));
     }
 }

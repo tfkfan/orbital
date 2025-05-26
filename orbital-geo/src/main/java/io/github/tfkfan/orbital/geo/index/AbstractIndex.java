@@ -8,9 +8,9 @@ import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field;
 import org.apache.lucene.document.StoredField;
 import org.apache.lucene.index.DirectoryReader;
+import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.index.IndexWriterConfig;
-import org.apache.lucene.index.Term;
 import org.apache.lucene.search.IndexSearcher;
 import org.apache.lucene.spatial.SpatialStrategy;
 import org.apache.lucene.spatial.prefix.RecursivePrefixTreeStrategy;
@@ -28,6 +28,7 @@ import org.locationtech.spatial4j.shape.Shape;
 import org.locationtech.spatial4j.shape.ShapeFactory;
 
 import java.io.IOException;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
@@ -77,6 +78,8 @@ public abstract class AbstractIndex<O, T, V extends Vector<V>> implements Index<
     }
 
     protected void put(IndexWriter indexWriter, long id, T entity, Shape shape) throws IOException {
+        if (indexWriter == null) return;
+
         entitiesMap.put(id, entity);
 
         final Document doc = new Document();
@@ -86,6 +89,37 @@ public abstract class AbstractIndex<O, T, V extends Vector<V>> implements Index<
 
         indexWriter.addDocument(doc);
         indexWriter.forceMerge(1);
+    }
+
+    abstract void indexInternal(org.apache.lucene.index.IndexWriter luceneIndexWriter, O entity) throws IOException;
+
+    void indexInternal(org.apache.lucene.index.IndexWriter luceneIndexWriter, Collection<O> entities) throws IOException {
+        for (O e : entities) indexInternal(luceneIndexWriter, e);
+    }
+
+    void clearInternal(org.apache.lucene.index.IndexWriter luceneIndexWriter) throws IOException {
+        if (luceneIndexWriter == null) return;
+        luceneIndexWriter.deleteAll();
+    }
+
+    abstract void deleteInternal(org.apache.lucene.index.IndexWriter luceneIndexWriter, O o) throws IOException;
+
+    IndexWriter openWriter() throws IOException {
+        return new IndexWriter(directory, new IndexWriterConfig());
+    }
+
+    IndexReader openReader() throws IOException {
+        return DirectoryReader.open(directory);
+    }
+
+    @Override
+    public io.github.tfkfan.orbital.geo.index.IndexWriter<O> writer() {
+        return new IndexWriterImpl<>(this);
+    }
+
+    @Override
+    public io.github.tfkfan.orbital.geo.index.IndexReader<T, V> reader() {
+        return new IndexReaderImpl<>(this);
     }
 
     @Override
@@ -101,16 +135,44 @@ public abstract class AbstractIndex<O, T, V extends Vector<V>> implements Index<
     @Override
     public Set<T> search(SpatialArgs args, int n) {
         try (var indexReader = DirectoryReader.open(directory)) {
-            final IndexSearcher indexSearcher = new IndexSearcher(indexReader);
+            return searchInternal(new IndexSearcher(indexReader), args, n);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
 
-            return Stream.of(indexSearcher.search(strategy.makeQuery(args), n).scoreDocs).map(it -> {
-                try {
-                    return entitiesMap.get(indexSearcher.storedFields().document(it.doc)
-                            .getField(ID).numericValue().longValue());
-                } catch (IOException e) {
-                    throw new RuntimeException(e);
-                }
-            }).collect(Collectors.toSet());
+    Set<T> searchInternal(IndexSearcher indexSearcher, SpatialArgs args) throws IOException {
+        return searchInternal(indexSearcher, args, N);
+    }
+
+    Set<T> searchInternal(IndexSearcher indexSearcher, SpatialArgs args, int n) throws IOException {
+        return Stream.of(indexSearcher.search(strategy.makeQuery(args), n).scoreDocs).map(it -> {
+            try {
+                return entitiesMap.get(indexSearcher.storedFields().document(it.doc)
+                        .getField(ID).numericValue().longValue());
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        }).collect(Collectors.toSet());
+    }
+
+    abstract Set<T> neighborsInternal(IndexSearcher indexSearcher, V point, double radius) throws IOException;
+
+    abstract Set<T> neighborsInternal(IndexSearcher indexSearcher, V stripePointA, V stripePointB, double radius) throws IOException;
+
+    @Override
+    public Set<T> neighbors(V point, double radius) {
+        try (var indexReader = DirectoryReader.open(directory)) {
+            return neighborsInternal(new IndexSearcher(indexReader), point, radius);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @Override
+    public Set<T> neighbors(V stripePointA, V stripePointB, double radius) {
+        try (var indexReader = DirectoryReader.open(directory)) {
+            return neighborsInternal(new IndexSearcher(indexReader), stripePointA, stripePointB, radius);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }

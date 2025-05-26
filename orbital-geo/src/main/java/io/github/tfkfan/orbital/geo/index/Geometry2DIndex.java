@@ -4,6 +4,7 @@ import io.github.tfkfan.orbital.core.math.Vector2D;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.index.IndexWriterConfig;
+import org.apache.lucene.search.IndexSearcher;
 import org.apache.lucene.spatial.SpatialStrategy;
 import org.apache.lucene.spatial.prefix.tree.SpatialPrefixTree;
 import org.apache.lucene.spatial.query.SpatialArgs;
@@ -45,6 +46,16 @@ public class Geometry2DIndex<G extends Geometry> extends GeometryIndex<G, Vector
 
     public Geometry2DIndex(SpatialStrategy strategy, Directory directory) {
         super(strategy, directory);
+    }
+
+    @Override
+    Set<G> neighborsInternal(IndexSearcher indexSearcher, Vector2D point, double radius) throws IOException {
+        return Set.of();
+    }
+
+    @Override
+    Set<G> neighborsInternal(IndexSearcher indexSearcher, Vector2D stripePointA, Vector2D stripePointB, double radius) throws IOException {
+        return Set.of();
     }
 
     @Override

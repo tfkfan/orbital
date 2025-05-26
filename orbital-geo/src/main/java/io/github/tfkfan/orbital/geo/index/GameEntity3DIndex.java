@@ -3,6 +3,8 @@ package io.github.tfkfan.orbital.geo.index;
 import io.github.tfkfan.orbital.core.math.Vector3D;
 import io.github.tfkfan.orbital.core.model.BaseGameEntity;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.lucene.index.IndexWriter;
+import org.apache.lucene.search.IndexSearcher;
 import org.apache.lucene.spatial.SpatialStrategy;
 import org.apache.lucene.spatial.prefix.tree.SpatialPrefixTree;
 import org.apache.lucene.spatial.query.SpatialArgs;
@@ -11,6 +13,7 @@ import org.apache.lucene.store.Directory;
 import org.locationtech.spatial4j.context.SpatialContext;
 import org.locationtech.spatial4j.context.SpatialContextFactory;
 
+import java.io.IOException;
 import java.util.Collection;
 import java.util.Set;
 
@@ -44,9 +47,14 @@ public class GameEntity3DIndex<E extends BaseGameEntity<?, Vector3D>> extends Ga
     }
 
     @Override
+    void indexInternal(IndexWriter luceneIndexWriter, E entity) throws IOException {
+        put(luceneIndexWriter, entity.getId().hashCode(), entity,
+                factory.pointXY(entity.getPosition().getX(), entity.getPosition().getY()));
+    }
+
+    @Override
     public void index(E entity) {
-        wrapCall(false, (indexWriter) -> put(indexWriter, entity.getId().hashCode(), entity,
-                factory.pointXY(entity.getPosition().getX(), entity.getPosition().getY())));
+        wrapCall(false, (indexWriter) -> indexInternal(indexWriter, entity));
     }
 
     @Override
@@ -61,12 +69,12 @@ public class GameEntity3DIndex<E extends BaseGameEntity<?, Vector3D>> extends Ga
     }
 
     @Override
-    public Set<E> neighbors(Vector3D point, double radius) {
-        return search(new SpatialArgs(SpatialOperation.Intersects, circle3D(point, radius)), Integer.MAX_VALUE);
+    Set<E> neighborsInternal(IndexSearcher indexSearcher, Vector3D point, double radius) throws IOException {
+        return searchInternal(indexSearcher, new SpatialArgs(SpatialOperation.Intersects, circle3D(point, radius)), Integer.MAX_VALUE);
     }
 
     @Override
-    public Set<E> neighbors(Vector3D stripePointA, Vector3D stripePointB, double radius) {
-        return search(new SpatialArgs(SpatialOperation.Intersects, stripe3D(stripePointA, stripePointB, radius)), Integer.MAX_VALUE);
+    Set<E> neighborsInternal(IndexSearcher indexSearcher, Vector3D stripePointA, Vector3D stripePointB, double radius) throws IOException {
+        return searchInternal(indexSearcher, new SpatialArgs(SpatialOperation.Intersects, stripe3D(stripePointA, stripePointB, radius)), Integer.MAX_VALUE);
     }
 }

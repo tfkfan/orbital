@@ -24,46 +24,12 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-public class GameEntityIndexTest {
-    static final class TestEntity extends BasePlayer<Vector2D> {
-        public TestEntity(Long id, Vector2D position) {
-            super(id, null, new PlayerSession());
-            setPosition(position);
-        }
-
-        @Override
-        public PrivateUpdatePack getPrivateUpdatePack() {
-            return null;
-        }
-
-        @Override
-        public InitPack getInitPack() {
-            return null;
-        }
-
-        @Override
-        public UpdatePack getUpdatePack() {
-            return null;
-        }
-    }
-
+public class GameEntityIndexTest extends BaseGameEntityIndexTest {
     private GameEntity2DIndex<TestEntity> index;
-    private JtsSpatialContext ctx;
-
-    private Long seq = 1L;
 
     @BeforeEach
     public void setUp() {
-        JtsSpatialContextFactory factory = new JtsSpatialContextFactory();
-        factory.geo = false;
-        factory.worldBounds = new RectangleImpl(-1000, 1000, -1000, 1000, null);
-
-        ctx = new JtsSpatialContext(factory);
-        index = new GameEntity2DIndex<>(ctx, 11);
-    }
-
-    private TestEntity create(Vector2D position) {
-        return new TestEntity(seq++, position);
+        index = new GameEntity2DIndex<>(setUpJts(), 11);
     }
 
     @Test
@@ -81,7 +47,7 @@ public class GameEntityIndexTest {
     }
 
     @Test
-    public void test3() {
+    public void test2() {
         index.index(List.of(
                 create(new Vector2D()),
                 create(new Vector2D(5.0, 0.0)),
