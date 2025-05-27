@@ -17,7 +17,7 @@ public class IndexReaderImpl<O, T, V extends Vector<V>> implements IndexReader<T
 
     private void openLuceneIndexReaderIfClosed() throws IOException {
         if (luceneIndexReader == null) {
-            luceneIndexReader = open();
+            luceneIndexReader = index.openReader();
             searcher = new IndexSearcher(luceneIndexReader);
         }
     }

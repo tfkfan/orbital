@@ -28,7 +28,6 @@ public class GameEntityIndexReaderWriterTest extends BaseGameEntityIndexTest {
         indexReader = index.reader();
 
         indexWriter.open();
-        indexReader.open();
     }
 
     @Test
@@ -38,7 +37,9 @@ public class GameEntityIndexReaderWriterTest extends BaseGameEntityIndexTest {
                 create(new Vector2D(5.0, 0.0)),
                 create(new Vector2D(10.0, 0.0))
         ));
+        indexWriter.flush();
 
+        indexReader.open();
         assertEquals(1, indexReader.neighbors(new Vector2D(10.0, 0.0), 2.0).size());
         assertEquals(1, indexReader.neighbors(new Vector2D(), 0.0).size());
         assertEquals(2, indexReader.neighbors(new Vector2D(), 5.0).size());

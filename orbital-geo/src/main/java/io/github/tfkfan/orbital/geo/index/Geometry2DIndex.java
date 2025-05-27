@@ -2,8 +2,6 @@ package io.github.tfkfan.orbital.geo.index;
 
 import io.github.tfkfan.orbital.core.math.Vector2D;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.lucene.index.IndexWriter;
-import org.apache.lucene.index.IndexWriterConfig;
 import org.apache.lucene.search.IndexSearcher;
 import org.apache.lucene.spatial.SpatialStrategy;
 import org.apache.lucene.spatial.prefix.tree.SpatialPrefixTree;
@@ -13,10 +11,8 @@ import org.apache.lucene.store.Directory;
 import org.locationtech.jts.geom.Geometry;
 import org.locationtech.spatial4j.context.SpatialContext;
 import org.locationtech.spatial4j.context.SpatialContextFactory;
-import org.locationtech.spatial4j.shape.jts.JtsGeometry;
 
 import java.io.IOException;
-import java.util.Collection;
 import java.util.Set;
 
 /**
@@ -50,21 +46,11 @@ public class Geometry2DIndex<G extends Geometry> extends GeometryIndex<G, Vector
 
     @Override
     Set<G> neighborsInternal(IndexSearcher indexSearcher, Vector2D point, double radius) throws IOException {
-        return Set.of();
+        return searchInternal(indexSearcher, new SpatialArgs(SpatialOperation.Intersects, circle2D(point, radius)), Integer.MAX_VALUE);
     }
 
     @Override
     Set<G> neighborsInternal(IndexSearcher indexSearcher, Vector2D stripePointA, Vector2D stripePointB, double radius) throws IOException {
-        return Set.of();
-    }
-
-    @Override
-    public Set<G> neighbors(Vector2D point, double radius) {
-        return search(new SpatialArgs(SpatialOperation.Intersects, circle2D(point, radius)), Integer.MAX_VALUE);
-    }
-
-    @Override
-    public Set<G> neighbors(Vector2D stripePointA, Vector2D stripePointB, double radius) {
-        return search(new SpatialArgs(SpatialOperation.Intersects, stripe2D(stripePointA, stripePointB, radius)), Integer.MAX_VALUE);
+        return searchInternal(indexSearcher, new SpatialArgs(SpatialOperation.Intersects, stripe2D(stripePointA, stripePointB, radius)), Integer.MAX_VALUE);
     }
 }

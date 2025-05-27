@@ -59,6 +59,16 @@ public class IndexWriterImpl<O, T, V extends Vector<V>> implements IndexWriter<O
         }
     }
 
+    @Override
+    public void flush() {
+        try {
+            openLuceneIndexWriterIfClosed();
+            luceneIndexWriter.flush();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     private void openLuceneIndexWriterIfClosed() throws IOException {
         if (luceneIndexWriter == null)
             luceneIndexWriter = open();
