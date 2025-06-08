@@ -34,8 +34,9 @@ Features:
 * Lucene and spatial geo indices (JTS based)
 * Basic rooms
 * Package classes
-* Micrometer + prometheus metrics and monitor web page https://github.com/tfkfan/orbital-monitor
+* Micrometer + prometheus metrics and cluster monitor web page https://github.com/tfkfan/orbital-monitor
 * Annotation-based incoming message handlers
+* Infinispan-clustered game server mode
 * English/Russian web app localization
 
 Backlog:
@@ -47,7 +48,6 @@ Backlog:
 * Advanced basic game objects
 * Payments api integrations
 * Meta game logic tools
-* Infinispan-clustered game server mode
 
 ## Core and features
 
@@ -84,16 +84,16 @@ public static void main(String[] args) {
     final Vertx vertx = Vertx.vertx();
 
     int N = 10;
-    new Orbital(vertx)
-                .withConfig(N, new RoomConfig())
-                .withWebsocketGateway(it ->
-                        it.withRouterInitializer(router -> router.route().handler(StaticHandler.create("static")))
-                                .withRouterInitializer(MonitorEndpoint::create))
-                .withGameManagerFactory(config -> DefaultGameManager.factory(config.getRoom()))
-                .withRoomClusterLauncher(pair -> new RoomDeploymentConfig(new DeploymentOptions()
-                        .setThreadingModel(ThreadingModel.VIRTUAL_THREAD)
-                        .setWorkerPoolSize(100)))
-                .run();
+    Orbital.newCluster(new OrbitalBuilderImpl(vertx)
+                  .withConfig(N, new RoomConfig())
+                        .withWebsocketGateway(it ->
+                                it.withRouterInitializer(router -> router.route().handler(StaticHandler.create("static")))
+                                        .withRouterInitializer(new MonitorEndpoint(CorsHandler.create("*"))::create))
+                        .withGameManagerFactory(config -> DefaultGameManager.factory(new GeometryResources().load(), config.second().getRoom()))
+                        .withRoomClusterLauncher(config -> new RoomDeploymentConfig(new DeploymentOptions()
+                                .setThreadingModel(ThreadingModel.VIRTUAL_THREAD)
+                                .setWorkerPoolSize(100))))
+                .onSuccess(orbital -> log.info("Orbital cluster is ready"));
 }
 ```
 
@@ -107,31 +107,31 @@ To setup monitor-related instance add required dependency:
 <dependency>
     <groupId>io.github.tfkfan</groupId>
     <artifactId>orbital-monitor</artifactId>
-    <version>1.2.0</version>
+    <version>1.2.2</version>
 </dependency>
 ```
 
 Your vertx instance should be monitorable this way:
 
 ```
-final Vertx vertx = new MonitorableVertx().build();
+final Future<Vertx> vertx = new MonitorableVertx().build();
 ```
 
 You can specify certain metrics binders and registries on your own:
 
 ```
-final Vertx vertx = new MonitorableVertx(registry).build();
+final Future<Vertx> vertx = new MonitorableVertx(registry).build();
 ```
 
 ```
-final Vertx vertx = new MonitorableVertx(registry, new JvmHeapPressureMetrics()).build();
+final Future<Vertx> vertx = new MonitorableVertx(registry, new JvmHeapPressureMetrics()).build();
 ```
 
 Final step is static monitor resources linking with gateway verticle:
 
 ```
 final GatewayVerticle gatewayVerticle = new WebsocketGatewayVerticle(serverConfig, roomConfig)
-                            .withRouterInitializer(MonitorEndpoint::create);
+                            .withRouterInitializer(new MonitorEndpoint()::create);
 ```
 
 ### Web app
@@ -141,7 +141,6 @@ The monitor app allows you to check every metrics:
 ![orbital.monitor-1.png](orbital.monitor-1.png)
 ![orbital.monitor-2.png](orbital.monitor-2.png)
 ![orbital.monitor-3.png](orbital.monitor-3.png)
-![orbital.monitor-4.png](orbital.monitor-4.png)
 
 ### Endpoints
 

@@ -19,19 +19,18 @@ public interface GameVerticle extends Verticle {
     static Future<JsonObject> loadConfig(Vertx vertx, String path) {
         ConfigRetrieverOptions options = new ConfigRetrieverOptions()
                 .addStore(new ConfigStoreOptions()
-                        .setType("file")
-                        .setFormat("yaml")
-                        .setConfig(new JsonObject().put("path", path)))
-                .addStore(new ConfigStoreOptions()
                         .setType("env"));
+        if (path != null)
+            options = options.addStore(new ConfigStoreOptions()
+                    .setType("file")
+                    .setFormat("yaml")
+                    .setConfig(new JsonObject().put("path", path)));
+
         return ConfigRetriever.create(vertx, options).getConfig();
     }
 
     static Future<JsonObject> loadConfig(Vertx vertx) {
-        ConfigRetrieverOptions options = new ConfigRetrieverOptions()
-                .addStore(new ConfigStoreOptions()
-                        .setType("env"));
-        return ConfigRetriever.create(vertx, options).getConfig();
+        return loadConfig(vertx, null);
     }
 
     static String nextVerticleId() {
@@ -39,10 +38,12 @@ public interface GameVerticle extends Verticle {
     }
 
     static void startupErrorHandler(Vertx vertx, Throwable e) {
-        vertx.close();
+        if (vertx != null)
+            vertx.close();
         throw new RuntimeException(e);
     }
 
     String verticleId();
+
     DeploymentOptions options();
 }
