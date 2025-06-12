@@ -27,15 +27,17 @@ import io.vertx.core.Vertx;
 import io.vertx.core.eventbus.MessageConsumer;
 import io.vertx.core.json.JsonObject;
 import io.vertx.micrometer.backends.BackendRegistries;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.time.OffsetDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.function.Function;
 
-@Slf4j
 public abstract class AbstractGameRoom<S extends GameState> implements GameRoom {
+    private final Logger log = LoggerFactory.getLogger(AbstractGameRoom.class);
+
     protected final S state;
     protected final UUID gameRoomId;
     protected final String verticleId;
