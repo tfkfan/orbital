@@ -19,7 +19,7 @@ public final class PlayerSession extends Session {
         super(sessionId, admin);
     }
 
-    public PlayerSession(String sessionId, boolean admin, boolean test) {
-        super(sessionId, admin, test);
+    public PlayerSession(String sessionId, boolean admin, boolean npc) {
+        super(sessionId, admin, npc);
     }
 }

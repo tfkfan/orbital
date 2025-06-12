@@ -9,12 +9,17 @@ import lombok.Setter;
 
 @Getter
 @Setter
-public abstract class BasePlayer<V extends Vector<V>> extends BaseGameEntity<Long,V> implements Player {
+public abstract class BasePlayer<V extends Vector<V>> extends BaseGameEntity<Long, V> implements Player {
     protected final PlayerSession playerSession;
 
     protected BasePlayer(Long id, GameRoom gameRoom, PlayerSession playerSession) {
         super(id, gameRoom);
         this.playerSession = playerSession;
         playerSession.setPlayer(this);
+    }
+
+    @Override
+    public boolean isNpc() {
+        return playerSession.isNpc();
     }
 }

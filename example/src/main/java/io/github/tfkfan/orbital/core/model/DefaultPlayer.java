@@ -22,7 +22,10 @@ public class DefaultPlayer extends BasePlayer<Vector2D> {
     protected Map<Direction, Boolean> movingState;
     Double ABS_PLAYER_SPEED = 5.0;
 
-    public DefaultPlayer(Long id, GameRoom gameRoom, PlayerSession userSession, JsonObject inputData) {
+    public DefaultPlayer(Long id,
+                         GameRoom gameRoom,
+                         PlayerSession userSession,
+                         JsonObject inputData) {
         super(id, gameRoom, userSession);
         movingState = Arrays.stream(Direction.values())
                 .collect(Collectors.toMap(direction -> direction, t -> false));

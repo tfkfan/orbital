@@ -13,6 +13,8 @@ import java.util.Collection;
 import java.util.UUID;
 
 public interface GameRoom extends Runnable, MessageBroadcaster, RoomEventPublisher, GameRoomLifecycle, Scheduler {
+    RoomType roomType();
+
     RoomConfig config();
 
     static String constructEventListenerConsumer(UUID gameRoomId, Class<?> clazz) {

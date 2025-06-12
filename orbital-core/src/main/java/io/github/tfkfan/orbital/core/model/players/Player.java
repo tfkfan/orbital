@@ -6,4 +6,5 @@ import io.github.tfkfan.orbital.core.session.PlayerSession;
 
 public interface Player extends GameEntity<Long>, IPrivateUpdatePackProvider {
     PlayerSession getPlayerSession();
+    boolean isNpc();
 }

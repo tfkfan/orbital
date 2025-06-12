@@ -6,6 +6,7 @@ import io.github.tfkfan.orbital.core.configuration.MessageTypes;
 import io.github.tfkfan.orbital.core.configuration.props.RoomConfig;
 import io.github.tfkfan.orbital.core.event.*;
 import io.github.tfkfan.orbital.core.network.message.Message;
+import io.github.tfkfan.orbital.core.room.RoomType;
 import io.github.tfkfan.orbital.core.route.MessageRoute;
 import io.github.tfkfan.orbital.core.session.GatewaySession;
 import io.github.tfkfan.orbital.core.shared.ActionType;
@@ -17,6 +18,7 @@ import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import lombok.extern.slf4j.Slf4j;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -53,23 +55,43 @@ public abstract class BaseMatchmakerManager extends BaseManager implements Match
 
     //Default matchmaking implementation
     protected void onJoin(GameRoomJoinEvent joinEvent) {
+        final RoomType roomType = RoomType.getOrDefault(joinEvent.getData(), RoomType.BATTLE_ROYALE);
+
+        if (RoomType.TRAINING.equals(roomType)) {
+            handleJoinTraining(joinEvent);
+            return;
+        }
+
+        handleJoin(roomType, joinEvent);
+    }
+
+    protected void handleJoinTraining(final GameRoomJoinEvent joinEvent) {
+        newRoomEvent(newRoomId(), RoomType.TRAINING, Collections.singletonList(joinEvent));
+    }
+
+    protected void handleJoin(final RoomType roomType, final GameRoomJoinEvent joinEvent) {
         playersQueue.add(joinEvent);
 
-        final GatewaySession session = joinEvent.getSession();
-        session.send(new Message(MessageTypes.GAME_ROOM_JOIN_WAIT));
+        joinEvent.getSession().send(new Message(MessageTypes.GAME_ROOM_JOIN_WAIT));
 
         if (playersQueue.size() < roomConfig.getMaxPlayers())
             return;
 
-        final UUID roomId = UUID.randomUUID();
-        final List<GameRoomJoinEvent> userSessions = playersQueue.chunk(roomConfig.getMaxPlayers());
+        newRoomEvent(newRoomId(), roomType, playersQueue.chunk(roomConfig.getMaxPlayers()));
+    }
 
+    private UUID newRoomId() {
+        return UUID.randomUUID();
+    }
+
+    protected void newRoomEvent(final UUID roomId, final RoomType roomType, final List<GameRoomJoinEvent> userSessions) {
         eventBus.sender(Constants.ROOM_VERTICAL_CHANNEL, new DeliveryOptions()
                         .setLocalOnly(true)
                         .setSendTimeout(1000))
                 .write(new JsonObject()
                         .put(Fields.action, ActionType.NEW_ROOM)
                         .put(Fields.roomId, roomId.toString())
+                        .put(Fields.roomType, roomType.toString())
                         .put(Fields.sessions, new JsonArray(userSessions.stream().map(e ->
                                         new JsonObject()
                                                 .put(Fields.sessionId, e.getSession().getId())

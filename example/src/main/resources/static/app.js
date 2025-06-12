@@ -39,7 +39,8 @@ function clear() {
 function drawPlayers() {
     for (let i in players) {
         let p = players[i];
-        fillCircle(p.position.x, p.position.y, "black", 50);
+        const color = selfId !== p.id ? "red" : "black";
+        fillCircle(p.position.x, p.position.y, color, 50);
     }
 }
 
@@ -70,7 +71,11 @@ document.onkeyup = (event) => {
         ws.send(ws.PLAYER_KEY_DOWN, {key: "LEFT", state: false});
 };
 
-document.getElementById("joinBtn").onclick = () => ws.send(ws.JOIN, {})
+document.getElementById("joinBtn").onclick = () => {
+    const isTraining = document.getElementById("isTrainingCheckBox").value
+    const roomType = isTraining ? "TRAINING" : "BATTLE_ROYALE";
+    ws.send(ws.JOIN, {roomType})
+}
 
 ws.init("ws://localhost:8085/game")
     .then(() => console.log("Connection established"));

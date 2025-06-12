@@ -4,6 +4,7 @@ public interface Fields {
     String id = "id";
     String roomId = "roomId";
     String action = "action";
+    String roomType = "roomType";
     String sessions = "sessions";
     String sessionId = "sessionId";
     String admin = "admin";

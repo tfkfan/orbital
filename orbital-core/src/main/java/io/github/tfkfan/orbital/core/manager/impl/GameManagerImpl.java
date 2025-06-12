@@ -8,20 +8,20 @@ import io.github.tfkfan.orbital.core.factory.GameStateFactory;
 import io.github.tfkfan.orbital.core.factory.PlayerFactory;
 import io.github.tfkfan.orbital.core.manager.GameManager;
 import io.github.tfkfan.orbital.core.metrics.registrar.GameManagerMetricsRegistrar;
+import io.github.tfkfan.orbital.core.model.players.Player;
 import io.github.tfkfan.orbital.core.room.GameRoom;
+import io.github.tfkfan.orbital.core.room.RoomType;
 import io.github.tfkfan.orbital.core.session.PlayerSession;
 import io.github.tfkfan.orbital.core.shared.ActionType;
 import io.github.tfkfan.orbital.core.state.GameState;
 import io.vertx.core.Vertx;
 import io.vertx.core.eventbus.Message;
+import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.micrometer.backends.BackendRegistries;
 import lombok.extern.slf4j.Slf4j;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Objects;
-import java.util.UUID;
+import java.util.*;
 
 @Slf4j
 public class GameManagerImpl<R extends GameRoom, S extends GameState> implements GameManager {
@@ -62,29 +62,60 @@ public class GameManagerImpl<R extends GameRoom, S extends GameState> implements
             ActionType actionType = ActionType.valueOf(rawAction);
             if (actionType.equals(ActionType.NEW_ROOM)) {
                 final S gameState = gameStateFactory.get();
+                final RoomType roomType = RoomType.valueOf(json.getString(Fields.roomType));
                 final UUID roomId = UUID.fromString(json.getString(Fields.roomId));
-                final GameRoom room = gameRoomFactory.createGameRoom(verticleId, roomId, gameState,
-                        this, roomConfig);
-                room.onCreate();
-
-                json.getJsonArray(Fields.sessions)
-                        .stream()
-                        .forEach(s -> {
-                            JsonObject session = (JsonObject) s;
-                            final String sessionId = session
-                                    .getString(Fields.sessionId);
-                            final boolean isAdmin = session.getBoolean(Fields.admin);
-                            final PlayerSession userSession = new PlayerSession(sessionId, isAdmin);
-                            gameState.addPlayer(playerFactory.createPlayer(gameState.nextPlayerId(),
-                                    room, userSession, session.getJsonObject(Fields.initialData)));
-                            playerSessionsMap.put(sessionId, userSession);
-                            room.onJoin(userSession);
-                        });
-
-                gameRoomMap.put(room.key(), room);
+                final GameRoom room = createRoom(roomId, roomType, gameState, json.getJsonArray(Fields.sessions));
                 room.onStart();
             }
         }
+    }
+
+    protected GameRoom createRoom(final UUID roomId, final RoomType roomType, final S gameState, JsonArray playersSessions) {
+        validatePlayersCount(roomType, playersSessions, roomId);
+
+        final GameRoom room = gameRoomFactory.createGameRoom(verticleId, roomId, roomType,
+                gameState, this, roomConfig);
+        room.onCreate();
+
+        playersSessions.forEach(s -> addPlayerSession(gameState, room, (JsonObject) s));
+
+        if (RoomType.TRAINING.equals(roomType))
+            addNpcSessions(gameState, room, roomConfig.getMaxPlayers() - 1);
+
+        gameRoomMap.put(room.key(), room);
+        return room;
+    }
+
+    protected void addNpcSessions(S gameState, GameRoom room, int count) {
+        for (int id = 0; id < count; id++)
+            addPlayerSession(gameState, room, Integer.toString(id),
+                    false,
+                    true,
+                    null);
+    }
+
+    protected void postPlayerSessionHandle(final Player player) {
+
+    }
+
+    protected void addPlayerSession(S gameState, GameRoom room, JsonObject session) {
+        addPlayerSession(gameState, room, session
+                        .getString(Fields.sessionId),
+                session.getBoolean(Fields.admin),
+                false,
+                session.getJsonObject(Fields.initialData));
+    }
+
+    protected void addPlayerSession(S gameState, GameRoom room, String sessionId,
+                                    boolean isAdmin, boolean isNpc,
+                                    JsonObject initialData) {
+        final PlayerSession userSession = new PlayerSession(sessionId, isAdmin, isNpc);
+        final Player player = playerFactory.createPlayer(gameState.nextPlayerId(),
+                room, userSession, initialData);
+        gameState.addPlayer(player);
+        playerSessionsMap.put(sessionId, userSession);
+        room.onJoin(userSession);
+        postPlayerSessionHandle(player);
     }
 
     @Override
@@ -104,5 +135,11 @@ public class GameManagerImpl<R extends GameRoom, S extends GameState> implements
     @Override
     public String id() {
         return verticleId;
+    }
+
+    protected void validatePlayersCount(final RoomType roomType, final JsonArray playersSessions, final UUID roomId) {
+        if (RoomType.TRAINING.equals(roomType) && playersSessions.size() > 1 || !RoomType.TRAINING.equals(roomType) && playersSessions.size() >= roomConfig.getMaxPlayers())
+            throw new IllegalArgumentException("Invalid players count received for room: " + roomId);
+
     }
 }

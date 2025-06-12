@@ -19,7 +19,7 @@ import java.util.UUID;
 @Getter
 public abstract class Session implements MessageSender {
     private final String id;
-    private final boolean test;
+    private final boolean npc;
     private final boolean admin;
 
     public Session() {
@@ -34,9 +34,9 @@ public abstract class Session implements MessageSender {
         this(sessionId, admin, false);
     }
 
-    public Session(String sessionId, boolean admin, boolean test) {
+    public Session(String sessionId, boolean admin, boolean npc) {
         this.id = sessionId;
-        this.test = test;
+        this.npc = npc;
         this.admin = admin;
     }
 

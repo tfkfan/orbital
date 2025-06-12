@@ -42,21 +42,23 @@ public abstract class AbstractGameRoom<S extends GameState> implements GameRoom 
     protected final Vertx vertx;
     protected final GameManager gameManager;
 
+    private final RoomType roomType;
+    private final RoomConfig config;
     private final RoomScheduler scheduler;
     private final Map<String, PlayerSession> sessions = new HashMap<>();
     private final List<MessageConsumer<?>> consumerList = new ArrayList<>();
     private long lastTimestamp = 0L;
     private boolean started = false;
-    protected final RoomConfig config;
 
     private final GameRoomMetricsRegistrar gameRoomMetricsRegistrar;
 
-    public AbstractGameRoom(S state, String verticleId, UUID gameRoomId, GameManager gameManager, RoomConfig config) {
-        this.state = state;
-        this.gameRoomId = gameRoomId;
-        this.verticleId = verticleId;
-        this.gameManager = gameManager;
-        this.config = config;
+    public AbstractGameRoom(S state, String verticleId, UUID gameRoomId, RoomType roomType, GameManager gameManager, RoomConfig config) {
+        this.state = Objects.requireNonNull(state);
+        this.gameRoomId = Objects.requireNonNull(gameRoomId);
+        this.verticleId = Objects.requireNonNull(verticleId);
+        this.roomType = Objects.requireNonNull(roomType);
+        this.gameManager = Objects.requireNonNull(gameManager);
+        this.config = Objects.requireNonNull(config);
         this.vertx = Vertx.currentContext().owner();
         this.scheduler = new RoomScheduler(vertx);
 
@@ -91,6 +93,11 @@ public abstract class AbstractGameRoom<S extends GameState> implements GameRoom 
                 return key().toString();
             }
         });
+    }
+
+    @Override
+    public RoomType roomType() {
+        return roomType;
     }
 
     @Override
@@ -172,7 +179,6 @@ public abstract class AbstractGameRoom<S extends GameState> implements GameRoom 
     @Override
     public void onBattleEnd() {
         log.debug("Room {}. Battle has been ended", key());
-
         gameManager.onBattleEnd(this);
     }
 
