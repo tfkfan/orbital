@@ -26,7 +26,7 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 public abstract class BaseMatchmakerManager extends BaseManager implements MatchmakerManager {
-    private final Logger log = LoggerFactory.getLogger(BaseMatchmakerManager.class);
+    private static final Logger log = LoggerFactory.getLogger(BaseMatchmakerManager.class);
 
 
     protected final Vertx vertx;

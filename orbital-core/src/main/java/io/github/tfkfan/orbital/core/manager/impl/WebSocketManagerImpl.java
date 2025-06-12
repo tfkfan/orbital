@@ -20,7 +20,7 @@ import org.slf4j.LoggerFactory;
 import java.util.function.Function;
 
 public class WebSocketManagerImpl extends BaseGatewayManager implements WebSocketManager {
-    private final Logger log = LoggerFactory.getLogger(WebSocketManagerImpl.class);
+    private static final Logger log = LoggerFactory.getLogger(WebSocketManagerImpl.class);
 
     protected final Vertx vertx = Vertx.currentContext().owner();
     protected final RouteProcessor routeProcessor;

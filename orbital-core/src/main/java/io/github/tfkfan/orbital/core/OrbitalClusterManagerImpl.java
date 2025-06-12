@@ -5,12 +5,14 @@ import io.vertx.core.Vertx;
 import io.vertx.core.impl.VertxImpl;
 import io.vertx.core.shareddata.AsyncMap;
 import io.vertx.core.spi.cluster.ClusterManager;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.*;
 
-@Slf4j
 public final class OrbitalClusterManagerImpl implements OrbitalClusterManager {
+    private static final Logger log = LoggerFactory.getLogger(OrbitalClusterManagerImpl.class);
+
     private static final String ORBITAL_HTTP_SERVER_INFO_BUCKET = "orbital.http-info";
 
     private final Vertx vertx;

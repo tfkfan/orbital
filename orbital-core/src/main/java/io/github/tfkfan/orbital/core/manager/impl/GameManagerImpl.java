@@ -20,12 +20,17 @@ import io.vertx.core.eventbus.Message;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.micrometer.backends.BackendRegistries;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Objects;
+import java.util.UUID;
 
-@Slf4j
 public class GameManagerImpl<R extends GameRoom, S extends GameState> implements GameManager {
+    private static final Logger log = LoggerFactory.getLogger(GameManagerImpl.class);
+
     protected final Vertx vertx;
     protected final RoomConfig roomConfig;
     protected final String verticleId;

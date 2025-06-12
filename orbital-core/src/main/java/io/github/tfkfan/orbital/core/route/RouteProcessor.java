@@ -14,7 +14,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 public class RouteProcessor {
-    private final Logger log = LoggerFactory.getLogger(RouteProcessor.class);
+    private static final Logger log = LoggerFactory.getLogger(RouteProcessor.class);
 
 
     private final Map<Integer, Method> methods;

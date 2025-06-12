@@ -2,15 +2,12 @@ package io.github.tfkfan.resources;
 
 import io.github.tfkfan.orbital.core.ResourcesLoader;
 import io.github.tfkfan.resources.model.World;
-import lombok.Getter;
 import org.locationtech.spatial4j.context.SpatialContext;
 import org.locationtech.spatial4j.context.SpatialContextFactory;
 import org.locationtech.spatial4j.context.jts.JtsSpatialContext;
 import org.locationtech.spatial4j.context.jts.JtsSpatialContextFactory;
 import org.locationtech.spatial4j.shape.ShapeFactory;
 import org.locationtech.spatial4j.shape.impl.RectangleImpl;
-
-@Getter
 public class GeometryResources implements ResourcesLoader<GeometryResources> {
     protected SpatialContextFactory spatialContextFactory;
     protected SpatialContext spatialContext;
@@ -38,5 +35,21 @@ public class GeometryResources implements ResourcesLoader<GeometryResources> {
         spatialContext = new JtsSpatialContext((JtsSpatialContextFactory) spatialContextFactory);
         shapeFactory = spatialContext.getShapeFactory();
         return this;
+    }
+
+    public SpatialContextFactory getSpatialContextFactory() {
+        return spatialContextFactory;
+    }
+
+    public SpatialContext getSpatialContext() {
+        return spatialContext;
+    }
+
+    public ShapeFactory getShapeFactory() {
+        return shapeFactory;
+    }
+
+    public World getWorld() {
+        return world;
     }
 }

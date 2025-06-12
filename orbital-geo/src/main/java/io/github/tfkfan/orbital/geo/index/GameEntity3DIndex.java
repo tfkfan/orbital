@@ -19,7 +19,7 @@ import java.util.Set;
  * @author Baltser Artem tfkfan
  */
 public class GameEntity3DIndex<E extends BaseGameEntity<?, Vector3D>> extends GameEntityIndex<Vector3D, E> {
-    private final Logger log = LoggerFactory.getLogger(GameEntity3DIndex.class);
+    private static final Logger log = LoggerFactory.getLogger(GameEntity3DIndex.class);
 
 
     public GameEntity3DIndex(SpatialContextFactory factory, int maxLevels) {

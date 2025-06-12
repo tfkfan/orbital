@@ -8,7 +8,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class RoomVerticle extends BaseVerticle {
-    private final Logger log = LoggerFactory.getLogger(RoomVerticle.class);
+    private static final Logger log = LoggerFactory.getLogger(RoomVerticle.class);
 
 
     final GameManagerFactory gameManagerFactory;

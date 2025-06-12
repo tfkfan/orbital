@@ -36,7 +36,7 @@ import java.util.*;
 import java.util.function.Function;
 
 public abstract class AbstractGameRoom<S extends GameState> implements GameRoom {
-    private final Logger log = LoggerFactory.getLogger(AbstractGameRoom.class);
+    private static final Logger log = LoggerFactory.getLogger(AbstractGameRoom.class);
 
     protected final S state;
     protected final UUID gameRoomId;

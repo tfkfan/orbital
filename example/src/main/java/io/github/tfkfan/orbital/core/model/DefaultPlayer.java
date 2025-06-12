@@ -6,18 +6,16 @@ import io.github.tfkfan.orbital.core.network.pack.InitPack;
 import io.github.tfkfan.orbital.core.network.pack.PrivateUpdatePack;
 import io.github.tfkfan.orbital.core.network.pack.UpdatePack;
 import io.github.tfkfan.orbital.core.network.pack.init.Player2DInitPack;
-import io.github.tfkfan.orbital.core.network.pack.update.Player2DUpdatePack;
 import io.github.tfkfan.orbital.core.network.pack.update.BasePrivatePlayerUpdatePack;
+import io.github.tfkfan.orbital.core.network.pack.update.Player2DUpdatePack;
 import io.github.tfkfan.orbital.core.room.GameRoom;
 import io.github.tfkfan.orbital.core.session.PlayerSession;
 import io.vertx.core.json.JsonObject;
-import lombok.extern.slf4j.Slf4j;
 
 import java.util.Arrays;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-@Slf4j
 public class DefaultPlayer extends BasePlayer<Vector2D> {
     protected Map<Direction, Boolean> movingState;
     Double ABS_PLAYER_SPEED = 5.0;

@@ -18,7 +18,7 @@ import java.util.Collection;
 import java.util.function.Consumer;
 
 public abstract class GatewayVerticle extends BaseVerticle {
-    private final Logger log = LoggerFactory.getLogger(GatewayVerticle.class);
+    private static final Logger log = LoggerFactory.getLogger(GatewayVerticle.class);
 
     protected final Collection<Consumer<Router>> routerInitializers = new ArrayList<>();
     protected final Collection<Consumer<HttpServer>> serverConsumers = new ArrayList<>();
