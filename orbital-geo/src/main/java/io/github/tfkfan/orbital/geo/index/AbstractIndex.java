@@ -3,21 +3,18 @@ package io.github.tfkfan.orbital.geo.index;
 import io.github.tfkfan.orbital.core.math.Vector;
 import io.github.tfkfan.orbital.core.math.Vector2D;
 import io.github.tfkfan.orbital.core.math.Vector3D;
-import lombok.extern.slf4j.Slf4j;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field;
 import org.apache.lucene.document.StoredField;
 import org.apache.lucene.index.DirectoryReader;
 import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.index.IndexWriterConfig;
-import org.apache.lucene.index.Term;
 import org.apache.lucene.search.IndexSearcher;
 import org.apache.lucene.spatial.SpatialStrategy;
 import org.apache.lucene.spatial.prefix.RecursivePrefixTreeStrategy;
 import org.apache.lucene.spatial.prefix.tree.QuadPrefixTree;
 import org.apache.lucene.spatial.prefix.tree.SpatialPrefixTree;
 import org.apache.lucene.spatial.query.SpatialArgs;
-import org.apache.lucene.spatial.query.SpatialOperation;
 import org.apache.lucene.store.ByteBuffersDirectory;
 import org.apache.lucene.store.Directory;
 import org.locationtech.spatial4j.context.SpatialContext;
@@ -37,7 +34,6 @@ import java.util.stream.Stream;
 /**
  * @author Baltser Artem tfkfan
  */
-@Slf4j
 public abstract class AbstractIndex<O, T, V extends Vector<V>> implements Index<O, T, V> {
     public static final String ID = "id";
     public static final String DEFAULT_INDEXED_GEO_FIELD = "_sf_";

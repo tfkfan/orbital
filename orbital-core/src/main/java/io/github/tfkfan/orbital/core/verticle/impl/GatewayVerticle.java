@@ -10,14 +10,16 @@ import io.vertx.core.http.HttpServer;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.Router;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.function.Consumer;
 
-@Slf4j
 public abstract class GatewayVerticle extends BaseVerticle {
+    private final Logger log = LoggerFactory.getLogger(GatewayVerticle.class);
+
     protected final Collection<Consumer<Router>> routerInitializers = new ArrayList<>();
     protected final Collection<Consumer<HttpServer>> serverConsumers = new ArrayList<>();
     protected final ServerConfig serverConfig;

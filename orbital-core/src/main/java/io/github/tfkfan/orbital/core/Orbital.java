@@ -2,11 +2,9 @@ package io.github.tfkfan.orbital.core;
 
 import io.vertx.core.Future;
 import io.vertx.core.Vertx;
-import lombok.extern.slf4j.Slf4j;
 
 import java.util.Objects;
 
-@Slf4j
 public final class Orbital {
     private volatile static Orbital instance = null;
 

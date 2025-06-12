@@ -1,20 +1,22 @@
 package io.github.tfkfan.orbital.core.route;
 
-import io.github.tfkfan.orbital.core.session.Session;
 import io.github.tfkfan.orbital.core.session.GatewaySession;
+import io.github.tfkfan.orbital.core.session.Session;
 import io.vertx.core.json.JsonObject;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Objects;
 import java.util.stream.Collectors;
 
-@Slf4j
 public class RouteProcessor {
+    private final Logger log = LoggerFactory.getLogger(RouteProcessor.class);
+
+
     private final Map<Integer, Method> methods;
     private final Object source;
 

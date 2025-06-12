@@ -4,12 +4,13 @@ import io.github.tfkfan.orbital.core.factory.GameManagerFactory;
 import io.github.tfkfan.orbital.core.manager.GameManager;
 import io.github.tfkfan.orbital.core.verticle.BaseVerticle;
 import io.vertx.core.Promise;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import java.util.function.Function;
-
-@Slf4j
 public class RoomVerticle extends BaseVerticle {
+    private final Logger log = LoggerFactory.getLogger(RoomVerticle.class);
+
+
     final GameManagerFactory gameManagerFactory;
     GameManager gameManager;
 

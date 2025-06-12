@@ -1,11 +1,5 @@
 package io.github.tfkfan.orbital.core.math;
 
-
-import lombok.Getter;
-import lombok.Setter;
-
-@Getter
-@Setter
 public class Vector2D implements Vector<Vector2D> {
     private double x = 0.0;
     private double y = 0.0;
@@ -63,6 +57,24 @@ public class Vector2D implements Vector<Vector2D> {
 
     public Vector2D(Vector2D vector) {
         set(vector);
+    }
+
+    public double getX() {
+        return x;
+    }
+
+    public Vector2D setX(double x) {
+        this.x = x;
+        return this;
+    }
+
+    public double getY() {
+        return y;
+    }
+
+    public Vector2D setY(double y) {
+        this.y = y;
+        return this;
     }
 
     @Override

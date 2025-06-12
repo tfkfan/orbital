@@ -1,11 +1,6 @@
 package io.github.tfkfan.orbital.core.math;
 
 
-import lombok.Getter;
-import lombok.Setter;
-
-@Getter
-@Setter
 public class Vector3D implements Vector<Vector3D> {
     private double x = 0.0;
     private double y = 0.0;
@@ -65,6 +60,33 @@ public class Vector3D implements Vector<Vector3D> {
 
     public Vector3D(Vector3D vector) {
         set(vector);
+    }
+
+    public double getX() {
+        return x;
+    }
+
+    public Vector3D setX(double x) {
+        this.x = x;
+        return this;
+    }
+
+    public double getY() {
+        return y;
+    }
+
+    public Vector3D setY(double y) {
+        this.y = y;
+        return this;
+    }
+
+    public double getZ() {
+        return z;
+    }
+
+    public Vector3D setZ(double z) {
+        this.z = z;
+        return this;
     }
 
     @Override

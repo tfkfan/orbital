@@ -2,7 +2,6 @@ package io.github.tfkfan.orbital.geo.index;
 
 import io.github.tfkfan.orbital.core.math.Vector3D;
 import io.github.tfkfan.orbital.core.model.BaseGameEntity;
-import lombok.extern.slf4j.Slf4j;
 import org.apache.lucene.spatial.SpatialStrategy;
 import org.apache.lucene.spatial.prefix.tree.SpatialPrefixTree;
 import org.apache.lucene.spatial.query.SpatialArgs;
@@ -10,6 +9,8 @@ import org.apache.lucene.spatial.query.SpatialOperation;
 import org.apache.lucene.store.Directory;
 import org.locationtech.spatial4j.context.SpatialContext;
 import org.locationtech.spatial4j.context.SpatialContextFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Collection;
 import java.util.Set;
@@ -17,8 +18,10 @@ import java.util.Set;
 /**
  * @author Baltser Artem tfkfan
  */
-@Slf4j
 public class GameEntity3DIndex<E extends BaseGameEntity<?, Vector3D>> extends GameEntityIndex<Vector3D, E> {
+    private final Logger log = LoggerFactory.getLogger(GameEntity3DIndex.class);
+
+
     public GameEntity3DIndex(SpatialContextFactory factory, int maxLevels) {
         super(factory, maxLevels);
     }

@@ -8,9 +8,7 @@ import io.github.tfkfan.orbital.core.manager.MatchmakerManager;
 import io.github.tfkfan.orbital.core.manager.WebSocketManager;
 import io.github.tfkfan.orbital.core.manager.impl.WebSocketManagerImpl;
 import io.vertx.core.DeploymentOptions;
-import lombok.extern.slf4j.Slf4j;
 
-@Slf4j
 public class WebsocketGatewayVerticle extends GatewayVerticle {
     final WebSocketManager webSocketManager;
 
