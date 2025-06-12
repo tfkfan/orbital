@@ -1,7 +1,31 @@
+plugins {
+    id 'org.graalvm.buildtools.native' version '0.10.6'
+}
+
 dependencies {
     implementation project(":orbital-monitor")
     implementation project(":orbital-resources")
-    api ("io.vertx:vertx-infinispan:${vertxVersion}")
+    implementation("io.vertx:vertx-infinispan:${vertxVersion}"){
+        exclude group: "org.wildfly.common", module: "wildfly-common"
+    }
+    implementation("org.wildfly.common:wildfly-common:2.0.1")
+}
+
+graalvmNative {
+    binaries {
+        main {
+            imageName = 'app'
+            mainClass = 'io.github.tfkfan.orbital.core.Main'
+            debug = true
+            verbose = true
+            fallback = true
+            sharedLibrary = false
+            quickBuild = false
+            richOutput = false
+            useFatJar = true
+            // Runtime options
+            runtimeArgs.add('--help')}
+    }
 }
 
 jreleaserConfig.enabled = false
