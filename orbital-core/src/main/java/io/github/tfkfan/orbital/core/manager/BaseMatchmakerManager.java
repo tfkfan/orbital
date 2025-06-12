@@ -5,6 +5,7 @@ import io.github.tfkfan.orbital.core.configuration.Fields;
 import io.github.tfkfan.orbital.core.configuration.MessageTypes;
 import io.github.tfkfan.orbital.core.configuration.props.RoomConfig;
 import io.github.tfkfan.orbital.core.event.*;
+import io.github.tfkfan.orbital.core.manager.impl.WebSocketManagerImpl;
 import io.github.tfkfan.orbital.core.network.message.Message;
 import io.github.tfkfan.orbital.core.room.RoomType;
 import io.github.tfkfan.orbital.core.route.MessageRoute;
@@ -16,15 +17,18 @@ import io.vertx.core.eventbus.DeliveryOptions;
 import io.vertx.core.eventbus.EventBus;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
-@Slf4j
 public abstract class BaseMatchmakerManager extends BaseManager implements MatchmakerManager {
+    private final Logger log = LoggerFactory.getLogger(BaseMatchmakerManager.class);
+
+
     protected final Vertx vertx;
     protected final EventBus eventBus;
     protected final RoomConfig roomConfig;
@@ -85,10 +89,7 @@ public abstract class BaseMatchmakerManager extends BaseManager implements Match
     }
 
     protected void newRoomEvent(final UUID roomId, final RoomType roomType, final List<GameRoomJoinEvent> userSessions) {
-        eventBus.sender(Constants.ROOM_VERTICAL_CHANNEL, new DeliveryOptions()
-                        .setLocalOnly(true)
-                        .setSendTimeout(1000))
-                .write(new JsonObject()
+        eventBus.<JsonObject>request(Constants.ROOM_VERTICAL_CHANNEL, new JsonObject()
                         .put(Fields.action, ActionType.NEW_ROOM)
                         .put(Fields.roomId, roomId.toString())
                         .put(Fields.roomType, roomType.toString())
@@ -97,8 +98,12 @@ public abstract class BaseMatchmakerManager extends BaseManager implements Match
                                                 .put(Fields.sessionId, e.getSession().getId())
                                                 .put(Fields.admin, e.getSession().isAdmin())
                                                 .put(Fields.initialData, e.getData()))
-                                .collect(Collectors.toList()))))
-                .onSuccess(t -> userSessions.forEach(it -> it.getSession().setRoomKey(roomId)))
+                                .collect(Collectors.toList()))), new DeliveryOptions()
+                        .setLocalOnly(true)
+                        .setSendTimeout(1000))
+                .onSuccess(message ->
+                        log.info("Room successfully created {}", message.body().getString(Fields.roomId))
+                )
                 .onFailure(t -> {
                     log.error("Room verticle {} failed to join", roomId, t);
                     userSessions.forEach(it -> it.getSession().close());

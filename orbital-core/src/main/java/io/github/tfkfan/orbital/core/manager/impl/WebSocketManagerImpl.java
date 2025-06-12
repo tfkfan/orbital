@@ -14,12 +14,14 @@ import io.vertx.core.Vertx;
 import io.vertx.core.eventbus.MessageConsumer;
 import io.vertx.core.http.ServerWebSocket;
 import io.vertx.core.json.JsonObject;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.function.Function;
 
-@Slf4j
 public class WebSocketManagerImpl extends BaseGatewayManager implements WebSocketManager {
+    private final Logger log = LoggerFactory.getLogger(WebSocketManagerImpl.class);
+
     protected final Vertx vertx = Vertx.currentContext().owner();
     protected final RouteProcessor routeProcessor;
 

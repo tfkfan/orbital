@@ -1,8 +1,5 @@
 dependencies {
     api project(":orbital-core")
-    compileOnly("org.projectlombok:lombok:${lombokVersion}")
-    annotationProcessor("org.projectlombok:lombok:${lombokVersion}")
-
     api("org.apache.lucene:lucene-core:${luceneVersion}")
     api("org.apache.lucene:lucene-spatial-extras:${luceneVersion}")
     api("org.locationtech.jts:jts-core:1.17.0")

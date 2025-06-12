@@ -2,7 +2,6 @@ package io.github.tfkfan.orbital.geo.index;
 
 import io.github.tfkfan.orbital.core.math.Vector;
 import io.github.tfkfan.orbital.core.model.BaseGameEntity;
-import lombok.extern.slf4j.Slf4j;
 import org.apache.lucene.index.Term;
 import org.apache.lucene.spatial.SpatialStrategy;
 import org.apache.lucene.spatial.prefix.tree.SpatialPrefixTree;
@@ -13,7 +12,6 @@ import org.locationtech.spatial4j.context.SpatialContextFactory;
 /**
  * @author Baltser Artem tfkfan
  */
-@Slf4j
 public abstract class GameEntityIndex<V extends Vector<V>, E extends BaseGameEntity<?, V>> extends AbstractIndex<E, E, V> {
     public GameEntityIndex(SpatialContextFactory factory, int maxLevels) {
         super(factory, maxLevels);

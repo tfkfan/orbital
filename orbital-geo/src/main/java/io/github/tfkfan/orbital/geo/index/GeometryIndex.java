@@ -1,7 +1,6 @@
 package io.github.tfkfan.orbital.geo.index;
 
 import io.github.tfkfan.orbital.core.math.Vector;
-import lombok.extern.slf4j.Slf4j;
 import org.apache.lucene.index.Term;
 import org.apache.lucene.spatial.SpatialStrategy;
 import org.apache.lucene.spatial.prefix.tree.SpatialPrefixTree;
@@ -16,7 +15,6 @@ import java.util.Collection;
 /**
  * @author Baltser Artem tfkfan
  */
-@Slf4j
 public abstract class GeometryIndex<G extends Geometry, V extends Vector<V>> extends
         AbstractIndex<JtsGeometry, G, V> {
     public GeometryIndex(SpatialContextFactory factory, int maxLevels) {

@@ -9,14 +9,11 @@ import io.github.tfkfan.orbital.core.network.message.MessageType;
 import io.github.tfkfan.orbital.core.network.pack.shared.GameMessagePack;
 import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonObject;
-import lombok.Getter;
-import lombok.Setter;
 
 import java.util.Objects;
 import java.util.UUID;
 
-@Setter
-@Getter
+
 public abstract class Session implements MessageSender {
     private final String id;
     private final boolean npc;
@@ -95,5 +92,17 @@ public abstract class Session implements MessageSender {
     @Override
     public int hashCode() {
         return Objects.hashCode(id);
+    }
+
+    public String getId() {
+        return id;
+    }
+
+    public boolean isNpc() {
+        return npc;
+    }
+
+    public boolean isAdmin() {
+        return admin;
     }
 }

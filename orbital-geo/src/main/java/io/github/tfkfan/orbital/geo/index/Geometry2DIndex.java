@@ -1,9 +1,6 @@
 package io.github.tfkfan.orbital.geo.index;
 
 import io.github.tfkfan.orbital.core.math.Vector2D;
-import lombok.extern.slf4j.Slf4j;
-import org.apache.lucene.index.IndexWriter;
-import org.apache.lucene.index.IndexWriterConfig;
 import org.apache.lucene.spatial.SpatialStrategy;
 import org.apache.lucene.spatial.prefix.tree.SpatialPrefixTree;
 import org.apache.lucene.spatial.query.SpatialArgs;
@@ -12,16 +9,12 @@ import org.apache.lucene.store.Directory;
 import org.locationtech.jts.geom.Geometry;
 import org.locationtech.spatial4j.context.SpatialContext;
 import org.locationtech.spatial4j.context.SpatialContextFactory;
-import org.locationtech.spatial4j.shape.jts.JtsGeometry;
 
-import java.io.IOException;
-import java.util.Collection;
 import java.util.Set;
 
 /**
  * @author Baltser Artem tfkfan
  */
-@Slf4j
 public class Geometry2DIndex<G extends Geometry> extends GeometryIndex<G, Vector2D> {
     public Geometry2DIndex(SpatialContextFactory factory, int maxLevels) {
         super(factory, maxLevels);

@@ -15,6 +15,7 @@ import io.github.tfkfan.orbital.core.session.PlayerSession;
 import io.github.tfkfan.orbital.core.shared.ActionType;
 import io.github.tfkfan.orbital.core.state.GameState;
 import io.vertx.core.Vertx;
+import io.vertx.core.eventbus.DeliveryOptions;
 import io.vertx.core.eventbus.Message;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
@@ -66,6 +67,8 @@ public class GameManagerImpl<R extends GameRoom, S extends GameState> implements
                 final UUID roomId = UUID.fromString(json.getString(Fields.roomId));
                 final GameRoom room = createRoom(roomId, roomType, gameState, json.getJsonArray(Fields.sessions));
                 room.onStart();
+                message.reply(new JsonObject().put(Fields.roomId, roomId.toString()),
+                        new DeliveryOptions().setLocalOnly(true).setSendTimeout(1000));
             }
         }
     }

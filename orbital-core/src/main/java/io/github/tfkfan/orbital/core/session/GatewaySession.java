@@ -1,13 +1,9 @@
 package io.github.tfkfan.orbital.core.session;
 
 import io.vertx.core.http.ServerWebSocket;
-import lombok.Getter;
-import lombok.Setter;
 
 import java.util.UUID;
 
-@Setter
-@Getter
 public class GatewaySession extends Session {
     private final ServerWebSocket webSocket;
     private UUID roomKey;
@@ -32,5 +28,18 @@ public class GatewaySession extends Session {
             webSocket.close();
         } catch (Exception ignored) {
         }
+    }
+
+    public ServerWebSocket getWebSocket() {
+        return webSocket;
+    }
+
+    public UUID getRoomKey() {
+        return roomKey;
+    }
+
+    public GatewaySession setRoomKey(UUID roomKey) {
+        this.roomKey = roomKey;
+        return this;
     }
 }
