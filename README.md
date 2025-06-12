@@ -26,21 +26,23 @@ Supports:
 
 Features:
 
-* GameApplication launcher
+* Orbital launcher
 * Gateway verticle basic functionality
 * Room verticle basic functionality
 * EventBus-based room listener system
-* 2D geometry
-* Lucene and spatial geo indices (JTS based)
+* 2D/3D geometry
+* Lucene and spatial JTS geo indices
 * Basic rooms
 * Package classes
 * Micrometer + prometheus metrics and cluster monitor web page https://github.com/tfkfan/orbital-monitor
 * Annotation-based incoming message handlers
-* Infinispan-clustered game server mode
+* Clustered game server mode (Infinispan)
 * English/Russian web app localization
 
 Backlog:
 
+* Unit and module tests since stable versions
+* Resources processing
 * GraalVM native image optimizations
 * TCP/UDP server mode
 * Advanced room management, player management, admin page https://github.com/tfkfan/orbital-monitor
@@ -48,6 +50,8 @@ Backlog:
 * Advanced basic game objects
 * Payments api integrations
 * Meta game logic tools
+
+Attention: versions 1.*.* are unstable.
 
 ## Core and features
 
