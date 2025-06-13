@@ -22,6 +22,8 @@ graalvmNative {
             richOutput = false
             useFatJar = true
             // Runtime options
+            buildArgs.add('-H:+UnlockExperimentalVMOptions')
+            buildArgs.add("-H:ResourceConfigurationFiles=${projectDir}/src/main/resources/META-INF/native-image/resource-config.json")
             buildArgs.add("--initialize-at-build-time=io.vertx.core.impl.logging")
             buildArgs.add('--initialize-at-build-time=io.vertx.core.logging.SLF4JLogDelegate,org.infinispan.commons.logging.Log,org.infinispan.commons.logging.Log_$logger,org.jboss.logging.Slf4jLocationAwareLogger')
             buildArgs.add("--initialize-at-build-time=ch.qos.logback,org.infinispan.commons")
