@@ -5,11 +5,9 @@ plugins {
 dependencies {
     implementation project(":orbital-monitor")
     implementation project(":orbital-resources")
-    implementation("io.vertx:vertx-infinispan:${vertxVersion}"){
-        exclude group: "org.wildfly.common", module: "wildfly-common"
-    }
-    implementation("org.wildfly.common:wildfly-common:2.0.1")
+
 }
+
 
 graalvmNative {
     binaries {
@@ -24,6 +22,12 @@ graalvmNative {
             richOutput = false
             useFatJar = true
             // Runtime options
+            buildArgs.add("--initialize-at-build-time=io.vertx.core.impl.logging")
+            buildArgs.add('--initialize-at-build-time=io.vertx.core.logging.SLF4JLogDelegate,org.infinispan.commons.logging.Log,org.infinispan.commons.logging.Log_$logger,org.jboss.logging.Slf4jLocationAwareLogger')
+            buildArgs.add("--initialize-at-build-time=ch.qos.logback,org.infinispan.commons")
+            buildArgs.add("--initialize-at-build-time=org.xml.sax")
+            buildArgs.add("--initialize-at-build-time=io.vertx.ext.cluster.infinispan")
+            buildArgs.add('--initialize-at-build-time=ch.qos.logback.classic.Logger,ch.qos.logback.classic.LoggerContext,ch.qos.logback.core.BasicStatusManager,ch.qos.logback.core.spi.AppenderAttachableImpl,ch.qos.logback.classic.spi.TurboFilterList,ch.qos.logback.core.helpers.CyclicBuffer,ch.qos.logback.core.spi.LogbackLock,ch.qos.logback.classic.spi.LoggerContextVO,ch.qos.logback.core.status.InfoStatus')
             runtimeArgs.add('--help')}
     }
 }

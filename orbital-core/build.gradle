@@ -4,6 +4,10 @@ dependencies {
     api("io.vertx:vertx-config-yaml:${vertxVersion}")
     api("io.vertx:vertx-micrometer-metrics:${vertxVersion}")
     api("io.micrometer:micrometer-registry-prometheus:1.12.13")
+    api("io.vertx:vertx-infinispan:${vertxVersion}"){
+        exclude group: "org.wildfly.common", module: "wildfly-common"
+    }
+    api("org.wildfly.common:wildfly-common:2.0.1")
     api("com.fasterxml.jackson.core:jackson-databind:${jacksonVersion}")
     api("ch.qos.logback:logback-classic:1.5.12")
 }

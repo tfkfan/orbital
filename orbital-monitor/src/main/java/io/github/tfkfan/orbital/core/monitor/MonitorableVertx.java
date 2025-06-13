@@ -33,9 +33,11 @@ public final class MonitorableVertx {
 
     public Future<Vertx> build(PrometheusMeterRegistry registry, MeterBinder... meterBinders) {
         Arrays.stream(meterBinders).forEach(meterBinder -> meterBinder.bindTo(registry));
-        return Vertx.builder().with(new VertxOptions().setMetricsOptions(new MicrometerMetricsOptions()
+        return Vertx.builder()
+                .with(new VertxOptions().setMetricsOptions(new MicrometerMetricsOptions()
                         .setEnabled(true)
                         .setPrometheusOptions(new VertxPrometheusOptions().setEnabled(true))))
-                .withMetrics(new MicrometerMetricsFactory(registry)).buildClustered();
+                .withMetrics(new MicrometerMetricsFactory(registry))
+                .buildClustered();
     }
 }
