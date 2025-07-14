@@ -55,9 +55,13 @@ public final class OrbitalBuilderImpl implements OrbitalBuilder {
         return this;
     }
 
-    public OrbitalBuilderImpl withConfig(String fullPath) {
-        configSupplier = () -> loadLocalConfig(fullPath).map(cnf -> new Pair<>(cnf, cnf.mapTo(OrbitalConfig.class)));
+    public <C extends OrbitalConfig> OrbitalBuilderImpl withConfig(String fullPath, Class<C> configClazz) {
+        configSupplier = () -> loadLocalConfig(fullPath).map(cnf -> new Pair<>(cnf, cnf.mapTo(configClazz)));
         return this;
+    }
+
+    public OrbitalBuilderImpl withConfig(String fullPath) {
+        return withConfig(fullPath, OrbitalConfig.class);
     }
 
     public OrbitalBuilderImpl withLocalConfig() {

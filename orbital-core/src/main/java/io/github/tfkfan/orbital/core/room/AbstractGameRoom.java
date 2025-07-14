@@ -126,6 +126,8 @@ public abstract class AbstractGameRoom<S extends GameState> implements GameRoom 
     @Override
     public <E extends Event> void addEventListener(EventListener<E> listener, Class<E> clazz, boolean startCheck) {
         consumerList.add(vertx.eventBus().localConsumer(GameRoom.constructEventListenerConsumer(gameRoomId, clazz), event -> {
+            log.trace("Event received: {}", event.address());
+
             final String playerSessionId = event.headers().get(Fields.sessionId);
             if (!sessions.containsKey(playerSessionId) || startCheck && !started)
                 return;
@@ -142,15 +144,20 @@ public abstract class AbstractGameRoom<S extends GameState> implements GameRoom 
 
     @Override
     public void onCreate() {
+        log.trace("Room {} create call", key());
+
         vertx.eventBus().publish(Constants.MATCHMAKER_ROOM_CREATE_CHANNEL, new JsonObject()
                 .put(Fields.roomId, key().toString()));
         gameRoomMetricsRegistrar.register();
         gameManager.onCreate(this);
+
         log.debug("Room {} has been created", key());
     }
 
     @Override
     public void onStart() {
+        log.trace("Room {} start call", key());
+
         schedule(config.getEndDelay() + config.getStartDelay(), (t) -> onBattleEnd());
         schedule(config.getStartDelay(), (t) -> onBattleStart());
         broadcast(MessageTypes.GAME_ROOM_START, new GameRoomInfoPack(
@@ -158,12 +165,13 @@ public abstract class AbstractGameRoom<S extends GameState> implements GameRoom 
         ));
 
         gameManager.onStart(this);
-        log.debug("Room {} has been started", key());
+        log.debug("Room {} just started", key());
     }
 
     @Override
     public void onBattleStart() {
-        log.debug("Room {} battle has been started", key());
+        log.trace("Room {} battle start call", key());
+
         started = true;
         gameManager.onBattleStart(this);
 
@@ -178,12 +186,14 @@ public abstract class AbstractGameRoom<S extends GameState> implements GameRoom 
 
     @Override
     public void onBattleEnd() {
-        log.debug("Room {}. Battle has been ended", key());
+        log.trace("Room {} onBattleEnd call", key());
         gameManager.onBattleEnd(this);
     }
 
     @Override
     public void onDestroy() {
+        log.trace("Room {} destroy call", key());
+
         gameRoomMetricsRegistrar.unregister();
 
         sessions().forEach(playerSession -> state.removePlayer(playerSession.getPlayer()));
@@ -202,18 +212,24 @@ public abstract class AbstractGameRoom<S extends GameState> implements GameRoom 
 
     @Override
     public void onJoin(PlayerSession playerSession) {
+        log.trace("Player session {} joined at room {}", playerSession.getId(), key());
+
         this.sessions.put(playerSession.getId(), playerSession);
         playerSession.send(MessageTypes.GAME_ROOM_JOIN_SUCCESS, new GameSettingsPack(config.getLoopRate()));
     }
 
     @Override
     public void onRejoin(PlayerSession playerSession, UUID reconnectKey) {
+        log.trace("Player session {} rejoined at room {}. Reconnect key {}", playerSession.getId(), key(), reconnectKey);
+
         sessions.put(playerSession.getId(), playerSession);
         playerSession.send(MessageTypes.GAME_ROOM_JOIN_SUCCESS, new GameSettingsPack(config.getLoopRate()));
     }
 
     @Override
     public PlayerSession onDisconnect(PlayerSession playerSession) {
+        log.trace("Player session {} disconnected at room {}", playerSession.getId(), key());
+
         state.removePlayer(playerSession.getPlayer());
         return sessions.remove(playerSession.getId());
     }

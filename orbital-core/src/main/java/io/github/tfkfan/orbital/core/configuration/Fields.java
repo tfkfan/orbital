@@ -7,6 +7,7 @@ public interface Fields {
     String roomType = "roomType";
     String sessions = "sessions";
     String sessionId = "sessionId";
+    String success = "success";
     String admin = "admin";
     String initialData = "initialData";
     String type = "type";

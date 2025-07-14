@@ -20,11 +20,10 @@ import java.util.function.Function;
 
 @Slf4j
 public class WebSocketManagerImpl extends BaseGatewayManager implements WebSocketManager {
-    protected final Vertx vertx = Vertx.currentContext().owner();
     protected final RouteProcessor routeProcessor;
 
     public WebSocketManagerImpl(MatchmakerManager matchmakerManager) {
-        super(matchmakerManager);
+        super(Vertx.currentContext().owner(), matchmakerManager);
         this.routeProcessor = new RouteProcessor(matchmakerManager);
     }
 
@@ -74,7 +73,7 @@ public class WebSocketManagerImpl extends BaseGatewayManager implements WebSocke
 
     @Override
     public void broadcast(MessageType type, String message) {
-        log.error("broadcast not implemented yet");
+        broadcast(type.getType(), message);
     }
 
     @Override
@@ -89,6 +88,7 @@ public class WebSocketManagerImpl extends BaseGatewayManager implements WebSocke
 
     @Override
     public void broadcast(Function<Session, JsonObject> messageFunction) {
+
     }
 
     @Override

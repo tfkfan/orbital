@@ -3,6 +3,7 @@ package io.github.tfkfan.orbital.core.verticle;
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.DeploymentOptions;
 import io.vertx.core.Promise;
+import io.vertx.core.eventbus.DeliveryOptions;
 
 public abstract class BaseVerticle extends AbstractVerticle implements GameVerticle {
     protected String verticleId;
@@ -29,5 +30,11 @@ public abstract class BaseVerticle extends AbstractVerticle implements GameVerti
     @Override
     public DeploymentOptions options() {
         return options;
+    }
+
+    public static DeliveryOptions defaults() {
+        return new DeliveryOptions()
+                .setLocalOnly(true)
+                .setSendTimeout(1000);
     }
 }

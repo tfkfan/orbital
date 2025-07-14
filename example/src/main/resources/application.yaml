@@ -6,4 +6,4 @@ room:
   loopRate: 50
   initDelay: 1
   startDelay: 5000
-  endDelay: 12000
+  endDelay: 120000

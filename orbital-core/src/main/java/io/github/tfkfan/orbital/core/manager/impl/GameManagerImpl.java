@@ -55,22 +55,38 @@ public class GameManagerImpl<R extends GameRoom, S extends GameState> implements
     }
 
     protected void onMessage(Message<JsonObject> message) {
-        log.info("Received a message to room {} : {}", verticleId, message.body().encode());
+        log.info("Received a message at room verticle {} : {}", verticleId, message.body().encode());
         final JsonObject json = message.body();
         final String rawAction = json.getString(Fields.action);
-        if (rawAction != null) {
-            ActionType actionType = ActionType.valueOf(rawAction);
-            if (actionType.equals(ActionType.NEW_ROOM)) {
+        if (rawAction != null)
+            onRoom(ActionType.valueOf(rawAction), message, json);
+    }
+
+    protected void onRoom(ActionType actionType, Message<JsonObject> message, JsonObject json) {
+        switch (actionType) {
+            case NEW_ROOM -> {
                 final S gameState = gameStateFactory.get();
                 final RoomType roomType = RoomType.valueOf(json.getString(Fields.roomType));
                 final UUID roomId = UUID.fromString(json.getString(Fields.roomId));
-                final GameRoom room = createRoom(roomId, roomType, gameState, json.getJsonArray(Fields.sessions));
+                final GameRoom room = onNewRoom(roomId, roomType, gameState, json.getJsonArray(Fields.sessions));
                 room.onStart();
             }
+            case PLAYER_DISCONNECT -> {
+                final List<String> sessionsIds = json.getJsonArray(Fields.sessions).stream().map(it -> ((JsonObject) it).getString(Fields.sessionId)).toList();
+                sessionsIds.forEach(sessionId -> {
+                    try {
+                        final PlayerSession session = playerSessionsMap.remove(sessionId);
+                        if (session != null)
+                            session.getPlayer().getGameRoom().onDisconnect(session);
+                    } catch (Exception ignored) {
+                    }
+                });
+            }
         }
+        message.reply(new JsonObject().put(Fields.success, true));
     }
 
-    protected GameRoom createRoom(final UUID roomId, final RoomType roomType, final S gameState, JsonArray playersSessions) {
+    protected GameRoom onNewRoom(final UUID roomId, final RoomType roomType, final S gameState, JsonArray playersSessions) {
         validatePlayersCount(roomType, playersSessions, roomId);
 
         final GameRoom room = gameRoomFactory.createGameRoom(verticleId, roomId, roomType,
