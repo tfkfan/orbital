@@ -1,139 +1,103 @@
 package io.github.tfkfan.orbital.core;
 
 import io.github.tfkfan.orbital.core.configuration.props.OrbitalConfig;
-import io.github.tfkfan.orbital.core.configuration.props.RoomConfig;
-import io.github.tfkfan.orbital.core.configuration.props.ServerConfig;
-import io.github.tfkfan.orbital.core.factory.GameManagerFactory;
-import io.github.tfkfan.orbital.core.shared.Pair;
+import io.github.tfkfan.orbital.core.factory.*;
 import io.github.tfkfan.orbital.core.verticle.GameVerticle;
-import io.github.tfkfan.orbital.core.verticle.impl.GatewayVerticle;
-import io.github.tfkfan.orbital.core.verticle.impl.RoomVerticle;
-import io.github.tfkfan.orbital.core.verticle.impl.WebsocketGatewayVerticle;
-import io.vertx.core.CompositeFuture;
 import io.vertx.core.DeploymentOptions;
 import io.vertx.core.Future;
 import io.vertx.core.Vertx;
-import io.vertx.core.json.JsonObject;
 
 import java.util.Objects;
+import java.util.function.BiFunction;
 import java.util.function.Consumer;
 import java.util.function.Function;
-import java.util.function.Supplier;
 import java.util.stream.IntStream;
 
-import static io.github.tfkfan.orbital.core.verticle.GameVerticle.loadConfig;
 import static io.github.tfkfan.orbital.core.verticle.GameVerticle.startupErrorHandler;
 
 public final class OrbitalBuilderImpl implements OrbitalBuilder {
-    private final static String DEFAULT_CONFIG_PATH = "application.yaml";
-    private final static Integer DEFAULT_SERVER_PORT = 8080;
-
     private final Future<Vertx> vertxFuture;
 
     Vertx vertx;
-    OrbitalClusterManagerImpl orbitalManager;
+    OrbitalClusterManager orbitalManager;
 
-    private Supplier<Future<Pair<JsonObject, OrbitalConfig>>> configSupplier;
-    private Function<OrbitalConfig, Future<GatewayVerticle>> gateway;
-    private Function<Pair<JsonObject, OrbitalConfig>, Future<GameManagerFactory>> gameManagerFactory;
-    private Function<OrbitalConfig, Future<RoomDeploymentConfig>> roomClusterConfig;
+    private ConfigurationContextFactory configurationContextFactory = ConfigurationContextFactory.localConfig();
+    private GatewayFactory gatewayFactory = GatewayFactory.websocket();
+    private GameManagerFactoryFactory gameManagerFactoryFactory;
 
-    public OrbitalBuilderImpl(Vertx vertx) {
-        this.vertxFuture = Future.succeededFuture(vertx);
-    }
-
-    public OrbitalBuilderImpl(Future<Vertx> vertxFuture) {
+    OrbitalBuilderImpl(Future<Vertx> vertxFuture) {
         this.vertxFuture = Objects.requireNonNull(vertxFuture);
     }
 
-    public OrbitalBuilderImpl withConfig(int roomVerticleInstances, RoomConfig roomConfig) {
-        return withConfig(new OrbitalConfig(new ServerConfig(DEFAULT_SERVER_PORT, roomVerticleInstances), roomConfig));
-    }
-
-    public OrbitalBuilderImpl withConfig(OrbitalConfig orbitalConfig) {
-        configSupplier = () -> loadLocalConfig().flatMap(it -> Future.succeededFuture(new Pair<>(it, orbitalConfig)));
-        return this;
-    }
-
-    public <C extends OrbitalConfig> OrbitalBuilderImpl withConfig(String fullPath, Class<C> configClazz) {
-        configSupplier = () -> loadLocalConfig(fullPath).map(cnf -> new Pair<>(cnf, cnf.mapTo(configClazz)));
-        return this;
-    }
-
     public OrbitalBuilderImpl withConfig(String fullPath) {
-        return withConfig(fullPath, OrbitalConfig.class);
-    }
-
-    public OrbitalBuilderImpl withLocalConfig() {
-        return withConfig(DEFAULT_CONFIG_PATH);
-    }
-
-    public OrbitalBuilderImpl withGateway(Function<OrbitalConfig, GatewayVerticle> function) {
-        gateway = (configFuture) -> {
-            orbitalManager.registerGateway(configFuture.getServer().getPort());
-            return Future.succeededFuture(function.apply(configFuture));
-        };
+        this.configurationContextFactory = ConfigurationContextFactory.localConfig(fullPath, null);
         return this;
     }
 
-    public OrbitalBuilderImpl withWebsocketGateway(Consumer<WebsocketGatewayVerticle> customizer) {
-        return withGateway(config -> {
-            final var res = new WebsocketGatewayVerticle(config, new DeploymentOptions());
-            customizer.accept(res);
-            return res;
-        });
-    }
-
-    public OrbitalBuilderImpl withGameManagerFactory(Function<Pair<JsonObject, OrbitalConfig>, GameManagerFactory> function) {
-        gameManagerFactory = (config) -> Future.succeededFuture(function.apply(config));
+    public OrbitalBuilderImpl withConfig(String fullPath, Consumer<ConfigurationContext> contextCustomizer) {
+        this.configurationContextFactory = ConfigurationContextFactory.localConfig(fullPath, contextCustomizer);
         return this;
     }
 
-    public OrbitalBuilderImpl withRoomClusterLauncher(Function<OrbitalConfig, RoomDeploymentConfig> function) {
-        roomClusterConfig = (configFuture) -> Future.succeededFuture(function.apply(configFuture));
+    public OrbitalBuilderImpl withConfig(Consumer<ConfigurationContext> contextCustomizer) {
+        this.configurationContextFactory = ConfigurationContextFactory.localConfig(null, contextCustomizer);
+        return this;
+    }
+
+    public OrbitalBuilderImpl withGateway(GatewayFactory gatewayFactory) {
+        this.gatewayFactory = gatewayFactory;
+        return this;
+    }
+
+    public OrbitalBuilderImpl withWebsocketGateway(DeploymentOptions options) {
+        return withWebsocketGateway(options, GatewayFactory.defaultCustomizer());
+    }
+
+    public OrbitalBuilderImpl withWebsocketGateway(DeploymentOptions options, Function<WebsocketGatewayFactory, GatewayFactory> customizer) {
+        gatewayFactory = GatewayFactory.websocket(options, customizer);
+        return this;
+    }
+
+    public OrbitalBuilderImpl withGameManagerFactory(DeploymentOptions options, Function<OrbitalConfig, GameManagerFactory> function) {
+        gameManagerFactoryFactory = GameManagerFactoryFactory.gameManagerFactory(options, function);
         return this;
     }
 
     @Override
     public Future<Orbital> buildAndRun() {
-        return vertxFuture.map(v -> {
-                    this.vertx = v;
-                    this.orbitalManager = new OrbitalClusterManagerImpl(vertx);
-                    return v;
-                })
-                .flatMap(vertx -> Objects.requireNonNull(configSupplier, "Config supplier is required").get())
-                .flatMap(config -> Objects.requireNonNull(gateway, "Gateway is required").apply(config.second())
-                        .flatMap(gatewayVerticle -> GameVerticle.run(vertx, gatewayVerticle, gatewayVerticle.options()))
-                        .flatMap(deployment ->
-                                Objects.requireNonNull(gameManagerFactory, "Game manager factory is required").apply(config)
-                                        .flatMap(
-                                                gameManagerFactory -> Objects.requireNonNull(roomClusterConfig, "Room cluster config is required").apply(config.second())
-                                                        .flatMap(roomDeploymentConfig -> runRooms(vertx,
-                                                                roomDeploymentConfig.getDeploymentOptions(),
-                                                                config.second().getServer().getRoomVerticleInstances(),
-                                                                gameManagerFactory
-                                                        ))
-                                        ))
-                        .flatMap(gameManagerFactory -> Future.succeededFuture(config))
-                )
-                .map(o -> new Orbital(vertx, orbitalManager))
+        return vertxFuture
+                .flatMap(this::initialize)
+                .flatMap(this::loadConfig)
+                .flatMap(this::deployGateway)
+                .flatMap(this::deployRooms)
+                .map(ctx -> new Orbital(vertx, orbitalManager))
                 .onFailure(throwable -> startupErrorHandler(vertx, throwable));
     }
 
-
-    private Future<JsonObject> loadLocalConfig() {
-        return loadLocalConfig(null);
+    private Future<Vertx> initialize(Vertx vertx) {
+        this.vertx = vertx;
+        this.orbitalManager = new OrbitalClusterManagerImpl(vertx);
+        return Future.succeededFuture(vertx);
     }
 
-    private Future<JsonObject> loadLocalConfig(final String fullPath) {
-        return loadConfig(vertx, fullPath);
+    private Future<ConfigurationContext> loadConfig(Vertx vertx) {
+        return Objects.requireNonNull(configurationContextFactory, "Configuration context factory is required")
+                .load();
     }
 
-    private CompositeFuture runRooms(Vertx vertx,
-                                     DeploymentOptions options,
-                                     int instances,
-                                     GameManagerFactory gameManagerFactory) {
-        return Future.all(IntStream.range(0, instances)
-                .mapToObj(t -> vertx.deployVerticle(new RoomVerticle(gameManagerFactory), options)).toList());
+    private Future<ConfigurationContext> deployGateway(ConfigurationContext context) {
+        return Objects.requireNonNull(gatewayFactory, "Gateway factory is required")
+                .create(context.getConfig())
+                .flatMap(gatewayVerticle -> GameVerticle.deploy(vertx, gatewayVerticle, gatewayVerticle.options()))
+                .map(it -> context);
+    }
+
+    private Future<ConfigurationContext> deployRooms(ConfigurationContext context) {
+        return Future.succeededFuture(Objects.requireNonNull(gameManagerFactoryFactory, "Game manager factory is required"))
+                .flatMap(gameManagerFactoryFactory ->
+                        gameManagerFactoryFactory.create(context.getConfig())
+                                .flatMap(gameManagerFactory ->
+                                        GameVerticle.deploy(vertx, gameManagerFactory, gameManagerFactoryFactory.getDeploymentOptions()).map(it -> context))
+                );
     }
 }

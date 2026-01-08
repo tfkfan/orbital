@@ -11,5 +11,4 @@ import lombok.NoArgsConstructor;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public final class ServerConfig {
     private int port;
-    private Integer roomVerticleInstances;
 }

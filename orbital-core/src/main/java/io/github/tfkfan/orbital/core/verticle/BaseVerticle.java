@@ -6,7 +6,7 @@ import io.vertx.core.Promise;
 import io.vertx.core.eventbus.DeliveryOptions;
 
 public abstract class BaseVerticle extends AbstractVerticle implements GameVerticle {
-    protected String verticleId;
+    private final String verticleId;
     private final DeploymentOptions options;
 
     public BaseVerticle() {
@@ -15,10 +15,6 @@ public abstract class BaseVerticle extends AbstractVerticle implements GameVerti
 
     public BaseVerticle(DeploymentOptions options) {
         this.options = options != null ? options : new DeploymentOptions();
-    }
-
-    @Override
-    public void start(Promise<Void> startPromise) throws Exception {
         verticleId = GameVerticle.nextVerticleId();
     }
 

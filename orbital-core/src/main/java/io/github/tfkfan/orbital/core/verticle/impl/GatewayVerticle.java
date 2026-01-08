@@ -45,7 +45,7 @@ public abstract class GatewayVerticle extends BaseVerticle {
 
     @Override
     public void start(Promise<Void> startPromise) throws Exception {
-        super.start(startPromise);
+      //  super.start(startPromise);
         final Router router = setupRouter();
 
         try {

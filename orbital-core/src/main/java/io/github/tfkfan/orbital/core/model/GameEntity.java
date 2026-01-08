@@ -13,8 +13,12 @@ public interface GameEntity<I extends Serializable> extends Entity<I>, Updatable
 
     boolean isAlive();
 
-    default boolean isDead(){
+    default boolean isDead() {
         return !isAlive();
+    }
+
+    default void init() {
+
     }
 
     GameRoom getGameRoom();

@@ -1,15 +1,23 @@
 package io.github.tfkfan.orbital.core.room;
 
 public interface GameRoomLifecycle {
-    void onCreate();
+    void start();
+    void create();
 
-    void onStart();
+    default void onCreate() {
+    }
 
-    void onBattleStart();
+    default void onStart() {
+    }
 
-    void onBattleEnd();
+    default void onBattleStart() {
+    }
 
-    void onDestroy();
+    default void onBattleEnd() {
+    }
+
+    default void onDestroy() {
+    }
 
     interface GameRoomLifecycleHandler {
         default void onCreate(GameRoom room) {

@@ -29,11 +29,23 @@ public interface GameRoom extends Runnable, MessageBroadcaster, RoomEventPublish
 
     void update(long dt);
 
-    void onJoin(PlayerSession playerSession);
+    void join(PlayerSession playerSession);
 
-    void onRejoin(PlayerSession userSession, UUID reconnectKey);
+    default void onJoin(PlayerSession playerSession) {
 
-    PlayerSession onDisconnect(PlayerSession userSession);
+    }
+
+    void rejoin(PlayerSession userSession, UUID reconnectKey);
+
+    default void onRejoin(PlayerSession userSession, UUID reconnectKey) {
+
+    }
+
+    PlayerSession disconnect(PlayerSession userSession);
+
+    default void onDisconnect(PlayerSession userSession) {
+
+    }
 
     Collection<PlayerSession> sessions();
 

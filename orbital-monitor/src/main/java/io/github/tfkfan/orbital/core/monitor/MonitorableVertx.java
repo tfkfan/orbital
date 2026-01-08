@@ -15,6 +15,10 @@ import io.vertx.micrometer.VertxPrometheusOptions;
 import java.util.Arrays;
 
 public final class MonitorableVertx {
+    public static Future<Vertx> create() {
+        return new MonitorableVertx().build();
+    }
+
     public Future<Vertx> build() {
         return build(new PrometheusRegistryBuilder().build());
     }

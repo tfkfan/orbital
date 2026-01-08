@@ -143,7 +143,7 @@ public abstract class AbstractGameRoom<S extends GameState> implements GameRoom 
     }
 
     @Override
-    public void onCreate() {
+    public void create() {
         log.trace("Room {} create call", key());
 
         vertx.eventBus().publish(Constants.MATCHMAKER_ROOM_CREATE_CHANNEL, new JsonObject()
@@ -151,25 +151,26 @@ public abstract class AbstractGameRoom<S extends GameState> implements GameRoom 
         gameRoomMetricsRegistrar.register();
         gameManager.onCreate(this);
 
+        onCreate();
         log.debug("Room {} has been created", key());
     }
 
     @Override
-    public void onStart() {
+    public void start() {
         log.trace("Room {} start call", key());
 
-        schedule(config.getEndDelay() + config.getStartDelay(), (t) -> onBattleEnd());
-        schedule(config.getStartDelay(), (t) -> onBattleStart());
+        schedule(config.getEndDelay() + config.getStartDelay(), (t) -> battleEnd());
+        schedule(config.getStartDelay(), (t) -> battleStart());
         broadcast(MessageTypes.GAME_ROOM_START, new GameRoomInfoPack(
                 OffsetDateTime.now().plus(config.getStartDelay(), ChronoUnit.MILLIS).toInstant().toEpochMilli()
         ));
 
         gameManager.onStart(this);
+        onStart();
         log.debug("Room {} just started", key());
     }
 
-    @Override
-    public void onBattleStart() {
+    protected void battleStart() {
         log.trace("Room {} battle start call", key());
 
         started = true;
@@ -182,10 +183,10 @@ public abstract class AbstractGameRoom<S extends GameState> implements GameRoom 
                         .toInstant()
                         .toEpochMilli()
         ));
+        onBattleStart();
     }
 
-    @Override
-    public void onBattleEnd() {
+    protected void battleEnd() {
         log.trace("Room {} onBattleEnd call", key());
         gameManager.onBattleEnd(this);
     }
@@ -211,25 +212,29 @@ public abstract class AbstractGameRoom<S extends GameState> implements GameRoom 
     }
 
     @Override
-    public void onJoin(PlayerSession playerSession) {
+    public void join(PlayerSession playerSession) {
         log.trace("Player session {} joined at room {}", playerSession.getId(), key());
 
         this.sessions.put(playerSession.getId(), playerSession);
         playerSession.send(MessageTypes.GAME_ROOM_JOIN_SUCCESS, new GameSettingsPack(config.getLoopRate()));
+
+        onJoin(playerSession);
     }
 
     @Override
-    public void onRejoin(PlayerSession playerSession, UUID reconnectKey) {
+    public void rejoin(PlayerSession playerSession, UUID reconnectKey) {
         log.trace("Player session {} rejoined at room {}. Reconnect key {}", playerSession.getId(), key(), reconnectKey);
 
         sessions.put(playerSession.getId(), playerSession);
         playerSession.send(MessageTypes.GAME_ROOM_JOIN_SUCCESS, new GameSettingsPack(config.getLoopRate()));
+
+        onRejoin(playerSession, reconnectKey);
     }
 
     @Override
-    public PlayerSession onDisconnect(PlayerSession playerSession) {
+    public PlayerSession disconnect(PlayerSession playerSession) {
         log.trace("Player session {} disconnected at room {}", playerSession.getId(), key());
-
+        onDisconnect(playerSession);
         state.removePlayer(playerSession.getPlayer());
         return sessions.remove(playerSession.getId());
     }

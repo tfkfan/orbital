@@ -1,5 +1,7 @@
 package io.github.tfkfan.orbital.core.verticle;
 
+import io.github.tfkfan.orbital.core.factory.GameManagerFactory;
+import io.github.tfkfan.orbital.core.verticle.impl.GameRoomVerticle;
 import io.vertx.config.ConfigRetriever;
 import io.vertx.config.ConfigRetrieverOptions;
 import io.vertx.config.ConfigStoreOptions;
@@ -12,25 +14,12 @@ import io.vertx.core.json.JsonObject;
 import java.util.UUID;
 
 public interface GameVerticle extends Verticle {
-    static Future<String> run(Vertx vertx, GameVerticle verticle, DeploymentOptions options) {
+    static Future<String> deploy(Vertx vertx, GameVerticle verticle, DeploymentOptions options) {
         return vertx.deployVerticle(() -> verticle, options);
     }
 
-    static Future<JsonObject> loadConfig(Vertx vertx, String path) {
-        ConfigRetrieverOptions options = new ConfigRetrieverOptions()
-                .addStore(new ConfigStoreOptions()
-                        .setType("env"));
-        if (path != null)
-            options = options.addStore(new ConfigStoreOptions()
-                    .setType("file")
-                    .setFormat("yaml")
-                    .setConfig(new JsonObject().put("path", path)));
-
-        return ConfigRetriever.create(vertx, options).getConfig();
-    }
-
-    static Future<JsonObject> loadConfig(Vertx vertx) {
-        return loadConfig(vertx, null);
+    static Future<String> deploy(Vertx vertx, GameManagerFactory gameManagerFactory, DeploymentOptions options) {
+        return vertx.deployVerticle(() -> new GameRoomVerticle(gameManagerFactory), options);
     }
 
     static String nextVerticleId() {

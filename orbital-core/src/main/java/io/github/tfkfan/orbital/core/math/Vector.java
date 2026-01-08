@@ -4,7 +4,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import java.io.Serializable;
 
-public interface Vector<V extends Vector<V>> extends Serializable {
+public interface Vector<V extends Vector<V>> extends Serializable, Cloneable {
     @JsonIgnore
     boolean isZero();
 
@@ -35,4 +35,6 @@ public interface Vector<V extends Vector<V>> extends Serializable {
     V normalize();
 
     double length();
+
+    V clone();
 }

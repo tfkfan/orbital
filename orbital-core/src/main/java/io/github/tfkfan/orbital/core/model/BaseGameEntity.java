@@ -2,15 +2,13 @@ package io.github.tfkfan.orbital.core.model;
 
 import io.github.tfkfan.orbital.core.math.Vector;
 import io.github.tfkfan.orbital.core.room.GameRoom;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.RequiredArgsConstructor;
+import lombok.Getter;
+import lombok.Setter;
 
 import java.io.Serializable;
 
-@Data
-@RequiredArgsConstructor
-@AllArgsConstructor
+@Getter
+@Setter
 public abstract class BaseGameEntity<ID extends Serializable, V extends Vector<V>> implements GameEntity<ID>, DynamicEntity<ID, V> {
     private final ID id;
 
@@ -19,8 +17,25 @@ public abstract class BaseGameEntity<ID extends Serializable, V extends Vector<V
     protected boolean isAlive = true;
 
     protected V position;
+    protected V initialPosition;
     protected V velocity;
+    protected V initialVelocity;
     protected V acceleration;
+    protected V initialAcceleration;
+
+    public BaseGameEntity(ID id, GameRoom gameRoom) {
+        this.id = id;
+        this.gameRoom = gameRoom;
+    }
+
+    public BaseGameEntity(ID id, GameRoom gameRoom, boolean isMoving, boolean isAlive, V position, V velocity, V acceleration) {
+        this(id, gameRoom);
+        this.isMoving = isMoving;
+        this.isAlive = isAlive;
+        this.position = position;
+        this.velocity = velocity;
+        this.acceleration = acceleration;
+    }
 
     @Override
     public ID getId() {
@@ -43,5 +58,8 @@ public abstract class BaseGameEntity<ID extends Serializable, V extends Vector<V
     }
 
     public void init() {
+        this.initialPosition = position != null ? position.clone() : null;
+        this.initialVelocity = velocity != null ? velocity.clone() : null;
+        this.initialAcceleration = acceleration != null ? acceleration.clone() : null;
     }
 }

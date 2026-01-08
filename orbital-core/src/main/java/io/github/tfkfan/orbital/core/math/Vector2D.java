@@ -13,6 +13,10 @@ public class Vector2D implements Vector<Vector2D> {
     public static final double RAD_TO_DEG = 180 / Math.PI;
     public static final Vector2D REFERENCE = new Vector2D(1.0, 0.0);
 
+    public static Vector2D abs(Vector2D vector) {
+        return new Vector2D(Math.abs(vector.getX()), Math.abs(vector.getY()));
+    }
+
     public static Vector2D diff(Vector2D v1, Vector2D v2) {
         return new Vector2D(v2.x - v1.x, v2.y - v1.y);
     }
@@ -268,5 +272,14 @@ public class Vector2D implements Vector<Vector2D> {
     @Override
     public double length() {
         return length(this);
+    }
+
+    @Override
+    public Vector2D clone() {
+        try {
+            return (Vector2D) super.clone();
+        } catch (CloneNotSupportedException e) {
+            throw new RuntimeException(e);
+        }
     }
 }

@@ -1,6 +1,8 @@
 package io.github.tfkfan.orbital.core;
 
 import io.vertx.core.Future;
+import io.vertx.core.Handler;
+import io.vertx.core.Promise;
 import io.vertx.core.Vertx;
 import lombok.extern.slf4j.Slf4j;
 
@@ -11,13 +13,13 @@ public final class Orbital {
     private volatile static Orbital instance = null;
 
     private final Vertx vertx;
-    private final OrbitalClusterManagerImpl orbitalManager;
+    private final OrbitalClusterManager orbitalManager;
 
     public static Orbital get() {
-        return Objects.requireNonNull(instance, "");
+        return Objects.requireNonNull(instance.get(), "");
     }
 
-    public static Future<Orbital> newCluster(OrbitalBuilder builder) {
+    public static synchronized Future<Orbital> newCluster(OrbitalBuilder builder) {
         if (instance != null)
             return Future.failedFuture(new IllegalStateException("Orbital already started"));
 
@@ -33,7 +35,7 @@ public final class Orbital {
         this(vertx, new OrbitalClusterManagerImpl(vertx));
     }
 
-    Orbital(Vertx vertx, OrbitalClusterManagerImpl orbitalManager) {
+    Orbital(Vertx vertx, OrbitalClusterManager orbitalManager) {
         this.vertx = Objects.requireNonNull(vertx);
         this.orbitalManager = Objects.requireNonNull(orbitalManager);
     }
@@ -42,7 +44,7 @@ public final class Orbital {
         return vertx;
     }
 
-    public OrbitalClusterManagerImpl getOrbitalManager() {
+    public OrbitalClusterManager getOrbitalManager() {
         return orbitalManager;
     }
 }

@@ -69,7 +69,7 @@ public class GameManagerImpl<R extends GameRoom, S extends GameState> implements
                 final RoomType roomType = RoomType.valueOf(json.getString(Fields.roomType));
                 final UUID roomId = UUID.fromString(json.getString(Fields.roomId));
                 final GameRoom room = onNewRoom(roomId, roomType, gameState, json.getJsonArray(Fields.sessions));
-                room.onStart();
+                room.start();
             }
             case PLAYER_DISCONNECT -> {
                 final List<String> sessionsIds = json.getJsonArray(Fields.sessions).stream().map(it -> ((JsonObject) it).getString(Fields.sessionId)).toList();
@@ -77,7 +77,7 @@ public class GameManagerImpl<R extends GameRoom, S extends GameState> implements
                     try {
                         final PlayerSession session = playerSessionsMap.remove(sessionId);
                         if (session != null)
-                            session.getPlayer().getGameRoom().onDisconnect(session);
+                            session.getPlayer().getGameRoom().disconnect(session);
                     } catch (Exception ignored) {
                     }
                 });
@@ -91,7 +91,7 @@ public class GameManagerImpl<R extends GameRoom, S extends GameState> implements
 
         final GameRoom room = gameRoomFactory.createGameRoom(verticleId, roomId, roomType,
                 gameState, this, roomConfig);
-        room.onCreate();
+        room.create();
 
         playersSessions.forEach(s -> addPlayerSession(gameState, room, (JsonObject) s));
 
@@ -128,9 +128,10 @@ public class GameManagerImpl<R extends GameRoom, S extends GameState> implements
         final PlayerSession userSession = new PlayerSession(sessionId, isAdmin, isNpc);
         final Player player = playerFactory.createPlayer(gameState.nextPlayerId(),
                 room, userSession, initialData);
+        player.init();
         gameState.addPlayer(player);
         playerSessionsMap.put(sessionId, userSession);
-        room.onJoin(userSession);
+        room.join(userSession);
         postPlayerSessionHandle(player);
     }
 

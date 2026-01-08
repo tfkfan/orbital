@@ -14,6 +14,10 @@ public class Vector3D implements Vector<Vector3D> {
     public static final double RAD_TO_DEG = 180 / Math.PI;
     public static final Vector3D REFERENCE = new Vector3D(1.0, 0.0, 0.0);
 
+    public static Vector3D abs(Vector3D vector) {
+        return new Vector3D(Math.abs(vector.getX()), Math.abs(vector.getY()), Math.abs(vector.getZ()));
+    }
+
     public static Vector3D diff(Vector3D v1, Vector3D v2) {
         return new Vector3D(v2.x - v1.x, v2.y - v1.y, v2.z - v1.z);
     }
@@ -288,5 +292,14 @@ public class Vector3D implements Vector<Vector3D> {
         y = (-multiplicator * y);
         z = (-multiplicator * z);
         return this;
+    }
+
+    @Override
+    public Vector3D clone() {
+        try {
+            return (Vector3D) super.clone();
+        } catch (CloneNotSupportedException e) {
+            throw new RuntimeException(e);
+        }
     }
 }

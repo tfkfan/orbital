@@ -19,39 +19,9 @@ This is high-performance vert.x based distributed java game server designed for 
 
 **Project is in active development. Looking for contributors and sponsors to make this stuff widely used in future**
 
-Supports:
+<a href="https://opensource.org/licenses/MIT">Documentation</a>
 
-* HTTP
-* Websocket
-
-Features:
-
-* Orbital launcher
-* Gateway verticle basic functionality
-* Room verticle basic functionality
-* EventBus-based room listener system
-* 2D/3D geometry
-* Lucene and spatial JTS geo indices
-* Basic rooms
-* Package classes
-* Micrometer + prometheus metrics and cluster monitor web page https://github.com/tfkfan/orbital-monitor
-* Annotation-based incoming message handlers
-* Clustered game server mode (Infinispan)
-* English/Russian web app localization
-
-Backlog:
-
-* Unit and module tests since stable versions
-* Resources processing
-* GraalVM native image optimizations
-* TCP/UDP server mode
-* Advanced room management, player management, admin page https://github.com/tfkfan/orbital-monitor
-* Auth-protected REST API and social accounts oidc providers (google,vk,facebook,X etc...)
-* Advanced basic game objects
-* Payments api integrations
-* Meta game logic tools
-
-Attention: versions 1.*.* are unstable.
+Attention: current versions are unstable.
 
 ## Core and features
 
@@ -76,7 +46,7 @@ See "example" module for complete starter. Please pay attention example already 
 Before running your first orbital game server your app should have:
 
 - GameManager implementation
-- Player model implementation
+- Player model implementation (optional)
 - Game room implementation
 
 ### Launch
@@ -85,18 +55,11 @@ To run orbital microcluster with gateway verticle and N room verticles write:
 
 ```
 public static void main(String[] args) {
-    final Vertx vertx = Vertx.vertx();
-
-    int N = 10;
-    Orbital.newCluster(new OrbitalBuilderImpl(vertx)
-                  .withConfig(N, new RoomConfig())
-                        .withWebsocketGateway(it ->
-                                it.withRouterInitializer(router -> router.route().handler(StaticHandler.create("static")))
-                                        .withRouterInitializer(new MonitorEndpoint(CorsHandler.create("*"))::create))
-                        .withGameManagerFactory(config -> DefaultGameManager.factory(new GeometryResources().load(), config.second().getRoom()))
-                        .withRoomClusterLauncher(config -> new RoomDeploymentConfig(new DeploymentOptions()
-                                .setThreadingModel(ThreadingModel.VIRTUAL_THREAD)
-                                .setWorkerPoolSize(100))))
+     int N = 10;
+     Orbital.newCluster(OrbitalBuilder
+                        .create(new MonitorableVertx().build())
+                        .withGameManagerFactory(new DeploymentOptions().setInstances(N),DefaultGameManager.factory()))
+                .onFailure(th -> log.error("Startup error", th))
                 .onSuccess(orbital -> log.info("Orbital cluster is ready"));
 }
 ```
