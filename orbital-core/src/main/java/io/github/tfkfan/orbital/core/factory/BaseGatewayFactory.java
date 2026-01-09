@@ -1,5 +1,6 @@
 package io.github.tfkfan.orbital.core.factory;
 
+import io.github.tfkfan.orbital.core.OrbitalClusterManager;
 import io.vertx.core.DeploymentOptions;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.handler.CorsHandler;
@@ -11,9 +12,11 @@ import java.util.function.Consumer;
 
 public abstract class BaseGatewayFactory implements GatewayFactory {
     protected final Collection<Consumer<Router>> routerInitializers = new ArrayList<>();
-    protected DeploymentOptions options = new DeploymentOptions();
+    protected final OrbitalClusterManager clusterManager;
+    protected DeploymentOptions options;
 
-    public BaseGatewayFactory(DeploymentOptions options) {
+    public BaseGatewayFactory(OrbitalClusterManager clusterManager, DeploymentOptions options) {
+        this.clusterManager = clusterManager;
         this.options = options;
     }
 

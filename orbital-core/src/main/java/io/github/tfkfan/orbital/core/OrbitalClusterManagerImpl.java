@@ -13,44 +13,32 @@ import java.util.*;
 public final class OrbitalClusterManagerImpl implements OrbitalClusterManager {
     private static final String ORBITAL_HTTP_SERVER_INFO_BUCKET = "orbital.http-info";
 
-    private final Vertx vertx;
     private final ClusterManager clusterManager;
     private AsyncMap<String, GatewayInfo> gatewayInfoAsyncMap;
 
-    private final Set<GatewayInfo> registrationBuff = new HashSet<>();
-
     public OrbitalClusterManagerImpl(Vertx vertx) {
-        this.vertx = Objects.requireNonNull(vertx);
+        Objects.requireNonNull(vertx);
         this.clusterManager = Objects.requireNonNull(((VertxImpl) vertx).getClusterManager());
+        vertx.sharedData().<String, GatewayInfo>getAsyncMap(ORBITAL_HTTP_SERVER_INFO_BUCKET)
+                .onSuccess(map -> gatewayInfoAsyncMap = map)
+                .onFailure(t -> {
+                    throw new RuntimeException(t);
+                });
     }
 
     @Override
     public void registerGateway(int port) {
-        registrationBuff.add(new GatewayInfo(clusterManager.getNodeId(), clusterManager.getNodeInfo().host(), port));
+        var gatewayInfo = new GatewayInfo(clusterManager.getNodeId(), clusterManager.getNodeInfo().host(), port);
+        gatewayInfoAsyncMap.put(gatewayInfo.nodeId(), gatewayInfo)
+                .onSuccess((v) -> log.debug("Orbital node gateway {} is registered", gatewayInfo.nodeId()));
     }
 
     @Override
-    public void postInitialization() {
-        if (gatewayInfoAsyncMap == null) {
-            vertx.sharedData().<String, GatewayInfo>getAsyncMap(ORBITAL_HTTP_SERVER_INFO_BUCKET)
-                    .onSuccess(map -> {
-                        gatewayInfoAsyncMap = map;
-                        register(map);
-                    })
-                    .onFailure(t -> {
-                        throw new RuntimeException(t);
-                    });
-            return;
-        }
+    public void unregisterGateway(int port) {
+        var gatewayInfo = new GatewayInfo(clusterManager.getNodeId(), clusterManager.getNodeInfo().host(), port);
 
-        register(gatewayInfoAsyncMap);
-    }
-
-    private void register(AsyncMap<String, GatewayInfo> map) {
-        for (GatewayInfo gatewayInfo : registrationBuff)
-            map.put(gatewayInfo.nodeId(), gatewayInfo)
-                    .onSuccess((v) -> log.info("Orbital node gateway {} is registered", gatewayInfo.nodeId()));
-        registrationBuff.clear();
+        gatewayInfoAsyncMap.remove(gatewayInfo.nodeId())
+                .onSuccess((v) -> log.debug("Orbital node gateway {} is unregistered", gatewayInfo.nodeId()));
     }
 
     @Override

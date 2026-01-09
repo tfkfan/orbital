@@ -22,7 +22,7 @@ public final class OrbitalBuilderImpl implements OrbitalBuilder {
     OrbitalClusterManager orbitalManager;
 
     private ConfigurationContextFactory configurationContextFactory = ConfigurationContextFactory.localConfig();
-    private GatewayFactory gatewayFactory = GatewayFactory.websocket();
+    private GatewayFactory gatewayFactory = GatewayFactory.websocket(() -> orbitalManager);
     private GameManagerFactoryFactory gameManagerFactoryFactory;
 
     OrbitalBuilderImpl(Future<Vertx> vertxFuture) {
@@ -54,7 +54,7 @@ public final class OrbitalBuilderImpl implements OrbitalBuilder {
     }
 
     public OrbitalBuilderImpl withWebsocketGateway(DeploymentOptions options, Function<WebsocketGatewayFactory, GatewayFactory> customizer) {
-        gatewayFactory = GatewayFactory.websocket(options, customizer);
+        gatewayFactory = GatewayFactory.websocket(options, () -> orbitalManager, customizer);
         return this;
     }
 

@@ -7,7 +7,7 @@ import java.util.List;
 public interface OrbitalClusterManager {
     void registerGateway(int port);
 
-    Future<List<GatewayInfo>> getGatewayInfoList();
+    void unregisterGateway(int port);
 
-    void postInitialization();
+    Future<List<GatewayInfo>> getGatewayInfoList();
 }

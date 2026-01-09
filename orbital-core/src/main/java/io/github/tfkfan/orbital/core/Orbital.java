@@ -24,7 +24,6 @@ public final class Orbital {
         return builder.buildAndRun().map(orbital -> {
             if (instance == null)
                 instance = orbital;
-            orbital.getOrbitalManager().postInitialization();
             return orbital;
         });
     }
