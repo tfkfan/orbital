@@ -19,7 +19,7 @@ This is high-performance vert.x based distributed java game server designed for 
 
 **Project is in active development. Looking for contributors and sponsors to make this stuff widely used in future**
 
-<a href="https://opensource.org/licenses/MIT">Documentation</a>
+<a href="https://tfkfan.github.io/orbital">Documentation</a>
 
 Attention: current versions are unstable.
 
