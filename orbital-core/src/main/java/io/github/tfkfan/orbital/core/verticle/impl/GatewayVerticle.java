@@ -1,5 +1,6 @@
 package io.github.tfkfan.orbital.core.verticle.impl;
 
+import io.github.tfkfan.orbital.core.OrbitalClusterManager;
 import io.github.tfkfan.orbital.core.configuration.props.ServerConfig;
 import io.github.tfkfan.orbital.core.manager.GatewayManager;
 import io.github.tfkfan.orbital.core.verticle.BaseVerticle;
@@ -22,18 +23,20 @@ public abstract class GatewayVerticle extends BaseVerticle {
     protected final Collection<Consumer<HttpServer>> serverConsumers = new ArrayList<>();
     protected final ServerConfig serverConfig;
     protected final GatewayManager gatewayManager;
+    protected final OrbitalClusterManager clusterManager;
 
     protected HttpServer server;
 
-    protected GatewayVerticle(ServerConfig serverConfig, GatewayManager gatewayManager){
-        this(serverConfig, gatewayManager, null);
+    protected GatewayVerticle(OrbitalClusterManager clusterManager, ServerConfig serverConfig, GatewayManager gatewayManager) {
+        this(clusterManager, serverConfig, gatewayManager, null);
     }
 
-    protected GatewayVerticle(ServerConfig serverConfig, GatewayManager gatewayManager, DeploymentOptions deploymentOptions) {
+    protected GatewayVerticle(OrbitalClusterManager clusterManager, ServerConfig serverConfig, GatewayManager gatewayManager, DeploymentOptions deploymentOptions) {
         super(deploymentOptions);
 
         this.serverConfig = serverConfig;
         this.gatewayManager = gatewayManager;
+        this.clusterManager = clusterManager;
 
         withRouterInitializer(router -> router.get("/health").handler(rc -> rc.response().end(
                 new JsonObject()
@@ -45,7 +48,7 @@ public abstract class GatewayVerticle extends BaseVerticle {
 
     @Override
     public void start(Promise<Void> startPromise) throws Exception {
-      //  super.start(startPromise);
+        //  super.start(startPromise);
         final Router router = setupRouter();
 
         try {
@@ -53,9 +56,10 @@ public abstract class GatewayVerticle extends BaseVerticle {
                     .requestHandler(router);
 
             internalCustomize(server)
-                    .flatMap(s -> s.listen(serverConfig.getPort()))
+                    .flatMap(s -> s.listen(getServerPort()))
                     .onSuccess(t -> {
-                        log.info("Websocket server started on port {}", serverConfig.getPort());
+                        log.info("Websocket server started on port {}", getServerPort());
+                        clusterManager.registerGateway(getServerPort());
                         startPromise.complete();
                         routerInitializers.clear();
                         serverConsumers.clear();
@@ -64,6 +68,11 @@ public abstract class GatewayVerticle extends BaseVerticle {
         } catch (Exception e) {
             startPromise.fail(e);
         }
+    }
+
+    @Override
+    public void stop() throws Exception {
+        clusterManager.unregisterGateway(getServerPort());
     }
 
     Future<HttpServer> internalCustomize(HttpServer server) {
@@ -90,5 +99,9 @@ public abstract class GatewayVerticle extends BaseVerticle {
         final Router router = Router.router(vertx);
         routerInitializers.forEach(it -> it.accept(router));
         return router;
+    }
+
+    public int getServerPort() {
+        return serverConfig.getPort();
     }
 }

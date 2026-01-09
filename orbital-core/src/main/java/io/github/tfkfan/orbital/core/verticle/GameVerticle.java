@@ -1,7 +1,9 @@
 package io.github.tfkfan.orbital.core.verticle;
 
+import io.github.tfkfan.orbital.core.OrbitalClusterManager;
 import io.github.tfkfan.orbital.core.factory.GameManagerFactory;
 import io.github.tfkfan.orbital.core.verticle.impl.GameRoomVerticle;
+import io.github.tfkfan.orbital.core.verticle.impl.GatewayVerticle;
 import io.vertx.config.ConfigRetriever;
 import io.vertx.config.ConfigRetrieverOptions;
 import io.vertx.config.ConfigStoreOptions;
