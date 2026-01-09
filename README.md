@@ -10,12 +10,16 @@
 This is high-performance vert.x based distributed java game server designed for realtime indie multiplayers development</h4>
 
 <p align="center">
-  <a href="https://opensource.org/licenses/MIT" title="License: MIT" >
-    <img src="https://img.shields.io/badge/License-MIT-greenbright.svg?style=flat-square">
-  </a>
-
   <a href="https://github.com/tfkfan/orbital">
-    <img src="https://img.shields.io/maven-central/v/io.github.tfkfan/orbital-core.svg">
+            <img src="https://img.shields.io/badge/github-orbital-blue?logo=github" alt="github"></img>
+          </a>
+  &nbsp;
+  <a href="https://opensource.org/licenses/MIT">
+    <img src="https://img.shields.io/badge/License-MIT-greenbright.svg" alt="MIT"></img>
+  </a>
+  &nbsp;
+  <a href="https://central.sonatype.com/artifact/io.github.tfkfan/orbital-core">
+    <img src="https://img.shields.io/maven-central/v/io.github.tfkfan/orbital-core.svg" alt="version unstable"></img>
   </a>
 </p>
 
