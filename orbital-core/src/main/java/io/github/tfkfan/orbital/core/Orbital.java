@@ -1,8 +1,6 @@
 package io.github.tfkfan.orbital.core;
 
 import io.vertx.core.Future;
-import io.vertx.core.Handler;
-import io.vertx.core.Promise;
 import io.vertx.core.Vertx;
 import lombok.extern.slf4j.Slf4j;
 
@@ -16,7 +14,7 @@ public final class Orbital {
     private final OrbitalClusterManager orbitalManager;
 
     public static Orbital get() {
-        return Objects.requireNonNull(instance.get(), "");
+        return Objects.requireNonNull(instance, "");
     }
 
     public static synchronized Future<Orbital> newCluster(OrbitalBuilder builder) {
