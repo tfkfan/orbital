@@ -13,11 +13,9 @@ This is high-performance vert.x based distributed java game server designed for 
   <a href="https://github.com/tfkfan/orbital">
             <img src="https://img.shields.io/badge/github-orbital-blue?logo=github" alt="github"></img>
           </a>
-  &nbsp;
   <a href="https://opensource.org/licenses/MIT">
     <img src="https://img.shields.io/badge/License-MIT-greenbright.svg" alt="MIT"></img>
   </a>
-  &nbsp;
   <a href="https://central.sonatype.com/artifact/io.github.tfkfan/orbital-core">
     <img src="https://img.shields.io/maven-central/v/io.github.tfkfan/orbital-core.svg" alt="version unstable"></img>
   </a>
@@ -28,7 +26,6 @@ This is high-performance vert.x based distributed java game server designed for 
 **Project is in active development. Looking for contributors and sponsors to make this stuff widely used in future**
 
 <a href="https://tfkfan.github.io/orbital">Documentation</a>
-
 
 Attention: current versions are unstable.
 
