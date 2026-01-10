@@ -67,7 +67,6 @@ public abstract class BaseMatchmakerManager extends BaseManager implements Match
         requestRoomManagementCreateEvent(newRoomId(), RoomType.TRAINING, Collections.singletonList(joinEvent));
     }
 
-    //TODO roomType logic is wrong
     protected void handleJoin(final RoomType roomType, final GameRoomJoinEvent joinEvent) {
         playersQueue.add(joinEvent);
 
