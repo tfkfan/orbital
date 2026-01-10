@@ -1,0 +1,17 @@
+plugins{
+    id 'io.gatling.gradle' version '3.14.9.4'
+}
+
+gatling {
+    enterprise {
+    }
+}
+
+dependencies {
+    gatlingImplementation project(":orbital-core")
+    gatlingCompileOnly("org.projectlombok:lombok:${lombokVersion}")
+    gatlingAnnotationProcessor("org.projectlombok:lombok:${lombokVersion}")
+}
+
+jreleaserConfig.enabled = false
+jreleaserFullRelease.enabled = false

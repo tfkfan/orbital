@@ -38,6 +38,7 @@ public abstract class GatewayVerticle extends BaseVerticle {
         this.gatewayManager = gatewayManager;
         this.clusterManager = clusterManager;
 
+        //TODO refactor, remove plain string values, make efficient healthcheck
         withRouterInitializer(router -> router.get("/health").handler(rc -> rc.response().end(
                 new JsonObject()
                         .put("orbital-server", new JsonObject()
@@ -47,8 +48,7 @@ public abstract class GatewayVerticle extends BaseVerticle {
     }
 
     @Override
-    public void start(Promise<Void> startPromise) throws Exception {
-        //  super.start(startPromise);
+    public void start(Promise<Void> startPromise) {
         final Router router = setupRouter();
 
         try {

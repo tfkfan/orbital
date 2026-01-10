@@ -6,26 +6,20 @@ import io.github.tfkfan.orbital.core.configuration.MessageTypes;
 import io.github.tfkfan.orbital.core.configuration.props.RoomConfig;
 import io.github.tfkfan.orbital.core.event.*;
 import io.github.tfkfan.orbital.core.network.message.Message;
-import io.github.tfkfan.orbital.core.room.GameRoom;
 import io.github.tfkfan.orbital.core.room.RoomType;
 import io.github.tfkfan.orbital.core.route.MessageRoute;
 import io.github.tfkfan.orbital.core.session.GatewaySession;
 import io.github.tfkfan.orbital.core.shared.ActionType;
 import io.github.tfkfan.orbital.core.shared.UniqueQueue;
-import io.vertx.core.Future;
 import io.vertx.core.Vertx;
-import io.vertx.core.eventbus.EventBus;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.Collections;
 import java.util.List;
-import java.util.Objects;
 import java.util.UUID;
 import java.util.stream.Collectors;
-
-import static io.github.tfkfan.orbital.core.verticle.BaseVerticle.defaults;
 
 @Slf4j
 public abstract class BaseMatchmakerManager extends BaseManager implements MatchmakerManager {
@@ -58,7 +52,7 @@ public abstract class BaseMatchmakerManager extends BaseManager implements Match
     }
 
     //Default matchmaking implementation
-    protected void onJoin(GameRoomJoinEvent joinEvent) {
+    protected void join(GameRoomJoinEvent joinEvent) {
         final RoomType roomType = RoomType.getOrDefault(joinEvent.getData(), RoomType.BATTLE_ROYALE);
 
         if (RoomType.TRAINING.equals(roomType)) {
@@ -73,6 +67,7 @@ public abstract class BaseMatchmakerManager extends BaseManager implements Match
         requestRoomManagementCreateEvent(newRoomId(), RoomType.TRAINING, Collections.singletonList(joinEvent));
     }
 
+    //TODO roomType logic is wrong
     protected void handleJoin(final RoomType roomType, final GameRoomJoinEvent joinEvent) {
         playersQueue.add(joinEvent);
 
@@ -104,7 +99,7 @@ public abstract class BaseMatchmakerManager extends BaseManager implements Match
 
     @MessageRoute(MessageTypes.GAME_ROOM_JOIN)
     private void addPlayerToWait(GatewaySession userSession, JsonObject initialData) {
-        onJoin(new GameRoomJoinEvent(userSession, initialData));
+        join(new GameRoomJoinEvent(userSession, initialData));
     }
 
     @MessageRoute(MessageTypes.PLAYER_KEY_DOWN)

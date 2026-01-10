@@ -1,12 +1,12 @@
 package io.github.tfkfan.orbital.core.network.message;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import io.vertx.core.json.jackson.DatabindCodec;
+import lombok.*;
 
 import java.util.Map;
 
-@Data
+@Getter
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 public class Message {
@@ -15,5 +15,11 @@ public class Message {
 
     public Message(int type) {
         this.type = type;
+    }
+
+    @SneakyThrows
+    @Override
+    public String toString() {
+        return DatabindCodec.mapper().writeValueAsString(this);
     }
 }

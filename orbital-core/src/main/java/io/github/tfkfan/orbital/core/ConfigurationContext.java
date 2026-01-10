@@ -24,6 +24,7 @@ public class ConfigurationContext {
         return this;
     }
 
+    @SuppressWarnings("unchecked")
     public <T> Optional<T> getExtension(String property) {
         return Optional.ofNullable(extensions.get(property)).map(o -> (T) o);
     }
