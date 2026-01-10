@@ -8,6 +8,10 @@ gatling {
 }
 
 dependencies {
+    implementation project(":orbital-core")
+    compileOnly("org.projectlombok:lombok:${lombokVersion}")
+    annotationProcessor("org.projectlombok:lombok:${lombokVersion}")
+
     gatlingImplementation project(":orbital-core")
     gatlingCompileOnly("org.projectlombok:lombok:${lombokVersion}")
     gatlingAnnotationProcessor("org.projectlombok:lombok:${lombokVersion}")
