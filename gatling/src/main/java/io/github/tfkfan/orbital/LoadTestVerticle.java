@@ -41,7 +41,7 @@ public class LoadTestVerticle extends AbstractVerticle {
     public void start(Promise<Void> startPromise) throws Exception {
 
         WebSocketClientOptions options = new WebSocketClientOptions();
-
+        options.setMaxConnections(1000);
         webSocketClient = vertx.createWebSocketClient(options);
 
         log.info("Start load test");
@@ -49,7 +49,7 @@ public class LoadTestVerticle extends AbstractVerticle {
         testMetrics.setPlayersCountAtStart(clients);
         for (int i = 0; i < clients; i++) {
             final int clientId = i;
-            vertx.setTimer(i + 1, timerId -> {
+            vertx.setTimer(1, timerId -> {
                 String playerId = "player_" + clientId;
                 ClientMetrics metrics = new ClientMetrics();
                 clientMetrics.put(playerId, metrics);
@@ -108,9 +108,6 @@ public class LoadTestVerticle extends AbstractVerticle {
     }
 
     private void calcAndPrintStats() {
-        Map<Long, Long> updateDelaySeries = testMetrics.getUpdateDelayTimeSeries().stream()
-                .collect(Collectors.groupingBy(it -> it, Collectors.counting()));
-
         Engine engine = new Engine();
 
         Line line = new Line()
@@ -122,6 +119,9 @@ public class LoadTestVerticle extends AbstractVerticle {
         engine.render("./gatling/players.html", line);
 
 
+        Map<Long, Long> updateDelaySeries = testMetrics.getUpdateDelayTimeSeries().stream()
+                .collect(Collectors.groupingBy(it -> it, Collectors.counting()));
+
         String[] xAxis = new String[updateDelaySeries.size()];
         Object[] series = new Object[updateDelaySeries.size()];
 
@@ -132,12 +132,12 @@ public class LoadTestVerticle extends AbstractVerticle {
             i.incrementAndGet();
         });
         Bar bar = new Bar()
-                .setTitle("Response time delay distribution")
+                .setTitle("Update tick delay distribution")
                 .addXAxis(xAxis)
                 .addYAxis()
                 .addSeries(series);
 
-        engine.render("./gatling/responseTime.html", bar);
+        engine.render("./gatling/update-tick-delay.html", bar);
     }
 
     private Future<WebSocket> connect(String playerId) {
