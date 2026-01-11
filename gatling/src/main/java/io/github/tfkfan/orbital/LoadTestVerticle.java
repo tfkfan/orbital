@@ -4,7 +4,6 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import io.github.tfkfan.orbital.core.configuration.MessageTypes;
 import io.github.tfkfan.orbital.core.network.message.Message;
 import io.github.tfkfan.orbital.core.room.RoomType;
-import io.netty.handler.codec.http.websocketx.TextWebSocketFrame;
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.Future;
 import io.vertx.core.Promise;
@@ -12,9 +11,18 @@ import io.vertx.core.Vertx;
 import io.vertx.core.http.*;
 import io.vertx.core.json.jackson.DatabindCodec;
 import lombok.extern.slf4j.Slf4j;
+import org.icepear.echarts.Bar;
+import org.icepear.echarts.Line;
+import org.icepear.echarts.charts.bar.BarSeries;
+import org.icepear.echarts.components.title.Title;
+import org.icepear.echarts.origin.coord.cartesian.AxisOption;
+import org.icepear.echarts.render.Engine;
 
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Collectors;
 
 @Slf4j
 public class LoadTestVerticle extends AbstractVerticle {
@@ -24,6 +32,8 @@ public class LoadTestVerticle extends AbstractVerticle {
     int failedConnections = 0;
 
     WebSocketClient webSocketClient;
+
+    TestMetrics testMetrics = new TestMetrics();
 
     Map<String, ClientMetrics> clientMetrics = new HashMap<>();
 
@@ -35,6 +45,8 @@ public class LoadTestVerticle extends AbstractVerticle {
         webSocketClient = vertx.createWebSocketClient(options);
 
         log.info("Start load test");
+        testMetrics.setStartTimeMs(System.currentTimeMillis());
+        testMetrics.setPlayersCountAtStart(clients);
         for (int i = 0; i < clients; i++) {
             final int clientId = i;
             vertx.setTimer(i + 1, timerId -> {
@@ -60,11 +72,12 @@ public class LoadTestVerticle extends AbstractVerticle {
                                         }
                                         case MessageTypes.UPDATE -> {
                                             if (metrics.getLastUpdateTime() != 0L) {
-                                                long delay = System.currentTimeMillis() - metrics.getLastUpdateTime();
-                                                metrics.setLastUpdateDelay(delay);
-                                                metrics.setSumUpdateDelay(metrics.getLastUpdateDelay() + delay);
-                                                if (metrics.getMaxUpdateDelay() < delay)
-                                                    metrics.setMaxUpdateDelay(delay);
+                                                long responseMs = System.currentTimeMillis() - metrics.getLastUpdateTime();
+                                                metrics.setLastUpdateDelay(responseMs);
+                                                testMetrics.getUpdateDelayTimeSeries().add(responseMs);
+                                                metrics.setSumUpdateDelay(metrics.getLastUpdateDelay() + responseMs);
+                                                if (metrics.getMaxUpdateDelay() < responseMs)
+                                                    metrics.setMaxUpdateDelay(responseMs);
                                             }
                                             metrics.setLastUpdateTime(System.currentTimeMillis());
                                             metrics.setUpdateTicks(metrics.getUpdateTicks() + 1);
@@ -84,7 +97,9 @@ public class LoadTestVerticle extends AbstractVerticle {
 
         // Завершение теста
         vertx.setTimer(10000, timerId -> {
-            printStats();
+            testMetrics.setEndTimeMs(System.currentTimeMillis());
+            testMetrics.setPlayersCountAtEnd(clients - failedConnections);
+            calcAndPrintStats();
             log.info("End load test");
             vertx.close();
         });
@@ -92,15 +107,37 @@ public class LoadTestVerticle extends AbstractVerticle {
         startPromise.complete();
     }
 
-    private void printStats() {
-        log.info("---");
-        log.info("Client\t\tTotal update ticks\tAvg update delay\tMax update delay");
-        for (Map.Entry<String, ClientMetrics> entry : clientMetrics.entrySet()) {
-            log.info("{}\t{}\t\t\t\t\t{}\t\t\t\t\t{}", entry.getKey(),
-                    entry.getValue().getUpdateTicks(),
-                    entry.getValue().getAverageUpdateDelay(),
-                    entry.getValue().getMaxUpdateDelay());
-        }
+    private void calcAndPrintStats() {
+        Map<Long, Long> updateDelaySeries = testMetrics.getUpdateDelayTimeSeries().stream()
+                .collect(Collectors.groupingBy(it -> it, Collectors.counting()));
+
+        Engine engine = new Engine();
+
+        Line line = new Line()
+                .setTitle("Total players")
+                .addXAxis(new String[]{"0 ms", testMetrics.endAbsoluteMs().toString().concat(" ms")})
+                .addYAxis()
+                .addSeries(new Number[]{testMetrics.getPlayersCountAtStart(), testMetrics.getPlayersCountAtEnd()});
+
+        engine.render("./gatling/players.html", line);
+
+
+        String[] xAxis = new String[updateDelaySeries.size()];
+        Object[] series = new Object[updateDelaySeries.size()];
+
+        AtomicInteger i = new AtomicInteger();
+        updateDelaySeries.entrySet().stream().sorted(Map.Entry.comparingByKey()).forEach(entry -> {
+            xAxis[i.get()] = entry.getKey().toString().concat(" ms");
+            series[i.get()] = entry.getValue();
+            i.incrementAndGet();
+        });
+        Bar bar = new Bar()
+                .setTitle("Response time delay distribution")
+                .addXAxis(xAxis)
+                .addYAxis()
+                .addSeries(series);
+
+        engine.render("./gatling/responseTime.html", bar);
     }
 
     private Future<WebSocket> connect(String playerId) {

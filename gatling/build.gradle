@@ -9,6 +9,8 @@ gatling {
 
 dependencies {
     implementation project(":orbital-core")
+    implementation 'org.icepear.echarts:echarts-java:1.1.0'
+
     compileOnly("org.projectlombok:lombok:${lombokVersion}")
     annotationProcessor("org.projectlombok:lombok:${lombokVersion}")
 
