@@ -34,9 +34,9 @@ public abstract class BaseMatchmakerManager extends BaseManager implements Match
 
     protected void initConsumers() {
         eventBus.<JsonObject>consumer(Constants.MATCHMAKER_ROOM_CREATE_CHANNEL,
-                msg -> log.info("Room {} has been created and started", msg.body().getString(Fields.roomId)));
+                msg -> log.debug("Room {} has been created and started", msg.body().getString(Fields.roomId)));
         eventBus.<JsonObject>consumer(Constants.MATCHMAKER_ROOM_DESTROY_CHANNEL,
-                msg -> log.info("Room {} has been deleted", msg.body().getString(Fields.roomId)));
+                msg -> log.debug("Room {} has been deleted", msg.body().getString(Fields.roomId)));
     }
 
     @Override

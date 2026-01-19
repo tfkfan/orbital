@@ -51,7 +51,11 @@ public class WebSocketManagerImpl extends BaseGatewayManager implements WebSocke
                         message -> webSocket.writeTextMessage(message.body().encode()));
 
         webSocket.textMessageHandler(message -> this.onMessage(session, new JsonObject(message)));
-        webSocket.exceptionHandler(throwable -> log.error("Internal error", throwable));
+        webSocket.exceptionHandler(throwable -> {
+            if (throwable.getMessage().contains("Connection was closed"))
+                return;
+            log.error("Internal error", throwable);
+        });
         webSocket.closeHandler(t -> {
             onDisconnect(session);
             broadcastConsumer.unregister();

@@ -55,7 +55,7 @@ public class GameManagerImpl<R extends GameRoom, S extends GameState> implements
     }
 
     protected void onMessage(Message<JsonObject> message) {
-        log.info("Received a message at room verticle {} : {}", verticleId, message.body().encode());
+        log.debug("Received a message at room verticle {} : {}", verticleId, message.body().encode());
         final JsonObject json = message.body();
         final String rawAction = json.getString(Fields.action);
         if (rawAction != null)

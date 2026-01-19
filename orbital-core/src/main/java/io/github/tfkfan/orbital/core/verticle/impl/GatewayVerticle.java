@@ -7,7 +7,9 @@ import io.github.tfkfan.orbital.core.verticle.BaseVerticle;
 import io.vertx.core.DeploymentOptions;
 import io.vertx.core.Future;
 import io.vertx.core.Promise;
+import io.vertx.core.http.Http2Settings;
 import io.vertx.core.http.HttpServer;
+import io.vertx.core.http.HttpServerOptions;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.Router;
@@ -52,7 +54,8 @@ public abstract class GatewayVerticle extends BaseVerticle {
         final Router router = setupRouter();
 
         try {
-            server = vertx.createHttpServer()
+            server = vertx.createHttpServer(new HttpServerOptions()
+                            .setUseAlpn(true))
                     .requestHandler(router);
 
             internalCustomize(server)

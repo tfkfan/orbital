@@ -17,8 +17,6 @@ public class TestMetrics {
     private int playersCountAtStart;
     private long endTimeMs;
     private int playersCountAtEnd;
-    List<Long> updateDelayTimeSeries = new ArrayList<>();
-
 
     public Long endAbsoluteMs(){
         return endTimeMs - startTimeMs;

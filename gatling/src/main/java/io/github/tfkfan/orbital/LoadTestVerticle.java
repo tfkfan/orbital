@@ -4,10 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import io.github.tfkfan.orbital.core.configuration.MessageTypes;
 import io.github.tfkfan.orbital.core.network.message.Message;
 import io.github.tfkfan.orbital.core.room.RoomType;
-import io.vertx.core.AbstractVerticle;
-import io.vertx.core.Future;
-import io.vertx.core.Promise;
-import io.vertx.core.Vertx;
+import io.vertx.core.*;
 import io.vertx.core.http.*;
 import io.vertx.core.json.jackson.DatabindCodec;
 import lombok.extern.slf4j.Slf4j;
@@ -27,6 +24,7 @@ import java.util.stream.Collectors;
 @Slf4j
 public class LoadTestVerticle extends AbstractVerticle {
     int clients = 100;
+    long maxTimeMs = 20000;
 
     int connections = clients;
     int failedConnections = 0;
@@ -62,24 +60,23 @@ public class LoadTestVerticle extends AbstractVerticle {
                             log.info("{}: Connected successfully", playerId);
                             webSocket.textMessageHandler(text -> {
                                 try {
+                                    long ms = System.currentTimeMillis();
                                     Message message = DatabindCodec.mapper().readValue(text, Message.class);
                                     switch (message.getType()) {
-                                        case MessageTypes.GAME_ROOM_JOIN_SUCCESS -> {
-                                            metrics.setLastJoinSuccessTime(System.currentTimeMillis());
-                                        }
-                                        case MessageTypes.GAME_ROOM_BATTLE_START -> {
-                                            metrics.setLastBattleStartTime(System.currentTimeMillis());
-                                        }
+                                        case MessageTypes.GAME_ROOM_JOIN_SUCCESS -> metrics.setLastJoinSuccessTime(ms);
+                                        case MessageTypes.GAME_ROOM_BATTLE_START -> metrics.setLastBattleStartTime(ms);
                                         case MessageTypes.UPDATE -> {
+                                            if(metrics.getLastBattleStartTime() == 0L)
+                                                return;
                                             if (metrics.getLastUpdateTime() != 0L) {
-                                                long responseMs = System.currentTimeMillis() - metrics.getLastUpdateTime();
+                                                long responseMs = ms - metrics.getLastUpdateTime();
                                                 metrics.setLastUpdateDelay(responseMs);
-                                                testMetrics.getUpdateDelayTimeSeries().add(responseMs);
+                                                metrics.getUpdateDelayTimeSeries().add(responseMs);
                                                 metrics.setSumUpdateDelay(metrics.getLastUpdateDelay() + responseMs);
                                                 if (metrics.getMaxUpdateDelay() < responseMs)
                                                     metrics.setMaxUpdateDelay(responseMs);
                                             }
-                                            metrics.setLastUpdateTime(System.currentTimeMillis());
+                                            metrics.setLastUpdateTime(ms);
                                             metrics.setUpdateTicks(metrics.getUpdateTicks() + 1);
                                             metrics.setAverageUpdateDelay(metrics.getSumUpdateDelay() / metrics.getUpdateTicks());
                                         }
@@ -96,15 +93,13 @@ public class LoadTestVerticle extends AbstractVerticle {
         }
 
         // Завершение теста
-        vertx.setTimer(10000, timerId -> {
+        vertx.setTimer(maxTimeMs, timerId -> {
             testMetrics.setEndTimeMs(System.currentTimeMillis());
             testMetrics.setPlayersCountAtEnd(clients - failedConnections);
             calcAndPrintStats();
             log.info("End load test");
             vertx.close();
         });
-
-        startPromise.complete();
     }
 
     private void calcAndPrintStats() {
@@ -119,7 +114,10 @@ public class LoadTestVerticle extends AbstractVerticle {
         engine.render("./gatling/players.html", line);
 
 
-        Map<Long, Long> updateDelaySeries = testMetrics.getUpdateDelayTimeSeries().stream()
+        Map<Long, Long> updateDelaySeries = clientMetrics
+                .values()
+                .stream()
+                .flatMap(m -> m.getUpdateDelayTimeSeries().stream())
                 .collect(Collectors.groupingBy(it -> it, Collectors.counting()));
 
         String[] xAxis = new String[updateDelaySeries.size()];
@@ -143,13 +141,17 @@ public class LoadTestVerticle extends AbstractVerticle {
     private Future<WebSocket> connect(String playerId) {
         WebSocketConnectOptions options = new WebSocketConnectOptions()
                 .setURI("/game")
-                .setHost("localhost")
+                .setHost("10.20.0.60")
                 .setPort(8085);
 
         return webSocketClient.connect(options);
     }
 
     public static void main(String[] args) {
-        Vertx.vertx().deployVerticle(new LoadTestVerticle());
+        Vertx.clusteredVertx(new VertxOptions())
+                .flatMap(vertx -> vertx.deployVerticle(LoadTestVerticle.class, new DeploymentOptions()
+                        .setInstances(1)
+                        .setThreadingModel(ThreadingModel.VIRTUAL_THREAD)))
+                .onFailure(th -> log.error("Failed to deploy verticle", th));
     }
 }

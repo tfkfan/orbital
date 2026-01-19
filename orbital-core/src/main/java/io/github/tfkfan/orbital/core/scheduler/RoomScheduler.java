@@ -5,6 +5,7 @@ import io.vertx.core.Vertx;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.Callable;
 
 public class RoomScheduler implements Scheduler {
     private final List<Long> futures = new ArrayList<>();
@@ -28,8 +29,8 @@ public class RoomScheduler implements Scheduler {
     }
 
     @Override
-    public void schedulePeriodically(Long initDelay, Long loopRate, Handler<Long> task) {
-        futures.add(vertx.setPeriodic(initDelay, loopRate, task));
+    public void schedulePeriodically(Long initDelay, Long loopRate, Callable<Long> task) {
+        futures.add(vertx.setPeriodic(initDelay, loopRate, (l)-> vertx.executeBlocking(task,true)));
     }
 
     public void eraseTasks() {

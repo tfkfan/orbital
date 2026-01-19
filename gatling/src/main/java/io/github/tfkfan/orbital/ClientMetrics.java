@@ -5,6 +5,9 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.util.ArrayList;
+import java.util.List;
+
 @Setter
 @Getter
 @NoArgsConstructor
@@ -20,4 +23,5 @@ public class ClientMetrics {
     private long sumUpdateDelay = 0L;
     private long maxUpdateDelay = 0L;
     private long averageUpdateDelay = 0L;
+    List<Long> updateDelayTimeSeries = new ArrayList<>();
 }

@@ -25,8 +25,9 @@ public class Main {
                         .withWebsocketGateway(new DeploymentOptions())
                         .withGameManagerFactory(new DeploymentOptions()
                                         .setInstances(10)
-                                        .setThreadingModel(ThreadingModel.VIRTUAL_THREAD)
-                                        .setWorkerPoolSize(100),
+                                        .setWorkerPoolName("workingpool")
+                                        .setThreadingModel(ThreadingModel.WORKER)
+                                        .setWorkerPoolSize(30),
                                 DefaultGameManager.factory())
                 )
                 .onFailure(th -> log.error("Startup error", th))

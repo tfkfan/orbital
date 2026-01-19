@@ -11,8 +11,9 @@ import io.github.tfkfan.orbital.core.state.GameState;
 
 import java.util.Collection;
 import java.util.UUID;
+import java.util.concurrent.Callable;
 
-public interface GameRoom extends Runnable, MessageBroadcaster, RoomEventPublisher, GameRoomLifecycle, Scheduler {
+public interface GameRoom extends Callable<Long>, MessageBroadcaster, RoomEventPublisher, GameRoomLifecycle, Scheduler {
     RoomType roomType();
 
     RoomConfig config();

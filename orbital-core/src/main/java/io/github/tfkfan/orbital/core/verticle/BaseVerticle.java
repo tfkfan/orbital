@@ -31,6 +31,6 @@ public abstract class BaseVerticle extends AbstractVerticle implements GameVerti
     public static DeliveryOptions defaults() {
         return new DeliveryOptions()
                 .setLocalOnly(true)
-                .setSendTimeout(1000);
+                .setSendTimeout(5000);
     }
 }

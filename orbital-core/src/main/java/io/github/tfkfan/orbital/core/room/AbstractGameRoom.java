@@ -32,6 +32,7 @@ import lombok.extern.slf4j.Slf4j;
 import java.time.OffsetDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
+import java.util.concurrent.Callable;
 import java.util.function.Function;
 
 @Slf4j
@@ -176,7 +177,7 @@ public abstract class AbstractGameRoom<S extends GameState> implements GameRoom 
         started = true;
         gameManager.onBattleStart(this);
 
-        schedulePeriodically(config.getInitDelay(), config.getLoopRate(), this::update);
+        schedulePeriodically(config.getInitDelay(), config.getLoopRate(), this);
         broadcast(MessageTypes.GAME_ROOM_BATTLE_START, new GameRoomInfoPack(
                 OffsetDateTime.now()
                         .plus(config.getEndDelay(), ChronoUnit.MILLIS)
@@ -265,13 +266,19 @@ public abstract class AbstractGameRoom<S extends GameState> implements GameRoom 
     }
 
     @Override
-    public void run() {
+    public Long call() {
         try {
-            update(lastTimestamp == 0 ? System.currentTimeMillis() : System.currentTimeMillis() - lastTimestamp);
+            long start = System.currentTimeMillis();
+            long dt = lastTimestamp == 0 ? System.currentTimeMillis() : System.currentTimeMillis() - lastTimestamp;
+            update(dt);
+            long gdt = System.currentTimeMillis() - start;
+            if(gdt>60)
+                log.warn("!");
             lastTimestamp = System.currentTimeMillis();
         } catch (Exception e) {
             log.error("room update exception", e);
         }
+        return 0L;
     }
 
     @Override
@@ -346,7 +353,7 @@ public abstract class AbstractGameRoom<S extends GameState> implements GameRoom 
     }
 
     @Override
-    public void schedulePeriodically(Long initDelay, Long loopRate, Handler<Long> task) {
+    public void schedulePeriodically(Long initDelay, Long loopRate, Callable<Long> task) {
         scheduler.schedulePeriodically(initDelay, loopRate, task);
     }
 }

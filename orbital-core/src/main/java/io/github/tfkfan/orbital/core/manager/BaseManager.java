@@ -45,7 +45,7 @@ public abstract class BaseManager implements Manager {
                                 final JsonArray userSessions) {
         final JsonObject data = new JsonObject()
                 .put(Fields.action, actionType)
-                .put(Fields.roomId, roomId.toString())
+                .put(Fields.roomId, roomId != null ? roomId.toString() : null)
                 .put(Fields.sessions, userSessions);
 
         if (Objects.nonNull(roomType))

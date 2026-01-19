@@ -77,7 +77,7 @@ document.getElementById("joinBtn").onclick = () => {
     ws.send(ws.JOIN, {roomType})
 }
 
-ws.init("ws://localhost:8085/game")
+ws.init(`ws://${window.location.hostname}:8085/game`)
     .then(() => console.log("Connection established"));
 
 ws.on(ws.JOIN_WAIT, (evt) => {

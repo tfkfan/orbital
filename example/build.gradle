@@ -1,3 +1,6 @@
+plugins{
+    id 'com.github.johnrengelman.shadow' version '8.1.0'
+}
 dependencies {
     implementation project(":orbital-monitor")
     implementation project(":orbital-resources")
@@ -7,3 +10,10 @@ dependencies {
 
 jreleaserConfig.enabled = false
 jreleaserFullRelease.enabled = false
+
+shadowJar {
+    mergeServiceFiles()
+    manifest {
+        attributes 'Main-Class': 'io.github.tfkfan.orbital.core.Main', 'Multi-Release': 'true'
+    }
+}
