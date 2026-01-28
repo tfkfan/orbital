@@ -15,6 +15,11 @@ public class GameManagerMetricsRegistrar extends AbstractMetricsRegistrar {
 
     @Override
     public void register() {
+        register(Gauge.builder("com.tfkfan.orbital.manager.rooms.update.ms", gameManagerMetrics, GameManagerMetrics::avgUpdateMs)
+                .description("Avg update ms")
+                .tag("id", gameManagerMetrics.id())
+                .register(registry()));
+
         register(Gauge.builder("com.tfkfan.orbital.manager.rooms", gameManagerMetrics, GameManagerMetrics::totalRooms)
                 .description("Total rooms count")
                 .tag("id", gameManagerMetrics.id())

@@ -49,9 +49,41 @@ public abstract class AbstractGameRoom<S extends GameState> implements GameRoom 
     private final Map<String, PlayerSession> sessions = new HashMap<>();
     private final List<MessageConsumer<?>> consumerList = new ArrayList<>();
     private long lastTimestamp = 0L;
+    private long updateMs = 0L;
     private boolean started = false;
 
     private final GameRoomMetricsRegistrar gameRoomMetricsRegistrar;
+    private final GameRoomMetrics metrics = new GameRoomMetrics() {
+        @Override
+        public Integer currentPlayers() {
+            return state.getPlayers().size();
+        }
+
+        @Override
+        public Integer maxPlayers() {
+            return config.getMaxPlayers();
+        }
+
+        @Override
+        public long alivePlayers() {
+            return state.alivePlayers();
+        }
+
+        @Override
+        public long deadPlayers() {
+            return state.deadPlayers();
+        }
+
+        @Override
+        public long updateMs() {
+            return updateMs;
+        }
+
+        @Override
+        public String id() {
+            return key().toString();
+        }
+    };
 
     public AbstractGameRoom(S state, String verticleId, UUID gameRoomId, RoomType roomType, GameManager gameManager, RoomConfig config) {
         this.state = Objects.requireNonNull(state);
@@ -68,32 +100,7 @@ public abstract class AbstractGameRoom<S extends GameState> implements GameRoom 
         addEventListener(this::onPlayerMouseMove, MouseMovePlayerEvent.class);
         addEventListener(this::onPlayerInitRequest, InitPlayerEvent.class, false);
 
-        gameRoomMetricsRegistrar = new GameRoomMetricsRegistrar(BackendRegistries.getDefaultNow(), new GameRoomMetrics() {
-            @Override
-            public Integer currentPlayers() {
-                return state.getPlayers().size();
-            }
-
-            @Override
-            public Integer maxPlayers() {
-                return config.getMaxPlayers();
-            }
-
-            @Override
-            public long alivePlayers() {
-                return state.alivePlayers();
-            }
-
-            @Override
-            public long deadPlayers() {
-                return 0;
-            }
-
-            @Override
-            public String id() {
-                return key().toString();
-            }
-        });
+        gameRoomMetricsRegistrar = new GameRoomMetricsRegistrar(BackendRegistries.getDefaultNow(), metrics);
     }
 
     @Override
@@ -269,12 +276,11 @@ public abstract class AbstractGameRoom<S extends GameState> implements GameRoom 
     public Long call() {
         try {
             long start = System.currentTimeMillis();
-            long dt = lastTimestamp == 0 ? System.currentTimeMillis() : System.currentTimeMillis() - lastTimestamp;
-            update(dt);
-            long gdt = System.currentTimeMillis() - start;
-            if(gdt>60)
-                log.warn("!");
-            lastTimestamp = System.currentTimeMillis();
+            long beforeUpdateDT = lastTimestamp == 0 ? start : System.currentTimeMillis() - lastTimestamp;
+            update(beforeUpdateDT);
+            long now = System.currentTimeMillis();
+            updateMs = now - lastTimestamp;
+            lastTimestamp = now;
         } catch (Exception e) {
             log.error("room update exception", e);
         }
@@ -325,6 +331,11 @@ public abstract class AbstractGameRoom<S extends GameState> implements GameRoom 
     @Override
     public Collection<PlayerSession> sessions() {
         return sessions.values();
+    }
+
+    @Override
+    public GameRoomMetrics metrics() {
+        return metrics;
     }
 
     @Override

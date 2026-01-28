@@ -5,4 +5,5 @@ public interface GameRoomMetrics extends Measure {
     Integer maxPlayers();
     long alivePlayers();
     long deadPlayers();
+    long updateMs();
 }

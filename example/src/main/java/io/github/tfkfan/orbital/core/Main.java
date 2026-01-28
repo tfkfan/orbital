@@ -24,10 +24,9 @@ public class Main {
                         .withConfig(ctx -> ctx.withExtension("gold", 100))
                         .withWebsocketGateway(new DeploymentOptions())
                         .withGameManagerFactory(new DeploymentOptions()
-                                        .setInstances(10)
+                                        .setInstances(3)
                                         .setWorkerPoolName("workingpool")
-                                        .setThreadingModel(ThreadingModel.WORKER)
-                                        .setWorkerPoolSize(30),
+                                        .setThreadingModel(ThreadingModel.VIRTUAL_THREAD),
                                 DefaultGameManager.factory())
                 )
                 .onFailure(th -> log.error("Startup error", th))
