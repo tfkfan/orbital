@@ -23,5 +23,4 @@ public class ClientMetrics {
     private long sumUpdateDelay = 0L;
     private long maxUpdateDelay = 0L;
     private long averageUpdateDelay = 0L;
-    List<Long> updateDelayTimeSeries = new ArrayList<>();
 }

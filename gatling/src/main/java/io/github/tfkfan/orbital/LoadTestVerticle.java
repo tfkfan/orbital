@@ -5,17 +5,16 @@ import io.github.tfkfan.orbital.core.configuration.MessageTypes;
 import io.github.tfkfan.orbital.core.network.message.Message;
 import io.github.tfkfan.orbital.core.room.RoomType;
 import io.vertx.core.*;
-import io.vertx.core.http.*;
+import io.vertx.core.http.WebSocket;
+import io.vertx.core.http.WebSocketClient;
+import io.vertx.core.http.WebSocketClientOptions;
+import io.vertx.core.http.WebSocketConnectOptions;
 import io.vertx.core.json.jackson.DatabindCodec;
 import lombok.extern.slf4j.Slf4j;
 import org.icepear.echarts.Bar;
 import org.icepear.echarts.Line;
-import org.icepear.echarts.charts.bar.BarSeries;
-import org.icepear.echarts.components.title.Title;
-import org.icepear.echarts.origin.coord.cartesian.AxisOption;
 import org.icepear.echarts.render.Engine;
 
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -23,7 +22,7 @@ import java.util.stream.Collectors;
 
 @Slf4j
 public class LoadTestVerticle extends AbstractVerticle {
-    int clients = 100;
+    int clients = 10;
     long maxTimeMs = 20000;
 
     int connections = clients;
@@ -36,7 +35,7 @@ public class LoadTestVerticle extends AbstractVerticle {
     Map<String, ClientMetrics> clientMetrics = new HashMap<>();
 
     @Override
-    public void start(Promise<Void> startPromise) throws Exception {
+    public void start(Promise<Void> startPromise) {
 
         WebSocketClientOptions options = new WebSocketClientOptions();
         options.setMaxConnections(1000);
@@ -46,50 +45,47 @@ public class LoadTestVerticle extends AbstractVerticle {
         testMetrics.setStartTimeMs(System.currentTimeMillis());
         testMetrics.setPlayersCountAtStart(clients);
         for (int i = 0; i < clients; i++) {
-            final int clientId = i;
-            vertx.setTimer(1, timerId -> {
-                String playerId = "player_" + clientId;
-                ClientMetrics metrics = new ClientMetrics();
-                clientMetrics.put(playerId, metrics);
-                connect(playerId)
-                        .onFailure(err -> {
-                            failedConnections++;
-                            log.error("{}: Connection failed: {}", playerId, err.getMessage());
-                        })
-                        .onSuccess(webSocket -> {
-                            log.info("{}: Connected successfully", playerId);
-                            webSocket.textMessageHandler(text -> {
-                                try {
-                                    long ms = System.currentTimeMillis();
-                                    Message message = DatabindCodec.mapper().readValue(text, Message.class);
-                                    switch (message.getType()) {
-                                        case MessageTypes.GAME_ROOM_JOIN_SUCCESS -> metrics.setLastJoinSuccessTime(ms);
-                                        case MessageTypes.GAME_ROOM_BATTLE_START -> metrics.setLastBattleStartTime(ms);
-                                        case MessageTypes.UPDATE -> {
-                                            if(metrics.getLastBattleStartTime() == 0L)
-                                                return;
-                                            if (metrics.getLastUpdateTime() != 0L) {
-                                                long responseMs = ms - metrics.getLastUpdateTime();
-                                                metrics.setLastUpdateDelay(responseMs);
-                                                metrics.getUpdateDelayTimeSeries().add(responseMs);
-                                                metrics.setSumUpdateDelay(metrics.getLastUpdateDelay() + responseMs);
-                                                if (metrics.getMaxUpdateDelay() < responseMs)
-                                                    metrics.setMaxUpdateDelay(responseMs);
-                                            }
-                                            metrics.setLastUpdateTime(ms);
-                                            metrics.setUpdateTicks(metrics.getUpdateTicks() + 1);
-                                            metrics.setAverageUpdateDelay(metrics.getSumUpdateDelay() / metrics.getUpdateTicks());
+            final String playerId = "player_" + i;
+            final ClientMetrics metrics = new ClientMetrics();
+            clientMetrics.put(playerId, metrics);
+            connect(playerId)
+                    .onFailure(err -> {
+                        failedConnections++;
+                        log.error("{}: Connection failed: {}", playerId, err.getMessage());
+                    })
+                    .onSuccess(webSocket -> {
+                        log.info("{}: Connected successfully", playerId);
+                        webSocket.textMessageHandler(text -> {
+                            try {
+                                Message message = DatabindCodec.mapper().readValue(text, Message.class);
+                                long ms = System.currentTimeMillis();
+                                switch (message.getType()) {
+                                    case MessageTypes.GAME_ROOM_JOIN_SUCCESS -> metrics.setLastJoinSuccessTime(ms);
+                                    case MessageTypes.GAME_ROOM_BATTLE_START -> metrics.setLastBattleStartTime(ms);
+                                    case MessageTypes.UPDATE -> {
+                                        if (metrics.getLastBattleStartTime() == 0L)
+                                            return;
+                                        if (metrics.getLastUpdateTime() != 0L) {
+                                            long responseMs = System.currentTimeMillis() - metrics.getLastUpdateTime();
+                                            metrics.setLastUpdateDelay(responseMs);
+                                            testMetrics.getUpdateDelayTimeSeries().add(responseMs);
+                                            metrics.setSumUpdateDelay(metrics.getLastUpdateDelay() + responseMs);
+                                            if (metrics.getMaxUpdateDelay() < responseMs)
+                                                metrics.setMaxUpdateDelay(responseMs);
                                         }
+                                        metrics.setLastUpdateTime(System.currentTimeMillis());
+                                        metrics.setUpdateTicks(metrics.getUpdateTicks() + 1);
+                                        metrics.setAverageUpdateDelay(metrics.getSumUpdateDelay() / metrics.getUpdateTicks());
                                     }
-                                } catch (JsonProcessingException e) {
-                                    throw new RuntimeException(e);
                                 }
-                            });
-
-                            webSocket.writeTextMessage(MessageBuilder.joinMessage(RoomType.TRAINING).toString());
-                            metrics.setLastJoinRequestTime(System.currentTimeMillis());
+                            } catch (JsonProcessingException e) {
+                                throw new RuntimeException(e);
+                            }
                         });
-            });
+
+                        webSocket.writeTextMessage(MessageBuilder.joinMessage(RoomType.TRAINING).toString());
+                        metrics.setLastJoinRequestTime(System.currentTimeMillis());
+                    });
         }
 
         // Завершение теста
@@ -114,10 +110,8 @@ public class LoadTestVerticle extends AbstractVerticle {
         engine.render("./gatling/players.html", line);
 
 
-        Map<Long, Long> updateDelaySeries = clientMetrics
-                .values()
+        Map<Long, Long> updateDelaySeries = testMetrics.getUpdateDelayTimeSeries()
                 .stream()
-                .flatMap(m -> m.getUpdateDelayTimeSeries().stream())
                 .collect(Collectors.groupingBy(it -> it, Collectors.counting()));
 
         String[] xAxis = new String[updateDelaySeries.size()];
@@ -125,8 +119,12 @@ public class LoadTestVerticle extends AbstractVerticle {
 
         AtomicInteger i = new AtomicInteger();
         updateDelaySeries.entrySet().stream().sorted(Map.Entry.comparingByKey()).forEach(entry -> {
-            xAxis[i.get()] = entry.getKey().toString().concat(" ms");
-            series[i.get()] = entry.getValue();
+            var msXAxis = entry.getKey().toString().concat(" ms");
+            var countYAxis = entry.getValue();
+            if (countYAxis > 1000)
+                countYAxis = 1000L;
+            xAxis[i.get()] = msXAxis;
+            series[i.get()] = countYAxis;
             i.incrementAndGet();
         });
         Bar bar = new Bar()

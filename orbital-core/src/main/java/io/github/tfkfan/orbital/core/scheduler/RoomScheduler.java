@@ -30,7 +30,7 @@ public class RoomScheduler implements Scheduler {
 
     @Override
     public void schedulePeriodically(Long initDelay, Long loopRate, Callable<Long> task) {
-        futures.add(vertx.setPeriodic(initDelay, loopRate, (l)-> vertx.executeBlocking(task,true)));
+        futures.add(vertx.setPeriodic(initDelay, loopRate, (l) -> vertx.executeBlocking(task, true)));
     }
 
     public void eraseTasks() {

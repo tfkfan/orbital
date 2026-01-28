@@ -7,6 +7,7 @@ import io.github.tfkfan.orbital.core.factory.GameRoomFactory;
 import io.github.tfkfan.orbital.core.factory.GameStateFactory;
 import io.github.tfkfan.orbital.core.factory.PlayerFactory;
 import io.github.tfkfan.orbital.core.manager.GameManager;
+import io.github.tfkfan.orbital.core.metrics.GameManagerMetrics;
 import io.github.tfkfan.orbital.core.metrics.registrar.GameManagerMetricsRegistrar;
 import io.github.tfkfan.orbital.core.model.players.Player;
 import io.github.tfkfan.orbital.core.room.GameRoom;
@@ -14,6 +15,7 @@ import io.github.tfkfan.orbital.core.room.RoomType;
 import io.github.tfkfan.orbital.core.session.PlayerSession;
 import io.github.tfkfan.orbital.core.shared.ActionType;
 import io.github.tfkfan.orbital.core.state.GameState;
+import io.micrometer.core.instrument.Gauge;
 import io.vertx.core.Vertx;
 import io.vertx.core.eventbus.Message;
 import io.vertx.core.json.JsonArray;
@@ -147,6 +149,14 @@ public class GameManagerImpl<R extends GameRoom, S extends GameState> implements
 
     public Integer totalPlayers() {
         return playerSessionsMap.size();
+    }
+
+    @Override
+    public long avgUpdateMs() {
+        return (long) gameRoomMap.values().stream()
+                .mapToLong(it -> it.metrics().updateMs())
+                .average()
+                .orElse(0L);
     }
 
     @Override

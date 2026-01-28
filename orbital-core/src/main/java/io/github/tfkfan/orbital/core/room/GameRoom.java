@@ -1,6 +1,7 @@
 package io.github.tfkfan.orbital.core.room;
 
 import io.github.tfkfan.orbital.core.configuration.props.RoomConfig;
+import io.github.tfkfan.orbital.core.metrics.GameRoomMetrics;
 import io.github.tfkfan.orbital.core.scheduler.Scheduler;
 import io.github.tfkfan.orbital.core.event.Event;
 import io.github.tfkfan.orbital.core.event.listener.EventListener;
@@ -17,6 +18,8 @@ public interface GameRoom extends Callable<Long>, MessageBroadcaster, RoomEventP
     RoomType roomType();
 
     RoomConfig config();
+
+    GameRoomMetrics metrics();
 
     static String constructEventListenerConsumer(UUID gameRoomId, Class<?> clazz) {
         return "%s.%s".formatted(gameRoomId, clazz.getSimpleName()).toLowerCase();

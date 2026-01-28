@@ -14,6 +14,11 @@ public class GameRoomMetricsRegistrar extends AbstractMetricsRegistrar {
 
     @Override
     public void register() {
+        register(Gauge.builder("com.tfkfan.orbital.game.rooms.update", gameRoomMetrics, GameRoomMetrics::updateMs)
+                .description("Current update tick duration ms")
+                .tag("id", gameRoomMetrics.id())
+                .register(registry()));
+
         register(Gauge.builder("com.tfkfan.orbital.game.rooms.players.active", gameRoomMetrics, GameRoomMetrics::currentPlayers)
                 .description("Current players per room count")
                 .tag("id", gameRoomMetrics.id())

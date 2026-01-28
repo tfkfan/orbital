@@ -4,4 +4,6 @@ public interface GameManagerMetrics extends Measure {
     Integer totalRooms();
 
     Integer totalPlayers();
+
+    long avgUpdateMs();
 }
