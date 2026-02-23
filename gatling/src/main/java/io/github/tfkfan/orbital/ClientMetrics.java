@@ -14,6 +14,7 @@ import java.util.List;
 @AllArgsConstructor
 public class ClientMetrics {
     private Integer updateTicks = 0;
+    private long lastMessageTimestamp = 0;
     private long lastUpdateTime = 0L;
     private long lastJoinRequestTime = 0L;
     private long lastJoinSuccessTime = 0L;

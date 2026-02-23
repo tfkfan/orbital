@@ -58,12 +58,13 @@ public class LoadTestVerticle extends AbstractVerticle {
                         webSocket.textMessageHandler(text -> {
                             try {
                                 Message message = DatabindCodec.mapper().readValue(text, Message.class);
+                                long ts = message.getTimestamp();
                                 long ms = System.currentTimeMillis();
                                 switch (message.getType()) {
                                     case MessageTypes.GAME_ROOM_JOIN_SUCCESS -> metrics.setLastJoinSuccessTime(ms);
                                     case MessageTypes.GAME_ROOM_BATTLE_START -> metrics.setLastBattleStartTime(ms);
                                     case MessageTypes.UPDATE -> {
-                                        if (metrics.getLastBattleStartTime() == 0L)
+                                        if (metrics.getLastBattleStartTime() == 0L || ts < metrics.getLastMessageTimestamp())
                                             return;
                                         if (metrics.getLastUpdateTime() != 0L) {
                                             long responseMs = System.currentTimeMillis() - metrics.getLastUpdateTime();
@@ -73,6 +74,7 @@ public class LoadTestVerticle extends AbstractVerticle {
                                             if (metrics.getMaxUpdateDelay() < responseMs)
                                                 metrics.setMaxUpdateDelay(responseMs);
                                         }
+                                        metrics.setLastMessageTimestamp(ts);
                                         metrics.setLastUpdateTime(System.currentTimeMillis());
                                         metrics.setUpdateTicks(metrics.getUpdateTicks() + 1);
                                         metrics.setAverageUpdateDelay(metrics.getSumUpdateDelay() / metrics.getUpdateTicks());
