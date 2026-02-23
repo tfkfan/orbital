@@ -6,9 +6,13 @@ import lombok.SneakyThrows;
 import java.util.Map;
 
 public class Message {
-    private final int type;
+    private int type;
     private final long timestamp;
     private Map<String, Object> data;
+
+    public Message() {
+        this.timestamp = System.currentTimeMillis();
+    }
 
     public Message(int type) {
         this(type, null);

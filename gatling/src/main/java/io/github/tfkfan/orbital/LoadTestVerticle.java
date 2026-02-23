@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import io.github.tfkfan.orbital.core.configuration.MessageTypes;
 import io.github.tfkfan.orbital.core.network.message.Message;
 import io.github.tfkfan.orbital.core.room.RoomType;
+import io.github.tfkfan.orbital.data.MessageWrapper;
 import io.vertx.core.*;
 import io.vertx.core.http.WebSocket;
 import io.vertx.core.http.WebSocketClient;
@@ -15,14 +16,16 @@ import org.icepear.echarts.Bar;
 import org.icepear.echarts.Line;
 import org.icepear.echarts.render.Engine;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
 @Slf4j
 public class LoadTestVerticle extends AbstractVerticle {
-    int clients = 10;
+    int clients = 1;
     long maxTimeMs = 20000;
 
     int connections = clients;
@@ -33,6 +36,8 @@ public class LoadTestVerticle extends AbstractVerticle {
     TestMetrics testMetrics = new TestMetrics();
 
     Map<String, ClientMetrics> clientMetrics = new HashMap<>();
+    List<MessageWrapper> msgs = new ArrayList<>();
+    List<MessageWrapper> wrongMsgs = new ArrayList<>();
 
     @Override
     public void start(Promise<Void> startPromise) {
@@ -44,6 +49,7 @@ public class LoadTestVerticle extends AbstractVerticle {
         log.info("Start load test");
         testMetrics.setStartTimeMs(System.currentTimeMillis());
         testMetrics.setPlayersCountAtStart(clients);
+
         for (int i = 0; i < clients; i++) {
             final String playerId = "player_" + i;
             final ClientMetrics metrics = new ClientMetrics();
@@ -64,10 +70,19 @@ public class LoadTestVerticle extends AbstractVerticle {
                                     case MessageTypes.GAME_ROOM_JOIN_SUCCESS -> metrics.setLastJoinSuccessTime(ms);
                                     case MessageTypes.GAME_ROOM_BATTLE_START -> metrics.setLastBattleStartTime(ms);
                                     case MessageTypes.UPDATE -> {
-                                        if (metrics.getLastBattleStartTime() == 0L || ts < metrics.getLastMessageTimestamp())
+                                        msgs.add(new MessageWrapper(message, System.currentTimeMillis()));
+                                        if (metrics.getLastBattleStartTime() == 0L)
                                             return;
+                                        if (ts < metrics.getLastMessageTimestamp()) {
+                                            log.warn("ts is wrong");
+                                            return;
+                                        }
                                         if (metrics.getLastUpdateTime() != 0L) {
                                             long responseMs = System.currentTimeMillis() - metrics.getLastUpdateTime();
+                                            if (responseMs == 0) {
+                                                log.warn("resp is 0");
+                                                wrongMsgs.add(new MessageWrapper(message, System.currentTimeMillis()));
+                                            }
                                             metrics.setLastUpdateDelay(responseMs);
                                             testMetrics.getUpdateDelayTimeSeries().add(responseMs);
                                             metrics.setSumUpdateDelay(metrics.getLastUpdateDelay() + responseMs);
@@ -112,6 +127,8 @@ public class LoadTestVerticle extends AbstractVerticle {
         engine.render("./gatling/players.html", line);
 
 
+        log.info("Updates accepted {}", msgs.size());
+        msgs.sort((o1, o2) -> Long.compare(o1.clientTimestamp(), o2.clientTimestamp()));
         Map<Long, Long> updateDelaySeries = testMetrics.getUpdateDelayTimeSeries()
                 .stream()
                 .collect(Collectors.groupingBy(it -> it, Collectors.counting()));
