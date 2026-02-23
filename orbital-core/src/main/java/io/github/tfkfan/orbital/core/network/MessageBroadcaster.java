@@ -12,8 +12,12 @@ import java.util.function.Function;
  */
 public interface MessageBroadcaster {
     void broadcast(MessageType type, String message);
+
     void broadcast(Message message);
+
     void broadcast(int messageType, Object content);
+
     void broadcast(Function<Session, JsonObject> messageFunction);
+
     void broadcast(JsonObject jsonObject);
 }

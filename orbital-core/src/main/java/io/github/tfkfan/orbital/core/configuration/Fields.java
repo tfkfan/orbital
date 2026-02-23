@@ -13,4 +13,5 @@ public interface Fields {
     String type = "type";
     String data = "data";
     String name = "name";
+    String timestamp = "timestamp";
 }

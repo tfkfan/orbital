@@ -43,7 +43,7 @@ public abstract class Session implements MessageSender {
     @Override
     public void sendTo(String address, JsonObject message) {
         Vertx.currentContext().owner().eventBus().publish(address,
-                JsonObject.mapFrom(message));
+                processBeforeSend(JsonObject.mapFrom(message)));
     }
 
     @Override
@@ -52,21 +52,19 @@ public abstract class Session implements MessageSender {
         if (!(content instanceof String) && !(content instanceof JsonObject))
             data = JsonObject.mapFrom(content);
 
-        Vertx.currentContext().owner().eventBus().publish(
-                Constants.sessionConsumer(Constants.GAME_ADDRESS, id),
-                new JsonObject().put(Fields.type, messageType)
-                        .put(Fields.data, data));
+        sendTo(Constants.sessionConsumer(Constants.GAME_ADDRESS, id), new JsonObject()
+                .put(Fields.type, messageType)
+                .put(Fields.data, data));
     }
 
     @Override
     public void send(Message message) {
-        Vertx.currentContext().owner().eventBus().publish(Constants.sessionConsumer(Constants.GAME_ADDRESS, id),
-                JsonObject.mapFrom(message));
+        sendTo(Constants.sessionConsumer(Constants.GAME_ADDRESS, id), JsonObject.mapFrom(message));
     }
 
     @Override
     public void send(JsonObject message) {
-        Vertx.currentContext().owner().eventBus().publish(Constants.sessionConsumer(Constants.GAME_ADDRESS, id), message);
+        sendTo(Constants.sessionConsumer(Constants.GAME_ADDRESS, id), message);
     }
 
     @Override
