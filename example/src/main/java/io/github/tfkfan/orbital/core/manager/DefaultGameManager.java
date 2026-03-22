@@ -18,11 +18,11 @@ public class DefaultGameManager extends GameManagerImpl<DefaultGameRoom, BaseGam
     private static Double ABS_PLAYER_SPEED = 10.0;
 
     public static Function<OrbitalConfig, GameManagerFactory> factory() {
-        return config -> vId -> new DefaultGameManager(vId, new GeometryResources().load(), config.getRoom());
+        return config -> (vertx, vId) -> new DefaultGameManager(vertx, vId, new GeometryResources().load(), config.getRoom());
     }
 
-    public DefaultGameManager(String verticleId, GeometryResources geometryResources, RoomConfig roomConfig) {
-        super(verticleId, Vertx.currentContext().owner(), roomConfig,
+    public DefaultGameManager(Vertx vertx, String verticleId, GeometryResources geometryResources, RoomConfig roomConfig) {
+        super(vertx, verticleId, roomConfig,
                 (nextId, gameRoom, userSession, inputData) ->
                         new Player2D(nextId,
                                 gameRoom,

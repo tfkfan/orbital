@@ -8,16 +8,18 @@ import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public class GameRoomVerticle extends BaseVerticle {
-    final GameManager gameManager;
+    GameManager gameManager;
+    final GameManagerFactory gameManagerFactory;
 
     public GameRoomVerticle(GameManagerFactory gameManagerFactory) {
         super();
-        this.gameManager = gameManagerFactory.apply(verticleId());
+        this.gameManagerFactory = gameManagerFactory;
     }
 
     @Override
     public void start(Promise<Void> startPromise) throws Exception {
         super.start(startPromise);
+        this.gameManager = gameManagerFactory.apply(vertx, verticleId());
         log.info("Room verticle with id {} started", verticleId());
     }
 }

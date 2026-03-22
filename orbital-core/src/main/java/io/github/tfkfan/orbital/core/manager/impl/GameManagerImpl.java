@@ -38,8 +38,8 @@ public class GameManagerImpl<R extends GameRoom, S extends GameState> implements
     protected final GameStateFactory<S> gameStateFactory;
     protected final GameRoomFactory<R, S> gameRoomFactory;
 
-    public GameManagerImpl(String verticleId,
-                           Vertx vertx,
+    public GameManagerImpl(Vertx vertx,
+                           String verticleId,
                            RoomConfig roomConfig,
                            PlayerFactory playerFactory,
                            GameStateFactory<S> gameStateFactory,
@@ -91,7 +91,7 @@ public class GameManagerImpl<R extends GameRoom, S extends GameState> implements
     protected GameRoom onNewRoom(final UUID roomId, final RoomType roomType, final S gameState, JsonArray playersSessions) {
         validatePlayersCount(roomType, playersSessions, roomId);
 
-        final GameRoom room = gameRoomFactory.createGameRoom(verticleId, roomId, roomType,
+        final GameRoom room = gameRoomFactory.createGameRoom(vertx, verticleId, roomId, roomType,
                 gameState, this, roomConfig);
         room.create();
 

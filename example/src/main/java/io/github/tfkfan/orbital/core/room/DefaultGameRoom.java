@@ -9,21 +9,25 @@ import io.github.tfkfan.orbital.core.model.players.Player2D;
 import io.github.tfkfan.orbital.core.network.message.MessageType;
 import io.github.tfkfan.orbital.core.session.PlayerSession;
 import io.github.tfkfan.orbital.core.state.GameState;
+import io.vertx.core.Vertx;
 
 import java.util.UUID;
 
 public class DefaultGameRoom extends AbstractGameRoom<GameState> {
 
-    public DefaultGameRoom(String verticleId, UUID gameRoomId, RoomType roomType,
+    public DefaultGameRoom(Vertx vertx,
+                           String verticleId,
+                           UUID gameRoomId,
+                           RoomType roomType,
                            GameState state,
                            GameManager gameManager,
                            RoomConfig roomConfig) {
-        super(state, verticleId, gameRoomId, roomType, gameManager, roomConfig);
+        super(vertx, state, verticleId, gameRoomId, roomType, gameManager, roomConfig);
     }
 
     @Override
     public void onBattleStart() {
-        schedule(5000L, l->broadcast(MessageType.ROOM,"Room event emit"));
+        schedule(5000L, l -> broadcast(MessageType.ROOM, "Room event emit"));
     }
 
     @Override

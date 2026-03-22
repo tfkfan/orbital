@@ -14,6 +14,9 @@ import io.vertx.core.json.jackson.DatabindCodec;
 import io.vertx.ext.web.handler.CorsHandler;
 import lombok.extern.slf4j.Slf4j;
 
+import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadPoolExecutor;
+
 @Slf4j
 public class Main {
     static {
@@ -21,17 +24,16 @@ public class Main {
     }
 
     public static void main(String[] args) {
-        Orbital.newCluster(OrbitalBuilder.create(MonitorableVertx.create(vertxOptions -> {
-                                    vertxOptions.setEventBusOptions(new EventBusOptions()
-                                            .setSendBufferSize(10));
-                                }))
-                                .withConfig(ctx -> ctx.withExtension("gold", 100))
-                                .withWebsocketGateway(new DeploymentOptions())
-                                .withGameManagerFactory(new DeploymentOptions()
-                                                .setInstances(3)
-                                                .setWorkerPoolName("workingpool")
-                                                .setThreadingModel(ThreadingModel.VIRTUAL_THREAD),
-                                        DefaultGameManager.factory())
+        Orbital.newCluster(OrbitalBuilder.create(MonitorableVertx.create(vertxOptions ->
+                                vertxOptions.setEventBusOptions(new EventBusOptions()
+                                        .setSendBufferSize(10))))
+                        .withConfig(ctx -> ctx.withExtension("gold", 100))
+                        .withWebsocketGateway(new DeploymentOptions())
+                        .withGameManagerFactory(new DeploymentOptions()
+                                        .setInstances(3)
+                                        .setWorkerPoolName("workingpool")
+                                        .setThreadingModel(ThreadingModel.VIRTUAL_THREAD),
+                                DefaultGameManager.factory())
                 )
                 .onFailure(th -> log.error("Startup error", th))
                 .onSuccess(orbital -> log.info("Orbital cluster is ready"));

@@ -85,14 +85,14 @@ public abstract class AbstractGameRoom<S extends GameState> implements GameRoom 
         }
     };
 
-    public AbstractGameRoom(S state, String verticleId, UUID gameRoomId, RoomType roomType, GameManager gameManager, RoomConfig config) {
+    public AbstractGameRoom(Vertx vertx, S state, String verticleId, UUID gameRoomId, RoomType roomType, GameManager gameManager, RoomConfig config) {
         this.state = Objects.requireNonNull(state);
         this.gameRoomId = Objects.requireNonNull(gameRoomId);
         this.verticleId = Objects.requireNonNull(verticleId);
         this.roomType = Objects.requireNonNull(roomType);
         this.gameManager = Objects.requireNonNull(gameManager);
         this.config = Objects.requireNonNull(config);
-        this.vertx = Vertx.currentContext().owner();
+        this.vertx = vertx;
         this.scheduler = new RoomScheduler(vertx);
 
         addEventListener(this::onPlayerKeyDown, KeyDownPlayerEvent.class);
@@ -167,8 +167,8 @@ public abstract class AbstractGameRoom<S extends GameState> implements GameRoom 
     public void start() {
         log.trace("Room {} start call", key());
 
-        schedule(config.getEndDelay() + config.getStartDelay(), (t) -> battleEnd());
-        schedule(config.getStartDelay(), (t) -> battleStart());
+        schedule(config.getEndDelay() + config.getStartDelay(), this::battleEndScheduled);
+        schedule(config.getStartDelay(), this::battleStartScheduled);
         broadcast(MessageTypes.GAME_ROOM_START, new GameRoomInfoPack(
                 OffsetDateTime.now().plus(config.getStartDelay(), ChronoUnit.MILLIS).toInstant().toEpochMilli()
         ));
@@ -176,6 +176,14 @@ public abstract class AbstractGameRoom<S extends GameState> implements GameRoom 
         gameManager.onStart(this);
         onStart();
         log.debug("Room {} just started", key());
+    }
+
+    private void battleEndScheduled(Long t) {
+        battleEnd();
+    }
+
+    private void battleStartScheduled(Long t) {
+        battleStart();
     }
 
     protected void battleStart() {

@@ -6,10 +6,12 @@ import io.vertx.core.Vertx;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Callable;
+import java.util.concurrent.locks.ReentrantLock;
 
 public class RoomScheduler implements Scheduler {
     private final List<Long> futures = new ArrayList<>();
     private final Vertx vertx;
+    private final ReentrantLock lock = new ReentrantLock();
 
     public RoomScheduler(Vertx vertx) {
         this.vertx = vertx;
@@ -29,8 +31,25 @@ public class RoomScheduler implements Scheduler {
     }
 
     @Override
+    // This method should be thread safe and called sequentially - game loop as example
     public void schedulePeriodically(Long initDelay, Long loopRate, Callable<Long> task) {
-        futures.add(vertx.setPeriodic(initDelay, loopRate, (l) -> vertx.executeBlocking(task, true)));
+        final Callable<Long> scheduledTask = wrap(task);
+        futures.add(vertx.setPeriodic(initDelay, loopRate, (l) -> vertx.executeBlocking(scheduledTask, true)));
+    }
+
+    private Callable<Long> wrap(Callable<Long> task) {
+        return () -> {
+            if (lock.tryLock()) {
+                try {
+                    return task.call();
+                } catch (Exception e) {
+                    throw new RuntimeException(e);
+                } finally {
+                    lock.unlock();
+                }
+            }
+            return 0L;
+        };
     }
 
     public void eraseTasks() {
