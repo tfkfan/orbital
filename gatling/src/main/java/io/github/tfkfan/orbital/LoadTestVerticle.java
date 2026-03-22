@@ -16,16 +16,13 @@ import org.icepear.echarts.Bar;
 import org.icepear.echarts.Line;
 import org.icepear.echarts.render.Engine;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
 @Slf4j
 public class LoadTestVerticle extends AbstractVerticle {
-    int clients = 100;
+    int clients = 200;
     long maxTimeMs = 20000;
 
     int connections = clients;
@@ -128,7 +125,7 @@ public class LoadTestVerticle extends AbstractVerticle {
 
 
         log.info("Updates accepted {}", msgs.size());
-        msgs.sort((o1, o2) -> Long.compare(o1.clientTimestamp(), o2.clientTimestamp()));
+        msgs.sort(Comparator.comparingLong(MessageWrapper::clientTimestamp));
         Map<Long, Long> updateDelaySeries = testMetrics.getUpdateDelayTimeSeries()
                 .stream()
                 .collect(Collectors.groupingBy(it -> it, Collectors.counting()));

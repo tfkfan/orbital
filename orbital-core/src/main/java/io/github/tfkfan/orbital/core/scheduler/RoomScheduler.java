@@ -31,7 +31,7 @@ public class RoomScheduler implements Scheduler {
     }
 
     @Override
-    // This method should be thread safe and called sequentially - game loop as example
+    // This method should be thread safe. Task called sequentially with locking - game loop as example
     public void schedulePeriodically(Long initDelay, Long loopRate, Callable<Long> task) {
         final Callable<Long> scheduledTask = wrap(task);
         futures.add(vertx.setPeriodic(initDelay, loopRate, (l) -> vertx.executeBlocking(scheduledTask, true)));
