@@ -25,7 +25,7 @@ import java.util.stream.Collectors;
 
 @Slf4j
 public class LoadTestVerticle extends AbstractVerticle {
-    int clients = 1;
+    int clients = 100;
     long maxTimeMs = 20000;
 
     int connections = clients;
