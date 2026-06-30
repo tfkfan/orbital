@@ -1,7 +1,7 @@
 package io.github.tfkfan.orbital.core.math.random;
 
 import io.github.tfkfan.orbital.core.math.Vector2D;
-import io.github.tfkfan.orbital.core.math.Vector3D;
+import io.github.tfkfan.orbital.core.math.Vector;
 
 public class Random {
     public static int getRandomIndex(int max) {
@@ -16,8 +16,8 @@ public class Random {
         return new Vector2D(getRandomNumber(min, max), getRandomNumber(min, max));
     }
 
-    public static Vector3D getRandomVector3D(int min, int max) {
-        return new Vector3D(getRandomNumber(min, max), getRandomNumber(min, max), getRandomNumber(min, max));
+    public static Vector getRandomVector3D(int min, int max) {
+        return new Vector(getRandomNumber(min, max), getRandomNumber(min, max), getRandomNumber(min, max));
     }
 
     public static double getRandomNumber(double min, double max) {

@@ -1,6 +1,6 @@
 package io.github.tfkfan.orbital.geo.index;
 
-import io.github.tfkfan.orbital.core.math.Vector3D;
+import io.github.tfkfan.orbital.core.math.Vector;
 import io.github.tfkfan.orbital.core.model.BaseGameEntity;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.lucene.spatial.SpatialStrategy;
@@ -18,7 +18,7 @@ import java.util.Set;
  * @author Baltser Artem tfkfan
  */
 @Slf4j
-public class GameEntity3DIndex<E extends BaseGameEntity<?, Vector3D>> extends GameEntityIndex<Vector3D, E> {
+public class GameEntity3DIndex<E extends BaseGameEntity<?, Vector>> extends GameEntityIndex<Vector, E> {
     public GameEntity3DIndex(SpatialContextFactory factory, int maxLevels) {
         super(factory, maxLevels);
     }
@@ -61,12 +61,12 @@ public class GameEntity3DIndex<E extends BaseGameEntity<?, Vector3D>> extends Ga
     }
 
     @Override
-    public Set<E> neighbors(Vector3D point, double radius) {
+    public Set<E> neighbors(Vector point, double radius) {
         return search(new SpatialArgs(SpatialOperation.Intersects, circle3D(point, radius)), Integer.MAX_VALUE);
     }
 
     @Override
-    public Set<E> neighbors(Vector3D stripePointA, Vector3D stripePointB, double radius) {
+    public Set<E> neighbors(Vector stripePointA, Vector stripePointB, double radius) {
         return search(new SpatialArgs(SpatialOperation.Intersects, stripe3D(stripePointA, stripePointB, radius)), Integer.MAX_VALUE);
     }
 }

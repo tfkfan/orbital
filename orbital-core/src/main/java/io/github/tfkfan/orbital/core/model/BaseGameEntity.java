@@ -1,34 +1,34 @@
 package io.github.tfkfan.orbital.core.model;
 
-import io.github.tfkfan.orbital.core.math.Vector;
 import io.github.tfkfan.orbital.core.room.GameRoom;
 import lombok.Getter;
 import lombok.Setter;
+import org.locationtech.spatial4j.shape.Point;
 
 import java.io.Serializable;
 
 @Getter
 @Setter
-public abstract class BaseGameEntity<ID extends Serializable, V extends Vector<V>> implements GameEntity<ID>, DynamicEntity<ID, V> {
+public abstract class BaseGameEntity<ID extends Serializable> implements GameEntity<ID>, DynamicEntity<ID> {
     private final ID id;
 
     protected final GameRoom gameRoom;
     protected boolean isMoving = false;
     protected boolean isAlive = true;
 
-    protected V position;
-    protected V initialPosition;
-    protected V velocity;
-    protected V initialVelocity;
-    protected V acceleration;
-    protected V initialAcceleration;
+    protected Point position;
+    protected Point initialPosition;
+    protected Point velocity;
+    protected Point initialVelocity;
+    protected Point acceleration;
+    protected Point initialAcceleration;
 
     public BaseGameEntity(ID id, GameRoom gameRoom) {
         this.id = id;
         this.gameRoom = gameRoom;
     }
 
-    public BaseGameEntity(ID id, GameRoom gameRoom, boolean isMoving, boolean isAlive, V position, V velocity, V acceleration) {
+    public BaseGameEntity(ID id, GameRoom gameRoom, boolean isMoving, boolean isAlive, Point position, Point velocity, Point acceleration) {
         this(id, gameRoom);
         this.isMoving = isMoving;
         this.isAlive = isAlive;

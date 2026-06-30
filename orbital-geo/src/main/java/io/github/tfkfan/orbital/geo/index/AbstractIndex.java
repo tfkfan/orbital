@@ -2,7 +2,6 @@ package io.github.tfkfan.orbital.geo.index;
 
 import io.github.tfkfan.orbital.core.math.Vector;
 import io.github.tfkfan.orbital.core.math.Vector2D;
-import io.github.tfkfan.orbital.core.math.Vector3D;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field;
@@ -10,14 +9,12 @@ import org.apache.lucene.document.StoredField;
 import org.apache.lucene.index.DirectoryReader;
 import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.index.IndexWriterConfig;
-import org.apache.lucene.index.Term;
 import org.apache.lucene.search.IndexSearcher;
 import org.apache.lucene.spatial.SpatialStrategy;
 import org.apache.lucene.spatial.prefix.RecursivePrefixTreeStrategy;
 import org.apache.lucene.spatial.prefix.tree.QuadPrefixTree;
 import org.apache.lucene.spatial.prefix.tree.SpatialPrefixTree;
 import org.apache.lucene.spatial.query.SpatialArgs;
-import org.apache.lucene.spatial.query.SpatialOperation;
 import org.apache.lucene.store.ByteBuffersDirectory;
 import org.apache.lucene.store.Directory;
 import org.locationtech.spatial4j.context.SpatialContext;
@@ -135,7 +132,7 @@ public abstract class AbstractIndex<O, T, V extends Vector<V>> implements Index<
         return factory.circle(factory.pointXY(point.getX(), point.getY()), radius);
     }
 
-    protected Shape circle3D(Vector3D point, double radius) {
+    protected Shape circle3D(Vector point, double radius) {
         return factory.circle(factory.pointXYZ(point.getX(), point.getY(), point.getZ()), radius);
     }
 
@@ -150,7 +147,7 @@ public abstract class AbstractIndex<O, T, V extends Vector<V>> implements Index<
                 .build();
     }
 
-    protected Shape stripe3D(Vector3D stripePointA, Vector3D stripePointB, double radius) {
+    protected Shape stripe3D(Vector stripePointA, Vector stripePointB, double radius) {
         return factory.multiShape(Shape.class)
                 .add(factory.circle(factory.pointXYZ(stripePointB.getX(), stripePointB.getY(), stripePointB.getZ()), radius))
                 .add(factory.rect(

@@ -7,6 +7,10 @@ dependencies {
     api("io.micrometer:micrometer-registry-prometheus:1.12.13")
     api("com.fasterxml.jackson.core:jackson-databind:${jacksonVersion}")
     api("ch.qos.logback:logback-classic:1.5.12")
+    api("org.apache.lucene:lucene-core:${luceneVersion}")
+    api("org.apache.lucene:lucene-spatial-extras:${luceneVersion}")
+    api("org.locationtech.jts:jts-core:1.17.0")
+
     compileOnly("org.projectlombok:lombok:${lombokVersion}")
     annotationProcessor("org.projectlombok:lombok:${lombokVersion}")
 }
