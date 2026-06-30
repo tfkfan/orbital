@@ -24,12 +24,12 @@ public class Main {
                         .withConfig(ctx -> ctx.withExtension("gold", 100))
                         .withWebsocketGateway(new DeploymentOptions())
                         .withGameManagerFactory(new DeploymentOptions()
-                                        .setInstances(10)
+                                        .setInstances(3)
                                         .setThreadingModel(ThreadingModel.VIRTUAL_THREAD)
                                         .setWorkerPoolSize(100),
                                 DefaultGameManager.factory())
                 )
                 .onFailure(th -> log.error("Startup error", th))
-                .onSuccess(orbital -> log.info("Orbital cluster is ready"));
+                .onSuccess(orbital -> log.info("Orbital cluster is ready: {}", orbital.vertx().isClustered()));
     }
 }

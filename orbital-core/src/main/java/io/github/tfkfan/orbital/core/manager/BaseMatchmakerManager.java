@@ -70,7 +70,7 @@ public abstract class BaseMatchmakerManager extends BaseManager implements Match
     }
 
     protected void handleJoinTraining(final GameRoomJoinEvent joinEvent) {
-        requestRoomManagementCreateEvent(newRoomId(), RoomType.TRAINING, Collections.singletonList(joinEvent));
+        requestRoomManagementCreateEvent(RoomType.TRAINING, Collections.singletonList(joinEvent));
     }
 
     protected void handleJoin(final RoomType roomType, final GameRoomJoinEvent joinEvent) {
@@ -81,11 +81,11 @@ public abstract class BaseMatchmakerManager extends BaseManager implements Match
         if (playersQueue.size() < roomConfig.getMaxPlayers())
             return;
 
-        requestRoomManagementCreateEvent(newRoomId(), roomType, playersQueue.chunk(roomConfig.getMaxPlayers()));
+        requestRoomManagementCreateEvent(roomType, playersQueue.chunk(roomConfig.getMaxPlayers()));
     }
 
-    private UUID newRoomId() {
-        return UUID.randomUUID();
+    protected void requestRoomManagementCreateEvent(final RoomType roomType, List<GameRoomJoinEvent> userSessions) {
+        requestRoomManagementCreateEvent(GameRoom.newId(), roomType, userSessions);
     }
 
     protected void requestRoomManagementCreateEvent(final UUID roomId, final RoomType roomType, List<GameRoomJoinEvent> userSessions) {

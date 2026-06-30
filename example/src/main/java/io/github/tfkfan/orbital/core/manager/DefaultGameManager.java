@@ -1,5 +1,6 @@
 package io.github.tfkfan.orbital.core.manager;
 
+import io.github.tfkfan.orbital.core.ConfigurationContext;
 import io.github.tfkfan.orbital.core.configuration.props.OrbitalConfig;
 import io.github.tfkfan.orbital.core.configuration.props.RoomConfig;
 import io.github.tfkfan.orbital.core.factory.GameManagerFactory;
@@ -17,12 +18,14 @@ import java.util.function.Function;
 public class DefaultGameManager extends GameManagerImpl<DefaultGameRoom, BaseGameState> {
     private static Double ABS_PLAYER_SPEED = 10.0;
 
-    public static Function<OrbitalConfig, GameManagerFactory> factory() {
-        return config -> vId -> new DefaultGameManager(vId, new GeometryResources().load(), config.getRoom());
+    public static Function<ConfigurationContext, GameManagerFactory> factory() {
+        return config -> vId -> new DefaultGameManager(vId, new GeometryResources().load(), config);
     }
 
-    public DefaultGameManager(String verticleId, GeometryResources geometryResources, RoomConfig roomConfig) {
-        super(verticleId, Vertx.currentContext().owner(), roomConfig,
+    public DefaultGameManager(String verticleId,
+                              GeometryResources geometryResources,
+                              ConfigurationContext configurationContext) {
+        super(verticleId, Vertx.currentContext().owner(), configurationContext,
                 (nextId, gameRoom, userSession, inputData) ->
                         new Player2D(nextId,
                                 gameRoom,

@@ -1,9 +1,9 @@
 package io.github.tfkfan.orbital.core.room;
 
+import io.github.tfkfan.orbital.core.ConfigurationContext;
 import io.github.tfkfan.orbital.core.configuration.Constants;
 import io.github.tfkfan.orbital.core.configuration.Fields;
 import io.github.tfkfan.orbital.core.configuration.MessageTypes;
-import io.github.tfkfan.orbital.core.configuration.props.RoomConfig;
 import io.github.tfkfan.orbital.core.event.*;
 import io.github.tfkfan.orbital.core.event.listener.EventListener;
 import io.github.tfkfan.orbital.core.manager.GameManager;
@@ -43,7 +43,7 @@ public abstract class AbstractGameRoom<S extends GameState> implements GameRoom 
     protected final GameManager gameManager;
 
     private final RoomType roomType;
-    private final RoomConfig config;
+    private final ConfigurationContext configurationContext;
     private final RoomScheduler scheduler;
     private final Map<String, PlayerSession> sessions = new HashMap<>();
     private final List<MessageConsumer<?>> consumerList = new ArrayList<>();
@@ -52,13 +52,14 @@ public abstract class AbstractGameRoom<S extends GameState> implements GameRoom 
 
     private final GameRoomMetricsRegistrar gameRoomMetricsRegistrar;
 
-    public AbstractGameRoom(S state, String verticleId, UUID gameRoomId, RoomType roomType, GameManager gameManager, RoomConfig config) {
+    public AbstractGameRoom(S state, String verticleId, UUID gameRoomId, RoomType roomType, GameManager gameManager,
+                            ConfigurationContext configurationContext) {
         this.state = Objects.requireNonNull(state);
         this.gameRoomId = Objects.requireNonNull(gameRoomId);
         this.verticleId = Objects.requireNonNull(verticleId);
         this.roomType = Objects.requireNonNull(roomType);
         this.gameManager = Objects.requireNonNull(gameManager);
-        this.config = Objects.requireNonNull(config);
+        this.configurationContext = Objects.requireNonNull(configurationContext);
         this.vertx = Vertx.currentContext().owner();
         this.scheduler = new RoomScheduler(vertx);
 
@@ -75,7 +76,7 @@ public abstract class AbstractGameRoom<S extends GameState> implements GameRoom 
 
             @Override
             public Integer maxPlayers() {
-                return config.getMaxPlayers();
+                return configurationContext.getConfig().getRoom().getMaxPlayers();
             }
 
             @Override
@@ -100,11 +101,6 @@ public abstract class AbstractGameRoom<S extends GameState> implements GameRoom 
         return roomType;
     }
 
-    @Override
-    public RoomConfig config() {
-        return config;
-    }
-
     protected void onPlayerKeyDown(PlayerSession playerSession, KeyDownPlayerEvent event) {
     }
 
@@ -117,7 +113,7 @@ public abstract class AbstractGameRoom<S extends GameState> implements GameRoom 
     protected void onPlayerInitRequest(PlayerSession playerSession, InitPlayerEvent event) {
         playerSession.send(MessageTypes.INIT,
                 new BaseGameInitPack(playerSession.getPlayer().getInitPack(),
-                        config.getLoopRate(),
+                        configurationContext.getConfig().getRoom().getLoopRate(),
                         state.alivePlayers(),
                         state.getPlayers().stream().map(IInitPackProvider::getInitPack).toList())
         );
@@ -159,10 +155,11 @@ public abstract class AbstractGameRoom<S extends GameState> implements GameRoom 
     public void start() {
         log.trace("Room {} start call", key());
 
-        schedule(config.getEndDelay() + config.getStartDelay(), (t) -> battleEnd());
-        schedule(config.getStartDelay(), (t) -> battleStart());
+        schedule(configurationContext.getConfig().getRoom().getStartDelay(), (t) -> battleStart());
+        schedule(configurationContext.getConfig().getRoom().getMatchDuration() +
+                configurationContext.getConfig().getRoom().getStartDelay(), (t) -> battleEnd());
         broadcast(MessageTypes.GAME_ROOM_START, new GameRoomInfoPack(
-                OffsetDateTime.now().plus(config.getStartDelay(), ChronoUnit.MILLIS).toInstant().toEpochMilli()
+                OffsetDateTime.now().plus(configurationContext.getConfig().getRoom().getStartDelay(), ChronoUnit.MILLIS).toInstant().toEpochMilli()
         ));
 
         gameManager.onStart(this);
@@ -176,10 +173,10 @@ public abstract class AbstractGameRoom<S extends GameState> implements GameRoom 
         started = true;
         gameManager.onBattleStart(this);
 
-        schedulePeriodically(config.getInitDelay(), config.getLoopRate(), this::update);
+        schedulePeriodically(0L, configurationContext.getConfig().getRoom().getLoopRate(), this::update);
         broadcast(MessageTypes.GAME_ROOM_BATTLE_START, new GameRoomInfoPack(
                 OffsetDateTime.now()
-                        .plus(config.getEndDelay(), ChronoUnit.MILLIS)
+                        .plus(configurationContext.getConfig().getRoom().getMatchDuration(), ChronoUnit.MILLIS)
                         .toInstant()
                         .toEpochMilli()
         ));
@@ -216,7 +213,8 @@ public abstract class AbstractGameRoom<S extends GameState> implements GameRoom 
         log.trace("Player session {} joined at room {}", playerSession.getId(), key());
 
         this.sessions.put(playerSession.getId(), playerSession);
-        playerSession.send(MessageTypes.GAME_ROOM_JOIN_SUCCESS, new GameSettingsPack(config.getLoopRate()));
+        playerSession.send(MessageTypes.GAME_ROOM_JOIN_SUCCESS,
+                new GameSettingsPack(configurationContext.getConfig().getRoom().getLoopRate()));
 
         onJoin(playerSession);
     }
@@ -226,7 +224,8 @@ public abstract class AbstractGameRoom<S extends GameState> implements GameRoom 
         log.trace("Player session {} rejoined at room {}. Reconnect key {}", playerSession.getId(), key(), reconnectKey);
 
         sessions.put(playerSession.getId(), playerSession);
-        playerSession.send(MessageTypes.GAME_ROOM_JOIN_SUCCESS, new GameSettingsPack(config.getLoopRate()));
+        playerSession.send(MessageTypes.GAME_ROOM_JOIN_SUCCESS,
+                new GameSettingsPack(configurationContext.getConfig().getRoom().getLoopRate()));
 
         onRejoin(playerSession, reconnectKey);
     }
@@ -341,12 +340,17 @@ public abstract class AbstractGameRoom<S extends GameState> implements GameRoom 
     }
 
     @Override
+    public void runOnContext(Handler<Void> task) {
+        scheduler.runOnContext(task);
+    }
+
+    @Override
     public void schedule(Long delayMillis, Handler<Long> task) {
         scheduler.schedule(delayMillis, task);
     }
 
     @Override
-    public void schedulePeriodically(Long initDelay, Long loopRate, Handler<Long> task) {
-        scheduler.schedulePeriodically(initDelay, loopRate, task);
+    public void schedulePeriodically(Long delayMillis, Long loopRate, Handler<Long> task) {
+        scheduler.schedulePeriodically(delayMillis, loopRate, task);
     }
 }

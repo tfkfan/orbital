@@ -1,6 +1,7 @@
 package io.github.tfkfan.orbital.core.manager.impl;
 
 import io.github.tfkfan.orbital.core.configuration.Constants;
+import io.github.tfkfan.orbital.core.configuration.EventBusAddressConstructor;
 import io.github.tfkfan.orbital.core.configuration.Fields;
 import io.github.tfkfan.orbital.core.manager.BaseGatewayManager;
 import io.github.tfkfan.orbital.core.manager.MatchmakerManager;
@@ -30,8 +31,8 @@ public class WebSocketManagerImpl extends BaseGatewayManager implements WebSocke
     @Override
     public void handle(ServerWebSocket webSocket) {
         switch (webSocket.path()) {
-            case Constants.WS_ADMIN_PATH -> onConnect(Constants.ADMIN_ADDRESS, webSocket);
-            case Constants.WS_GAME_PATH -> onConnect(Constants.GAME_ADDRESS, webSocket);
+            case Constants.WS_ADMIN_PATH -> onConnect(Constants.ADMIN_ADDR_PREFIX, webSocket);
+            case Constants.WS_GAME_PATH -> onConnect(Constants.GAME_ADDR_PREFIX, webSocket);
             default -> {
                 log.error("Wrong path: {}", webSocket.path());
                 webSocket.reject();
@@ -40,14 +41,14 @@ public class WebSocketManagerImpl extends BaseGatewayManager implements WebSocke
     }
 
     protected void onConnect(String address, ServerWebSocket webSocket) {
-        final GatewaySession session = new GatewaySession(address.equals(Constants.ADMIN_ADDRESS), webSocket);
+        final GatewaySession session = new GatewaySession(address.equals(Constants.ADMIN_ADDR_PREFIX), webSocket);
         matchmakerManager.onConnect(session);
 
         final MessageConsumer<?> broadcastConsumer = vertx.eventBus()
-                .<JsonObject>consumer(Constants.broadcastConsumer(address),
+                .<JsonObject>consumer(EventBusAddressConstructor.broadcastConsumer(address),
                         message -> webSocket.writeTextMessage(message.body().encode()));
         final MessageConsumer<?> sessionConsumer = vertx.eventBus()
-                .<JsonObject>localConsumer(Constants.sessionConsumer(address, session.getId()),
+                .<JsonObject>localConsumer(EventBusAddressConstructor.sessionConsumer(address, session.getId()),
                         message -> webSocket.writeTextMessage(message.body().encode()));
 
         webSocket.textMessageHandler(message -> this.onMessage(session, new JsonObject(message)));

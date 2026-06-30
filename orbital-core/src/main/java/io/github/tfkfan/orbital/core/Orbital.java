@@ -14,7 +14,7 @@ public final class Orbital {
     private final OrbitalClusterManager orbitalManager;
 
     public static Orbital get() {
-        return Objects.requireNonNull(instance, "");
+        return Objects.requireNonNull(instance, "Orbital instance is not initialized");
     }
 
     public static synchronized Future<Orbital> newCluster(OrbitalBuilder builder) {
@@ -37,11 +37,11 @@ public final class Orbital {
         this.orbitalManager = Objects.requireNonNull(orbitalManager);
     }
 
-    public Vertx getVertx() {
+    public Vertx vertx() {
         return vertx;
     }
 
-    public OrbitalClusterManager getOrbitalManager() {
+    public OrbitalClusterManager clusterManager() {
         return orbitalManager;
     }
 }

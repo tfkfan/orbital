@@ -1,5 +1,6 @@
 package io.github.tfkfan.orbital.core.factory;
 
+import io.github.tfkfan.orbital.core.ConfigurationContext;
 import io.github.tfkfan.orbital.core.OrbitalClusterManager;
 import io.github.tfkfan.orbital.core.configuration.props.OrbitalConfig;
 import io.github.tfkfan.orbital.core.verticle.impl.GatewayVerticle;
@@ -13,7 +14,7 @@ public class WebsocketGatewayFactory extends BaseGatewayFactory {
     }
 
     @Override
-    public Future<GatewayVerticle> create(OrbitalConfig config) {
+    public Future<GatewayVerticle> create(ConfigurationContext config) {
         final WebsocketGatewayVerticle v = new WebsocketGatewayVerticle(config, options, clusterManager);
         routerInitializers.forEach(v::withRouterInitializer);
         return Future.succeededFuture(v);

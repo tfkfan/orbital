@@ -1,6 +1,7 @@
 package io.github.tfkfan.orbital.core.verticle.impl;
 
 
+import io.github.tfkfan.orbital.core.ConfigurationContext;
 import io.github.tfkfan.orbital.core.OrbitalClusterManager;
 import io.github.tfkfan.orbital.core.configuration.props.OrbitalConfig;
 import io.github.tfkfan.orbital.core.configuration.props.RoomConfig;
@@ -15,12 +16,12 @@ import lombok.extern.slf4j.Slf4j;
 public class WebsocketGatewayVerticle extends GatewayVerticle {
     final WebSocketManager webSocketManager;
 
-    public WebsocketGatewayVerticle(OrbitalConfig config) {
-        this(config.getServer(), config.getRoom(), null);
+    public WebsocketGatewayVerticle(ConfigurationContext configurationContext) {
+        this(configurationContext.getConfig().getServer(), configurationContext.getConfig().getRoom(), null);
     }
 
-    public WebsocketGatewayVerticle(OrbitalConfig config, DeploymentOptions deploymentOptions, OrbitalClusterManager clusterManager) {
-        this(config.getServer(), config.getRoom(), clusterManager, deploymentOptions);
+    public WebsocketGatewayVerticle(ConfigurationContext configurationContext, DeploymentOptions deploymentOptions, OrbitalClusterManager clusterManager) {
+        this(configurationContext.getConfig().getServer(), configurationContext.getConfig().getRoom(), clusterManager, deploymentOptions);
     }
 
     public WebsocketGatewayVerticle(ServerConfig serverConfig, RoomConfig roomConfig, OrbitalClusterManager clusterManager) {

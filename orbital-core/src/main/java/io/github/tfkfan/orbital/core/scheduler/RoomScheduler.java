@@ -15,6 +15,11 @@ public class RoomScheduler implements Scheduler {
     }
 
     @Override
+    public void runOnContext(Handler<Void> task) {
+        vertx.runOnContext(task);
+    }
+
+    @Override
     public void schedule(Long delayMillis, Handler<Long> task) {
         if (delayMillis <= 1) {
             task.handle(0L);
@@ -28,8 +33,8 @@ public class RoomScheduler implements Scheduler {
     }
 
     @Override
-    public void schedulePeriodically(Long initDelay, Long loopRate, Handler<Long> task) {
-        futures.add(vertx.setPeriodic(initDelay, loopRate, task));
+    public void schedulePeriodically(Long delayMillis, Long loopRate, Handler<Long> task) {
+        futures.add(vertx.setPeriodic(delayMillis, loopRate, task));
     }
 
     public void eraseTasks() {

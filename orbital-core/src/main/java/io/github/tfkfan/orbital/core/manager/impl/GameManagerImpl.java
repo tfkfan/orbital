@@ -1,5 +1,6 @@
 package io.github.tfkfan.orbital.core.manager.impl;
 
+import io.github.tfkfan.orbital.core.ConfigurationContext;
 import io.github.tfkfan.orbital.core.configuration.Constants;
 import io.github.tfkfan.orbital.core.configuration.Fields;
 import io.github.tfkfan.orbital.core.configuration.props.RoomConfig;
@@ -26,7 +27,7 @@ import java.util.*;
 @Slf4j
 public class GameManagerImpl<R extends GameRoom, S extends GameState> implements GameManager {
     protected final Vertx vertx;
-    protected final RoomConfig roomConfig;
+    protected final ConfigurationContext configurationContext;
     protected final String verticleId;
 
     protected final Map<UUID, GameRoom> gameRoomMap = new HashMap<>();
@@ -38,12 +39,12 @@ public class GameManagerImpl<R extends GameRoom, S extends GameState> implements
 
     public GameManagerImpl(String verticleId,
                            Vertx vertx,
-                           RoomConfig roomConfig,
+                           ConfigurationContext configurationContext,
                            PlayerFactory playerFactory,
                            GameStateFactory<S> gameStateFactory,
                            GameRoomFactory<R, S> gameRoomFactory) {
         this.verticleId = Objects.requireNonNull(verticleId);
-        this.roomConfig = Objects.requireNonNull(roomConfig);
+        this.configurationContext = Objects.requireNonNull(configurationContext);
         this.vertx = Objects.requireNonNull(vertx);
         this.playerFactory = Objects.requireNonNull(playerFactory);
         this.gameStateFactory = Objects.requireNonNull(gameStateFactory);
@@ -58,48 +59,43 @@ public class GameManagerImpl<R extends GameRoom, S extends GameState> implements
         log.info("Received a message at room verticle {} : {}", verticleId, message.body().encode());
         final JsonObject json = message.body();
         final String rawAction = json.getString(Fields.action);
-        if (rawAction != null)
-            onRoom(ActionType.valueOf(rawAction), message, json);
-    }
-
-    protected void onRoom(ActionType actionType, Message<JsonObject> message, JsonObject json) {
-        switch (actionType) {
-            case NEW_ROOM -> {
-                final S gameState = gameStateFactory.get();
-                final RoomType roomType = RoomType.valueOf(json.getString(Fields.roomType));
-                final UUID roomId = UUID.fromString(json.getString(Fields.roomId));
-                final GameRoom room = onNewRoom(roomId, roomType, gameState, json.getJsonArray(Fields.sessions));
-                room.start();
+        if (rawAction != null) {
+            var actionType = ActionType.valueOf(rawAction);
+            switch (actionType) {
+                case NEW_ROOM -> onNewRoom(UUID.fromString(json.getString(Fields.roomId)),
+                        RoomType.valueOf(json.getString(Fields.roomType)),
+                        gameStateFactory.get(), json.getJsonArray(Fields.sessions));
+                case PLAYER_DISCONNECT ->
+                        Objects.requireNonNull(json.getJsonArray(Fields.sessions), "Sessions array is null")
+                                .stream()
+                                .map(it -> ((JsonObject) it).getString(Fields.sessionId))
+                                .forEach(sessionId -> {
+                                    try {
+                                        final PlayerSession session = playerSessionsMap.remove(sessionId);
+                                        if (session != null)
+                                            session.getPlayer().getGameRoom().disconnect(session);
+                                    } catch (Exception ignored) {
+                                    }
+                                });
             }
-            case PLAYER_DISCONNECT -> {
-                final List<String> sessionsIds = json.getJsonArray(Fields.sessions).stream().map(it -> ((JsonObject) it).getString(Fields.sessionId)).toList();
-                sessionsIds.forEach(sessionId -> {
-                    try {
-                        final PlayerSession session = playerSessionsMap.remove(sessionId);
-                        if (session != null)
-                            session.getPlayer().getGameRoom().disconnect(session);
-                    } catch (Exception ignored) {
-                    }
-                });
-            }
+            message.reply(new JsonObject().put(Fields.success, true));
         }
-        message.reply(new JsonObject().put(Fields.success, true));
     }
 
-    protected GameRoom onNewRoom(final UUID roomId, final RoomType roomType, final S gameState, JsonArray playersSessions) {
+    protected void onNewRoom(final UUID roomId, final RoomType roomType, final S gameState, JsonArray playersSessions) {
         validatePlayersCount(roomType, playersSessions, roomId);
 
         final GameRoom room = gameRoomFactory.createGameRoom(verticleId, roomId, roomType,
-                gameState, this, roomConfig);
+                gameState, this, configurationContext);
         room.create();
 
         playersSessions.forEach(s -> addPlayerSession(gameState, room, (JsonObject) s));
 
         if (RoomType.TRAINING.equals(roomType))
-            addNpcSessions(gameState, room, roomConfig.getMaxPlayers() - 1);
+            addNpcSessions(gameState, room, configurationContext.getConfig().getRoom().getMaxPlayers() - 1);
 
         gameRoomMap.put(room.key(), room);
-        return room;
+        room.start();
     }
 
     protected void addNpcSessions(S gameState, GameRoom room, int count) {
@@ -111,7 +107,6 @@ public class GameManagerImpl<R extends GameRoom, S extends GameState> implements
     }
 
     protected void postPlayerSessionHandle(final Player player) {
-
     }
 
     protected void addPlayerSession(S gameState, GameRoom room, JsonObject session) {
@@ -155,8 +150,8 @@ public class GameManagerImpl<R extends GameRoom, S extends GameState> implements
     }
 
     protected void validatePlayersCount(final RoomType roomType, final JsonArray playersSessions, final UUID roomId) {
-        if (RoomType.TRAINING.equals(roomType) && playersSessions.size() > 1 || !RoomType.TRAINING.equals(roomType) && playersSessions.size() >= roomConfig.getMaxPlayers())
+        if (RoomType.TRAINING.equals(roomType) && playersSessions.size() > 1
+                || !RoomType.TRAINING.equals(roomType) && playersSessions.size() >= configurationContext.getConfig().getRoom().getMaxPlayers())
             throw new IllegalArgumentException("Invalid players count received for room: " + roomId);
-
     }
 }

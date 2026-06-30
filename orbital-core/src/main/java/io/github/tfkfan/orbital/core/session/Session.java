@@ -1,6 +1,7 @@
 package io.github.tfkfan.orbital.core.session;
 
 import io.github.tfkfan.orbital.core.configuration.Constants;
+import io.github.tfkfan.orbital.core.configuration.EventBusAddressConstructor;
 import io.github.tfkfan.orbital.core.configuration.Fields;
 import io.github.tfkfan.orbital.core.configuration.MessageTypes;
 import io.github.tfkfan.orbital.core.network.MessageSender;
@@ -12,6 +13,8 @@ import io.vertx.core.json.JsonObject;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
 
@@ -19,6 +22,7 @@ import java.util.UUID;
 @Getter
 public abstract class Session implements MessageSender {
     private final String id;
+    private final Map<String, String> attributes = new HashMap<>();
     private final boolean npc;
     private final boolean admin;
 
@@ -42,8 +46,7 @@ public abstract class Session implements MessageSender {
 
     @Override
     public void sendTo(String address, JsonObject message) {
-        Vertx.currentContext().owner().eventBus().publish(address,
-                JsonObject.mapFrom(message));
+        Vertx.currentContext().owner().eventBus().publish(address, message);
     }
 
     @Override
@@ -52,21 +55,18 @@ public abstract class Session implements MessageSender {
         if (!(content instanceof String) && !(content instanceof JsonObject))
             data = JsonObject.mapFrom(content);
 
-        Vertx.currentContext().owner().eventBus().publish(
-                Constants.sessionConsumer(Constants.GAME_ADDRESS, id),
-                new JsonObject().put(Fields.type, messageType)
-                        .put(Fields.data, data));
+        sendTo(EventBusAddressConstructor.sessionConsumer(id), new JsonObject().put(Fields.type, messageType)
+                .put(Fields.data, data));
     }
 
     @Override
     public void send(Message message) {
-        Vertx.currentContext().owner().eventBus().publish(Constants.sessionConsumer(Constants.GAME_ADDRESS, id),
-                JsonObject.mapFrom(message));
+        sendTo(EventBusAddressConstructor.sessionConsumer(id), JsonObject.mapFrom(message));
     }
 
     @Override
     public void send(JsonObject message) {
-        Vertx.currentContext().owner().eventBus().publish(Constants.sessionConsumer(Constants.GAME_ADDRESS, id), message);
+        sendTo(EventBusAddressConstructor.sessionConsumer(id), message);
     }
 
     @Override
@@ -95,5 +95,17 @@ public abstract class Session implements MessageSender {
     @Override
     public int hashCode() {
         return Objects.hashCode(id);
+    }
+
+    public void addAttribute(String key, String value) {
+        attributes.put(key, value);
+    }
+
+    public String getAttribute(String key) {
+        return attributes.get(key);
+    }
+
+    public void removeAttribute(String key) {
+        attributes.remove(key);
     }
 }

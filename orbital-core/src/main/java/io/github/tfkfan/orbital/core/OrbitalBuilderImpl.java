@@ -58,7 +58,7 @@ public final class OrbitalBuilderImpl implements OrbitalBuilder {
         return this;
     }
 
-    public OrbitalBuilderImpl withGameManagerFactory(DeploymentOptions options, Function<OrbitalConfig, GameManagerFactory> function) {
+    public OrbitalBuilderImpl withGameManagerFactory(DeploymentOptions options, Function<ConfigurationContext, GameManagerFactory> function) {
         gameManagerFactoryFactory = GameManagerFactoryFactory.gameManagerFactory(options, function);
         return this;
     }
@@ -87,7 +87,7 @@ public final class OrbitalBuilderImpl implements OrbitalBuilder {
 
     private Future<ConfigurationContext> deployGateway(ConfigurationContext context) {
         return Objects.requireNonNull(gatewayFactory, "Gateway factory is required")
-                .create(context.getConfig())
+                .create(context)
                 .flatMap(gatewayVerticle -> GameVerticle.deploy(vertx, gatewayVerticle, gatewayVerticle.options()))
                 .map(it -> context);
     }
@@ -95,7 +95,7 @@ public final class OrbitalBuilderImpl implements OrbitalBuilder {
     private Future<ConfigurationContext> deployRooms(ConfigurationContext context) {
         return Future.succeededFuture(Objects.requireNonNull(gameManagerFactoryFactory, "Game manager factory is required"))
                 .flatMap(gameManagerFactoryFactory ->
-                        gameManagerFactoryFactory.create(context.getConfig())
+                        gameManagerFactoryFactory.create(context)
                                 .flatMap(gameManagerFactory ->
                                         GameVerticle.deploy(vertx, gameManagerFactory, gameManagerFactoryFactory.getDeploymentOptions()).map(it -> context))
                 );

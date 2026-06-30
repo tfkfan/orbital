@@ -35,7 +35,7 @@ public class MonitorEndpointFactory {
             router.route().handler(corsHandler);
         final MetricsService metricsService = MetricsService.create(Vertx.currentContext().owner());
         router.route("/cluster/list").handler(rc ->
-                Orbital.get().getOrbitalManager().getGatewayInfoList().onComplete(result -> wrapCall(rc, () -> {
+                Orbital.get().clusterManager().getGatewayInfoList().onComplete(result -> wrapCall(rc, () -> {
                     if (result.succeeded())
                         rc.response().end(new JsonArray(result.result()).encode());
                     else

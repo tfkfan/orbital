@@ -1,5 +1,6 @@
 package io.github.tfkfan.orbital.core.factory;
 
+import io.github.tfkfan.orbital.core.ConfigurationContext;
 import io.github.tfkfan.orbital.core.configuration.props.RoomConfig;
 import io.github.tfkfan.orbital.core.manager.GameManager;
 import io.github.tfkfan.orbital.core.room.GameRoom;
@@ -14,5 +15,5 @@ public interface GameRoomFactory<R extends GameRoom, S extends GameState> {
                      RoomType roomType,
                      S gameState,
                      GameManager gameManager,
-                     RoomConfig roomConfig);
+                     ConfigurationContext configurationContext);
 }
