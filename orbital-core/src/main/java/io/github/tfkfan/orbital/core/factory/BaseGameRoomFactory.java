@@ -1,8 +1,7 @@
 package io.github.tfkfan.orbital.core.factory;
 
 import io.github.tfkfan.orbital.core.ConfigurationContext;
-import io.github.tfkfan.orbital.core.configuration.props.RoomConfig;
-import io.github.tfkfan.orbital.core.manager.GameManager;
+import io.github.tfkfan.orbital.core.manager.GameRoomManager;
 import io.github.tfkfan.orbital.core.room.GameRoom;
 import io.github.tfkfan.orbital.core.room.RoomType;
 import io.github.tfkfan.orbital.core.state.GameState;
@@ -16,7 +15,7 @@ public class BaseGameRoomFactory<R extends GameRoom, S extends GameState> implem
                             UUID roomId,
                             RoomType roomType,
                             S gameState,
-                            GameManager gameManager,
+                            GameRoomManager gameRoomManager,
                             ConfigurationContext configurationContext) {
         return null;
     }

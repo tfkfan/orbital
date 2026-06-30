@@ -12,6 +12,10 @@ import java.util.Collection;
 import java.util.UUID;
 
 public interface GameRoom extends Runnable, MessageBroadcaster, RoomEventPublisher, GameRoomLifecycle, Scheduler {
+    void start();
+
+    void create();
+
     RoomType roomType();
 
     static String constructEventListenerConsumer(UUID gameRoomId, Class<?> clazz) {
@@ -29,19 +33,16 @@ public interface GameRoom extends Runnable, MessageBroadcaster, RoomEventPublish
     void join(PlayerSession playerSession);
 
     default void onJoin(PlayerSession playerSession) {
-
     }
 
     void rejoin(PlayerSession userSession, UUID reconnectKey);
 
     default void onRejoin(PlayerSession userSession, UUID reconnectKey) {
-
     }
 
     PlayerSession disconnect(PlayerSession userSession);
 
     default void onDisconnect(PlayerSession userSession) {
-
     }
 
     Collection<PlayerSession> sessions();

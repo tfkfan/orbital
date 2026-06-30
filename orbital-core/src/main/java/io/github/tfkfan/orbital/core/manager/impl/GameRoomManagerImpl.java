@@ -3,11 +3,10 @@ package io.github.tfkfan.orbital.core.manager.impl;
 import io.github.tfkfan.orbital.core.ConfigurationContext;
 import io.github.tfkfan.orbital.core.configuration.Constants;
 import io.github.tfkfan.orbital.core.configuration.Fields;
-import io.github.tfkfan.orbital.core.configuration.props.RoomConfig;
 import io.github.tfkfan.orbital.core.factory.GameRoomFactory;
 import io.github.tfkfan.orbital.core.factory.GameStateFactory;
 import io.github.tfkfan.orbital.core.factory.PlayerFactory;
-import io.github.tfkfan.orbital.core.manager.GameManager;
+import io.github.tfkfan.orbital.core.manager.GameRoomManager;
 import io.github.tfkfan.orbital.core.metrics.registrar.GameManagerMetricsRegistrar;
 import io.github.tfkfan.orbital.core.model.players.Player;
 import io.github.tfkfan.orbital.core.room.GameRoom;
@@ -25,7 +24,7 @@ import lombok.extern.slf4j.Slf4j;
 import java.util.*;
 
 @Slf4j
-public class GameManagerImpl<R extends GameRoom, S extends GameState> implements GameManager {
+public class GameRoomManagerImpl<R extends GameRoom, S extends GameState> implements GameRoomManager {
     protected final Vertx vertx;
     protected final ConfigurationContext configurationContext;
     protected final String verticleId;
@@ -37,12 +36,12 @@ public class GameManagerImpl<R extends GameRoom, S extends GameState> implements
     protected final GameStateFactory<S> gameStateFactory;
     protected final GameRoomFactory<R, S> gameRoomFactory;
 
-    public GameManagerImpl(String verticleId,
-                           Vertx vertx,
-                           ConfigurationContext configurationContext,
-                           PlayerFactory playerFactory,
-                           GameStateFactory<S> gameStateFactory,
-                           GameRoomFactory<R, S> gameRoomFactory) {
+    public GameRoomManagerImpl(String verticleId,
+                               Vertx vertx,
+                               ConfigurationContext configurationContext,
+                               PlayerFactory playerFactory,
+                               GameStateFactory<S> gameStateFactory,
+                               GameRoomFactory<R, S> gameRoomFactory) {
         this.verticleId = Objects.requireNonNull(verticleId);
         this.configurationContext = Objects.requireNonNull(configurationContext);
         this.vertx = Objects.requireNonNull(vertx);

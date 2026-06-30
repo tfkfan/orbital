@@ -1,9 +1,8 @@
 package io.github.tfkfan.orbital.core.room;
 
 import io.github.tfkfan.orbital.core.ConfigurationContext;
-import io.github.tfkfan.orbital.core.configuration.props.RoomConfig;
 import io.github.tfkfan.orbital.core.event.KeyDownPlayerEvent;
-import io.github.tfkfan.orbital.core.manager.GameManager;
+import io.github.tfkfan.orbital.core.manager.GameRoomManager;
 import io.github.tfkfan.orbital.core.math.random.Random;
 import io.github.tfkfan.orbital.core.model.Direction;
 import io.github.tfkfan.orbital.core.model.players.Player2D;
@@ -17,9 +16,9 @@ public class DefaultGameRoom extends AbstractGameRoom<GameState> {
 
     public DefaultGameRoom(String verticleId, UUID gameRoomId, RoomType roomType,
                            GameState state,
-                           GameManager gameManager,
+                           GameRoomManager gameRoomManager,
                            ConfigurationContext configurationContext) {
-        super(state, verticleId, gameRoomId, roomType, gameManager, configurationContext);
+        super(state, verticleId, gameRoomId, roomType, gameRoomManager, configurationContext);
     }
 
     @Override

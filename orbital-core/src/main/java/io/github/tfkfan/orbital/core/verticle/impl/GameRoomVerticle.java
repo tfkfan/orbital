@@ -1,18 +1,18 @@
 package io.github.tfkfan.orbital.core.verticle.impl;
 
 import io.github.tfkfan.orbital.core.factory.GameManagerFactory;
-import io.github.tfkfan.orbital.core.manager.GameManager;
+import io.github.tfkfan.orbital.core.manager.GameRoomManager;
 import io.github.tfkfan.orbital.core.verticle.BaseVerticle;
 import io.vertx.core.Promise;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public class GameRoomVerticle extends BaseVerticle {
-    final GameManager gameManager;
+    final GameRoomManager gameRoomManager;
 
     public GameRoomVerticle(GameManagerFactory gameManagerFactory) {
         super();
-        this.gameManager = gameManagerFactory.apply(verticleId());
+        this.gameRoomManager = gameManagerFactory.apply(verticleId());
     }
 
     @Override

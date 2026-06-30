@@ -6,7 +6,7 @@ import io.github.tfkfan.orbital.core.configuration.Fields;
 import io.github.tfkfan.orbital.core.configuration.MessageTypes;
 import io.github.tfkfan.orbital.core.event.*;
 import io.github.tfkfan.orbital.core.event.listener.EventListener;
-import io.github.tfkfan.orbital.core.manager.GameManager;
+import io.github.tfkfan.orbital.core.manager.GameRoomManager;
 import io.github.tfkfan.orbital.core.metrics.GameRoomMetrics;
 import io.github.tfkfan.orbital.core.metrics.registrar.GameRoomMetricsRegistrar;
 import io.github.tfkfan.orbital.core.model.players.Player;
@@ -40,7 +40,7 @@ public abstract class AbstractGameRoom<S extends GameState> implements GameRoom 
     protected final UUID gameRoomId;
     protected final String verticleId;
     protected final Vertx vertx;
-    protected final GameManager gameManager;
+    protected final GameRoomManager gameRoomManager;
 
     private final RoomType roomType;
     private final ConfigurationContext configurationContext;
@@ -52,13 +52,13 @@ public abstract class AbstractGameRoom<S extends GameState> implements GameRoom 
 
     private final GameRoomMetricsRegistrar gameRoomMetricsRegistrar;
 
-    public AbstractGameRoom(S state, String verticleId, UUID gameRoomId, RoomType roomType, GameManager gameManager,
+    public AbstractGameRoom(S state, String verticleId, UUID gameRoomId, RoomType roomType, GameRoomManager gameRoomManager,
                             ConfigurationContext configurationContext) {
         this.state = Objects.requireNonNull(state);
         this.gameRoomId = Objects.requireNonNull(gameRoomId);
         this.verticleId = Objects.requireNonNull(verticleId);
         this.roomType = Objects.requireNonNull(roomType);
-        this.gameManager = Objects.requireNonNull(gameManager);
+        this.gameRoomManager = Objects.requireNonNull(gameRoomManager);
         this.configurationContext = Objects.requireNonNull(configurationContext);
         this.vertx = Vertx.currentContext().owner();
         this.scheduler = new RoomScheduler(vertx);
@@ -145,7 +145,7 @@ public abstract class AbstractGameRoom<S extends GameState> implements GameRoom 
         vertx.eventBus().publish(Constants.MATCHMAKER_ROOM_CREATE_CHANNEL, new JsonObject()
                 .put(Fields.roomId, key().toString()));
         gameRoomMetricsRegistrar.register();
-        gameManager.onCreate(this);
+        gameRoomManager.onCreate(this);
 
         onCreate();
         log.debug("Room {} has been created", key());
@@ -162,7 +162,7 @@ public abstract class AbstractGameRoom<S extends GameState> implements GameRoom 
                 OffsetDateTime.now().plus(configurationContext.getConfig().getRoom().getStartDelay(), ChronoUnit.MILLIS).toInstant().toEpochMilli()
         ));
 
-        gameManager.onStart(this);
+        gameRoomManager.onStart(this);
         onStart();
         log.debug("Room {} just started", key());
     }
@@ -171,7 +171,7 @@ public abstract class AbstractGameRoom<S extends GameState> implements GameRoom 
         log.trace("Room {} battle start call", key());
 
         started = true;
-        gameManager.onBattleStart(this);
+        gameRoomManager.onBattleStart(this);
 
         schedulePeriodically(0L, configurationContext.getConfig().getRoom().getLoopRate(), this::update);
         broadcast(MessageTypes.GAME_ROOM_BATTLE_START, new GameRoomInfoPack(
@@ -185,7 +185,7 @@ public abstract class AbstractGameRoom<S extends GameState> implements GameRoom 
 
     protected void battleEnd() {
         log.trace("Room {} onBattleEnd call", key());
-        gameManager.onBattleEnd(this);
+        gameRoomManager.onBattleEnd(this);
     }
 
     @Override
@@ -205,7 +205,7 @@ public abstract class AbstractGameRoom<S extends GameState> implements GameRoom 
         vertx.eventBus().publish(Constants.MATCHMAKER_ROOM_DESTROY_CHANNEL, new JsonObject()
                 .put(Fields.roomId, key().toString()));
 
-        gameManager.onDestroy(this);
+        gameRoomManager.onDestroy(this);
     }
 
     @Override

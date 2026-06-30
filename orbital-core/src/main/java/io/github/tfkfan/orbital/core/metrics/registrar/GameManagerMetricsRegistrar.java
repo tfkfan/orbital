@@ -4,25 +4,21 @@ import io.github.tfkfan.orbital.core.metrics.GameManagerMetrics;
 import io.micrometer.core.instrument.Gauge;
 import io.micrometer.core.instrument.MeterRegistry;
 
-public class GameManagerMetricsRegistrar extends AbstractMetricsRegistrar {
-    private final GameManagerMetrics gameManagerMetrics;
-
+public class GameManagerMetricsRegistrar extends AbstractMetricsRegistrar<GameManagerMetrics> {
     public GameManagerMetricsRegistrar(MeterRegistry registry, GameManagerMetrics gameManagerMetrics) {
-        super(registry);
-        this.gameManagerMetrics = gameManagerMetrics;
+        super(registry, gameManagerMetrics);
     }
 
-
     @Override
-    public void register() {
-        register(Gauge.builder("com.tfkfan.orbital.manager.rooms", gameManagerMetrics, GameManagerMetrics::totalRooms)
+    public void registerInternal(GameManagerMetrics m) {
+        register(Gauge.builder("com.tfkfan.orbital.manager.rooms", m, GameManagerMetrics::totalRooms)
                 .description("Total rooms count")
-                .tag("id", gameManagerMetrics.id())
+                .tag("id", m.id())
                 .register(registry()));
 
-        register(Gauge.builder("com.tfkfan.orbital.manager.players", gameManagerMetrics, GameManagerMetrics::totalPlayers)
+        register(Gauge.builder("com.tfkfan.orbital.manager.players", m, GameManagerMetrics::totalPlayers)
                 .description("Total players count")
-                .tag("id", gameManagerMetrics.id())
+                .tag("id", m.id())
                 .register(registry()));
     }
 }
